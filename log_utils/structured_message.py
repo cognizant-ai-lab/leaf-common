@@ -1,7 +1,7 @@
 import datetime
 import json
 
-from logging.message_types import MessageType
+from log_utils.message_types import MessageType
 
 
 class StructuredMessage(object):
