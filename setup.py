@@ -26,7 +26,7 @@ setup(
     name='leaf-common',
     version='1.0.0',
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
-    packages=['grpc', 'logging'],
+    packages=['grpc', 'log_utils'],
     install_requires=[
     ],
     description='LEAF team common code library',
