@@ -1,0 +1,11 @@
+Metadata-Version: 1.2
+Name: leaf-common
+Version: 1.0.0
+Summary: LEAF team common code library
+Home-page: https://github.com/leaf-ai/leaf-common/
+Author: Darren Sargent
+License: UNKNOWN
+Description: For code used across the various projects in the LEAF team.
+        
+Platform: UNKNOWN
+Requires-Python: >=3.6

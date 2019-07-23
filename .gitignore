@@ -1,0 +1,17 @@
+# PyCharm project files
+.idea/
+
+# ipython notebook checkpoints
+.ipynb_checkpoints/
+
+# virtualenv folder
+venv/
+venv3/
+
+# Python byte code
+*.pyc
+
+# gRPC generated code
+autoseg_grpc/python/generated/
+ascendautoseg/simulator/sandbox/*
+
