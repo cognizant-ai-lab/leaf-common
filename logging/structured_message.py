@@ -1,7 +1,7 @@
 import datetime
 import json
 
-from autoseg_grpc.python.esp.logging.message_types import MessageType
+from logging.message_types import MessageType
 
 
 class StructuredMessage(object):
