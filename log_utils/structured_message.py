@@ -1,7 +1,8 @@
 import datetime
 import json
+import logging
 
-from log_utils.message_types import MessageType
+from log_utils.message_type import MessageType
 
 
 class StructuredMessage(object):
@@ -29,7 +30,8 @@ class StructuredMessage(object):
         return json.dumps(json_to_log)
 
 
-def log_structured(source, message, logger, message_type=MessageType.Other, extra_properties=None):
+def log_structured(source : str, message: StructuredMessage, logger : logging.Logger,
+                   message_type: MessageType = MessageType.Other, extra_properties: dict = None):
     """
     Logs a message in structured format using the supplied logger. All messages logged via this function will
     be logged at `INFO` level.
