@@ -1,3 +1,6 @@
+"""
+Represents the various types of log messages an application may generate.
+"""
 from enum import Enum
 
 

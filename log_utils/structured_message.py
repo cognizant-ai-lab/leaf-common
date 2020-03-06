@@ -1,3 +1,7 @@
+"""
+For structured logging.
+"""
+
 import datetime
 import json
 import logging
@@ -5,7 +9,7 @@ import logging
 from log_utils.message_type import MessageType
 
 
-class StructuredMessage(object):
+class StructuredMessage:
     """
     Encapsulates the data required for a single structured log message, which will result in a single line in the
     output (usually stdout).
@@ -30,7 +34,7 @@ class StructuredMessage(object):
         return json.dumps(json_to_log)
 
 
-def log_structured(source : str, message: StructuredMessage, logger : logging.Logger,
+def log_structured(source: str, message: StructuredMessage, logger: logging.Logger,
                    message_type: MessageType = MessageType.Other, extra_properties: dict = None):
     """
     Logs a message in structured format using the supplied logger. All messages logged via this function will

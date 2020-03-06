@@ -1,0 +1,33 @@
+version: '1.0'
+steps:
+  clone_leaf-common:
+    type: git-clone
+    title: Clone leaf-common
+    repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
+    revision: '${{CF_REVISION}}'
+    git: github
+
+  leaf_common_build:
+    title: Build Docker image
+    image_name: leaf-common
+    type: build
+    dockerfile: ./Dockerfile
+    working_directory: ${{CF_REPO_NAME}}
+    tag: ${{CF_REVISION}}
+
+  static_checks:
+    title: Run static checks
+    image: ${{leaf_common_build}}
+    description: Run static analysis (Pylint and Flake8)
+    working_directory: ${{CF_REPO_NAME}}
+    commands:
+      - flake8 .
+      - pylint $(find . -name \*.py | xargs)
+
+  tests:
+    title: Run unit tests
+    image: ${{leaf_common_build}}
+    description: Run unit tests (nosetests)
+    working_directory: ${{CF_REPO_NAME}}
+    commands:
+      - nosetests -v --nocapture --with-ignore-docstrings

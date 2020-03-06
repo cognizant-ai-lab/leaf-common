@@ -1,3 +1,7 @@
+"""
+Installation script for leaf-common library
+"""
+
 import os
 import sys
 
@@ -11,26 +15,26 @@ if CURRENT_PYTHON < REQUIRED_PYTHON:
 ==========================
 Unsupported Python version
 ==========================
-This version of esp-sdk requires Python {}.{}, but you're trying to
+This version of leaf-common requires Python {}.{}, but you're trying to
 install it on Python {}.{}.
 """.format(*(REQUIRED_PYTHON + CURRENT_PYTHON)))
     sys.exit(1)
 
 
-def read(fname):
-    with open(os.path.join(os.path.dirname(__file__), fname)) as f:
-        return f.read()
+def _read(fname):
+    with open(os.path.join(os.path.dirname(__file__), fname)) as file_name:
+        return file_name.read()
 
 
 setup(
     name='leaf-common',
-    version='1.0.0',
+    version='1.1.0',
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
     packages=['grpc', 'log_utils'],
     install_requires=[
     ],
     description='LEAF team common code library',
-    long_description=read('README.md'),
+    long_description=_read('README.md'),
     author='Darren Sargent',
     url='https://github.com/leaf-ai/leaf-common/'
 )
