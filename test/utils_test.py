@@ -63,7 +63,7 @@ class ListUtilsTest(TestCase):
 
     def test_split_chunk_bigger_than_list(self):
         """
-        Verify we can split a list into a single chunk (so, not really splitting)
+        Verify we can split a list into a chunk "larger than the list"
         :return: None
         """
         lists = split_list(self._master_list, 20)
