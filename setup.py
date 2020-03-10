@@ -30,7 +30,7 @@ setup(
     name='leaf-common',
     version='1.1.0',
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
-    packages=['grpc', 'log_utils'],
+    packages=['leaf_common/grpc_utils', 'leaf_common/log_utils'],
     install_requires=[
     ],
     description='LEAF team common code library',

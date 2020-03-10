@@ -6,7 +6,7 @@ import datetime
 import json
 import logging
 
-from log_utils.message_type import MessageType
+from leaf_common.log_utils.message_type import MessageType
 
 
 class StructuredMessage:
