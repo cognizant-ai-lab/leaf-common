@@ -32,6 +32,7 @@ setup(
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
     packages=['leaf_common/grpc_utils', 'leaf_common/log_utils'],
     install_requires=[
+        "numpy==1.18.2"
     ],
     description='LEAF team common code library',
     long_description=_read('README.md'),
