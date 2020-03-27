@@ -28,7 +28,7 @@ def _read(fname):
 
 setup(
     name='leaf-common',
-    version='1.1.0',
+    version='1.1.1',
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
     packages=['leaf_common/grpc_utils', 'leaf_common/log_utils'],
     install_requires=[
