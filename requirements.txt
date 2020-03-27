@@ -3,7 +3,7 @@ flake8==3.7.9
 pylint==2.4.4
 
 # Math libraries
-numpy==1.18.2
+numpy==1.16.4
 
 # Tests
 nose==1.3.7
