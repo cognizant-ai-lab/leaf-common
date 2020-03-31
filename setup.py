@@ -5,7 +5,7 @@ Installation script for leaf-common library
 import os
 import sys
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 CURRENT_PYTHON = sys.version_info[:2]
 REQUIRED_PYTHON = (3, 6)
@@ -30,7 +30,7 @@ setup(
     name='leaf-common',
     version='1.1.1',
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
-    packages=['leaf_common/grpc_utils', 'leaf_common/log_utils'],
+    packages=find_packages('.', exclude=['tests']),
     install_requires=[
         "numpy==1.16.4"
     ],
