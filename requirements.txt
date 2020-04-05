@@ -10,3 +10,6 @@ nose==1.3.7
 
 # Packaging
 setuptools==46.1.3
+
+# Serialization
+jsonpickle==1.3

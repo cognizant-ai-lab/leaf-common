@@ -1,5 +1,6 @@
-# TODO: copied from servicecommon.session.extension_packaging.ExtensionPackaging in deepbilevel
-# TODO: Use common lib once we merge with LEAF
+"""
+Class to assist in packaging up byte extensions suitable for protocol buffers transmission in a bytes field.
+"""
 
 import json
 import sys
