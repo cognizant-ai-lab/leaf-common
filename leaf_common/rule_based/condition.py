@@ -91,7 +91,7 @@ class Condition:  # pylint: disable-msg=R0902, R0912
 
     def parse(self, er_states, min_maxes):
         """
-        Pars a condition
+        Parse a condition
         :param er_states: list of domain states
         :param min_maxes: list of states min and max values
         :return: the result
