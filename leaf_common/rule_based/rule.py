@@ -54,7 +54,7 @@ class Rule:
 
     def parse(self, er_states, min_maxes):
         """
-        Pars a rule
+        Parse a rule
         :param er_states: list of domain states
         :param min_maxes: list of states min and max values
         :return: the result
