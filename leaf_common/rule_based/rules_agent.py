@@ -1,8 +1,8 @@
 """ Base class for rule representation """
 
 import random
-
 import sys
+
 import jsonpickle
 import numpy
 
