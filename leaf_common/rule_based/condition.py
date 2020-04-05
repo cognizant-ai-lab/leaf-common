@@ -130,47 +130,45 @@ class Condition:  # pylint: disable-msg=R0902, R0912
         condition.second_state_value = self.second_state_value
         return condition
 
+    @staticmethod
+    def decode(condition_bytes) -> 'Condition':
+        """
+        Converts a bag of bytes from a pickled dictionary into a condition
+        :param condition_bytes: a bag of bytes
+        :return: condition
+        """
+        condition_stream = io.BytesIO(condition_bytes)
+        condition_dict = pickle.load(condition_stream)
+        condition = Condition(condition_dict['states'], condition_dict['max_lookback'])
+        condition.first_state = condition_dict['first_state']
+        condition.first_state_coefficient = condition_dict['first_state_coefficient']
+        condition.first_state_exponent = condition_dict['first_state_exponent']
+        condition.first_state_lookback = condition_dict['first_state_lookback']
+        condition.operator = condition_dict['operator']
+        condition.second_state = condition_dict['second_state']
+        condition.second_state_coefficient = condition_dict['second_state_coefficient']
+        condition.second_state_exponent = condition_dict['second_state_exponent']
+        condition.second_state_lookback = condition_dict['second_state_lookback']
+        condition.second_state_value = condition_dict['second_state_value']
+        return condition
 
-def condition_decode(condition_bytes):
-    """
-    Converts a bag of bytes from a pickled dictionary into a condition
-    :param condition_bytes: a bag of bytes
-    :return: condition
-    """
-    condition_stream = io.BytesIO(condition_bytes)
-    condition_dict = pickle.load(condition_stream)
-    condition = Condition(condition_dict['states'], condition_dict['max_lookback'])
-    condition.first_state = condition_dict['first_state']
-    condition.first_state_coefficient = condition_dict['first_state_coefficient']
-    condition.first_state_exponent = condition_dict['first_state_exponent']
-    condition.first_state_lookback = condition_dict['first_state_lookback']
-    condition.operator = condition_dict['operator']
-    condition.second_state = condition_dict['second_state']
-    condition.second_state_coefficient = condition_dict['second_state_coefficient']
-    condition.second_state_exponent = condition_dict['second_state_exponent']
-    condition.second_state_lookback = condition_dict['second_state_lookback']
-    condition.second_state_value = condition_dict['second_state_value']
-    return condition
-
-
-def condition_encode(condition):
-    """
-    Converts a condition into bytes corresponding to a pickled dictionary
-    :param condition: a condition
-    :return: bag of bytes
-    """
-    condition_dict = {'states': condition.states,
-                      'max_lookback': condition.max_lookback,
-                      'first_state': condition.first_state,
-                      'first_state_coefficient': condition.first_state_coefficient,
-                      'first_state_exponent': condition.first_state_exponent,
-                      'first_state_lookback': condition.first_state_lookback,
-                      'operator': condition.operator,
-                      'second_state': condition.second_state,
-                      'second_state_coefficient': condition.second_state_coefficient,
-                      'second_state_exponent': condition.second_state_exponent,
-                      'second_state_lookback': condition.second_state_lookback,
-                      'second_state_value': condition.second_state_value
-                      }
-    condition_bytes = pickle.dumps(condition_dict)
-    return condition_bytes
+    def encode(self) -> bytearray:
+        """
+        Converts a condition into bytes corresponding to a pickled dictionary
+        :return: bag of bytes
+        """
+        condition_dict = {'states': self.states,
+                          'max_lookback': self.max_lookback,
+                          'first_state': self.first_state,
+                          'first_state_coefficient': self.first_state_coefficient,
+                          'first_state_exponent': self.first_state_exponent,
+                          'first_state_lookback': self.first_state_lookback,
+                          'operator': self.operator,
+                          'second_state': self.second_state,
+                          'second_state_coefficient': self.second_state_coefficient,
+                          'second_state_exponent': self.second_state_exponent,
+                          'second_state_lookback': self.second_state_lookback,
+                          'second_state_value': self.second_state_value
+                          }
+        condition_bytes = pickle.dumps(condition_dict)
+        return condition_bytes

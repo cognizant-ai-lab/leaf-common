@@ -32,6 +32,7 @@ setup(
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
     packages=find_packages('.', exclude=['tests']),
     install_requires=[
+        "jsonpickle==1.3",
         "numpy==1.16.4"
     ],
     description='LEAF team common code library',

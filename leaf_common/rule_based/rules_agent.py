@@ -1,16 +1,13 @@
 """ Base class for rule representation """
 
-# TO DO This file is a duplicate on client and server side and has to move to a common place
-
-import io
 import random
-import pickle
-import sys
 
+import sys
+import jsonpickle
 import numpy
 
 from leaf_common.rule_based.condition import THE_MIN, THE_MAX, THE_TOTAL
-from leaf_common.rule_based.rule import NO_ACTION, Rule, THE_ACTION, LOOK_BACK, THE_LOOKBACK, rule_decode, rule_encode
+from leaf_common.rule_based.rule import NO_ACTION, Rule, THE_ACTION, LOOK_BACK, THE_LOOKBACK
 
 RULE_FILTER_FACTOR = 1
 MAX_LOOKBACK = 0
@@ -200,12 +197,12 @@ class RulesAgent:
         """
         Act based on the observations
         :param observations: the input state
-        :param reward: reward
-        :param done: done flag
+        :param reward: Not used
+        :param done: Not used
         :return: an action
         """
-        del reward
-        del done
+        del reward, done
+
         for key in self.states.keys():
             self.state[key] = observations[int(key)]
         self.last_action = self.choose_action()
@@ -247,51 +244,43 @@ class RulesAgent:
                     return True
         return False
 
+    @staticmethod
+    def decode(rules_agent_string: str) -> 'RulesAgent':
+        """
+        Converts a RulesAgent in the form of a JSON string to an instance of RulesAgent.
 
-def rules_decode(rules_bytes):
-    """
-    Converts a bag of bytes from a pickled file into a rule set
-    :param rules_bytes: a bag of bytes
-    :return: rule set
-    """
-    rules_stream = io.BytesIO(rules_bytes)
-    rules_dict = pickle.load(rules_stream)
-    rules_agent = RulesAgent(rules_dict['states'], rules_dict['actions'], {}, uid=rules_dict['uid'])
-    rules_agent.default_action = rules_dict['default_action']
-    rules_agent.times_applied = rules_dict['times_applied']
-    rules_agent.er_states = rules_dict['er_states']
-    rules_agent.last_action = NO_ACTION
-    rules_agent.state = rules_dict['state']
-    rules_agent.state_history_size = rules_dict['state_history_size']
-    rules_agent.state_min_maxes = rules_dict['state_min_maxes']
-    rules_agent.rules = []
-    encoded_rules = rules_dict['rules']
-    for encoded_rule in encoded_rules:
-        rule = rule_decode(encoded_rule)
-        rules_agent.rules.append(rule)
-    rules_agent.reset()  # We want to reset the agent before a new run.
-    return rules_agent
+        :param String containing RulesAgent's state.
+        :return: An instance of `RulesAgent` populated from the supplied JSON string.
+        """
 
+        return jsonpickle.decode(rules_agent_string, keys=True)
 
-def rules_encode(rules_agent):
-    """
-    Converts an individual into bytes corresponding to a pickled list of numpy arrays
-    :param rules_agent: a dictionary representing a rule based agent
-    :return: bytes
-    """
-    rules_dict = {'uid': rules_agent.uid,
-                  'default_action': rules_agent.default_action,
-                  'times_applied': rules_agent.times_applied,
-                  'er_states': rules_agent.er_states,
-                  'last_action': rules_agent.last_action,
-                  'state': rules_agent.state,
-                  'actions': rules_agent.actions,
-                  'states': rules_agent.states,
-                  'state_history_size': rules_agent.state_history_size,
-                  'state_min_maxes': rules_agent.state_min_maxes,
-                  'rules': []
-                  }
-    for rule in rules_agent.rules:
-        rules_dict['rules'].append(rule_encode(rule))
-    rules_bytes = pickle.dumps(rules_dict)
-    return rules_bytes
+    def encode(self) -> str:
+        """
+        Converts an individual into a human-readable JSON string
+        :return: String containing RulesAgent's state
+        """
+        return jsonpickle.encode(self, keys=True)
+
+    def save(self, file_name: str) -> None:
+        """
+        Save this rules agent (and associated members) to a file in JSON format.
+
+        :param file_name: A string containing a reference to a writeable file. The file will be overwritten.
+        :return None but current state of this object is dumped as JSON to the file provided.
+        """
+        json_string = self.encode()
+        with open(file_name, 'w') as output_file:
+            output_file.write(json_string)
+
+    @staticmethod
+    def load(file_name: str) -> 'RulesAgent':
+        """
+        Load a rules agent from a JSON file
+
+        :param file_name: A string containing a reference to a readable file that contains the agent in serialized
+        JSON format
+        :return An instance of `RulesAgent` populated from the given file
+        """
+        with open(file_name, 'r') as input_file:
+            return RulesAgent.decode(input_file.read())

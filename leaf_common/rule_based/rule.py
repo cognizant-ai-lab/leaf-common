@@ -6,7 +6,7 @@ import io
 import random
 import pickle
 
-from leaf_common.rule_based.condition import Condition, condition_decode, condition_encode
+from leaf_common.rule_based.condition import Condition
 
 RULE_ELEMENTS = ["condition", "action", "action_lookback"]
 THE_LOOKBACK = 1
@@ -120,42 +120,41 @@ class Rule:
             return True
         return False
 
+    @staticmethod
+    def decode(rule_bytes: bytearray) -> 'Rule':
+        """
+        Converts a bag of bytes from a pickled dictionary into a rule
+        :param rule_bytes: a bag of bytes
+        :return: rule
+        """
+        rule_stream = io.BytesIO(rule_bytes)
+        rule_dict = pickle.load(rule_stream)
+        rule = Rule(rule_dict['states'], rule_dict['actions'], rule_dict['max_lookback'])
+        rule.condition_string = []
+        rule.action = rule_dict['action']
+        rule.action_lookback = rule_dict['action_lookback']
+        rule.times_applied = rule_dict['times_applied']
+        encoded_conditions = rule_dict['condition_string']
+        for encoded_condition in encoded_conditions:
+            condition = Condition.decode(encoded_condition)
+            rule.condition_string.append(condition)
+        return rule
 
-def rule_decode(rule_bytes):
-    """
-    Converts a bag of bytes from a pickled dictionary into a rule
-    :param rule_bytes: a bag of bytes
-    :return: rule
-    """
-    rule_stream = io.BytesIO(rule_bytes)
-    rule_dict = pickle.load(rule_stream)
-    rule = Rule(rule_dict['states'], rule_dict['actions'], rule_dict['max_lookback'])
-    rule.condition_string = []
-    rule.action = rule_dict['action']
-    rule.action_lookback = rule_dict['action_lookback']
-    rule.times_applied = rule_dict['times_applied']
-    encoded_conditions = rule_dict['condition_string']
-    for encoded_condition in encoded_conditions:
-        condition = condition_decode(encoded_condition)
-        rule.condition_string.append(condition)
-    return rule
-
-
-def rule_encode(rule):
-    """
-    Converts a rule into bytes corresponding to a pickled dictionary
-    :param rule: a rule
-    :return: bag of bytes
-    """
-    rule_dict = {'states': rule.states,
-                 'max_lookback': rule.max_lookback,
-                 'actions': rule.actions,
-                 'action': rule.action,
-                 'action_lookback': rule.action_lookback,
-                 'times_applied': rule.times_applied,
-                 'condition_string': []
-                 }
-    for condition in rule.condition_string:
-        rule_dict['condition_string'].append(condition_encode(condition))
-    rule_bytes = pickle.dumps(rule_dict)
-    return rule_bytes
+    def encode(self) -> bytearray:
+        """
+        Converts a rule into bytes corresponding to a pickled dictionary
+        :return: bag of bytes
+        """
+        rule_dict = {
+            'states': self.states,
+            'max_lookback': self.max_lookback,
+            'actions': self.actions,
+            'action': self.action,
+            'action_lookback': self.action_lookback,
+            'times_applied': self.times_applied,
+            'condition_string': []
+        }
+        for condition in self.condition_string:
+            rule_dict['condition_string'].append(condition.encode())
+        rule_bytes = pickle.dumps(rule_dict)
+        return rule_bytes

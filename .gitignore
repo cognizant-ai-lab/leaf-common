@@ -15,3 +15,6 @@ venv3/
 autoseg_grpc/python/generated/
 ascendautoseg/simulator/sandbox/*
 
+# Setup folder
+leaf_common.egg-info
+
