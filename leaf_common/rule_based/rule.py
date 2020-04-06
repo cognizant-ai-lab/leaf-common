@@ -34,6 +34,12 @@ class Rule:
     def __str__(self):
         return self.get_str(None)
 
+    def __repr__(self):
+        return self.__str__()
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
     def get_str(self, min_maxes):
         """
         String representation for rule
