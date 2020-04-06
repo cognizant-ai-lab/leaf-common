@@ -1,3 +1,6 @@
+"""
+Unit tests for RulesAgent
+"""
 import tempfile
 from unittest import TestCase
 
@@ -5,7 +8,13 @@ from leaf_common.rule_based.rules_agent import RulesAgent
 
 
 class TestRulesAgent(TestCase):
+    """
+    Unit tests for RulesAgent
+    """
     def test_serialize_roundtrip(self):
+        """
+        Verify simple roundtrip with serializer
+        """
         agent = RulesAgent(states={'k1': 'value1'}, actions={'action1': 'action_value1'}, uid='test_rules_agent',
                            initial_state={'state1': 'value1'})
 
