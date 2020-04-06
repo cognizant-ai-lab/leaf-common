@@ -56,6 +56,13 @@ class RulesAgent:
         rules_str = rules_str + times_applied + "Default Action: " + self.default_action + "\n"
         return rules_str
 
+    def __repr__(self):
+        # For now, just use __str__ for __repr__ output, even though they would generally be for different uses
+        return self.__str__()
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
     def revise_state_minmaxes(self, current_state):  # Keep track of min and max for all states
         """
         Get second state value
