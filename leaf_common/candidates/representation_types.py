@@ -50,7 +50,7 @@ class RepresentationType(str, Enum):
         elif representation == RepresentationType.NNWeights:
             file_type = 'pickle'
         elif representation == RepresentationType.RuleBased:
-            file_type = 'json_txt'
+            file_type = 'rules'
         else:
             file_type = None
 
@@ -67,5 +67,5 @@ class RepresentationType(str, Enum):
         """
         is_valid_keras_nn_file = representation == RepresentationType.KerasNN and file_name.endswith('.hd5')
         is_valid_weights_nn_file = representation == RepresentationType.NNWeights and file_name.endswith('.pickle')
-        is_valid_rule_set_file = representation == RepresentationType.RuleBased and file_name.endswith('.json_txt')
+        is_valid_rule_set_file = representation == RepresentationType.RuleBased and file_name.endswith('.rules')
         return is_valid_keras_nn_file or is_valid_weights_nn_file or is_valid_rule_set_file
