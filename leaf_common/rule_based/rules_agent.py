@@ -4,10 +4,14 @@ import random
 import sys
 
 import jsonpickle
+import jsonpickle.ext.numpy as jsonpickle_numpy
 import numpy
+
 
 from leaf_common.rule_based.condition import THE_MIN, THE_MAX, THE_TOTAL
 from leaf_common.rule_based.rule import NO_ACTION, Rule, THE_ACTION, LOOK_BACK, THE_LOOKBACK
+
+jsonpickle_numpy.register_handlers()
 
 RULE_FILTER_FACTOR = 1
 MAX_LOOKBACK = 0
