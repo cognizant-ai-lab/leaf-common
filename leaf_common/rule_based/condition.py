@@ -31,7 +31,7 @@ class Condition:  # pylint: disable-msg=R0902, R0912
         self.first_state_exponent = 1  # random.randint(1, MAX_EXPONENT)
         self.first_state_lookback = random.randint(0, self.max_lookback)
         self.operator = random.choice(OPERATORS)
-        choices = list(list(states.keys()) + [THE_VALUE])
+        choices = list(states.keys()) + [THE_VALUE]
         choices.remove(self.first_state)
         self.second_state = random.choice(choices)
         self.second_state_lookback = random.randint(0, self.max_lookback)
