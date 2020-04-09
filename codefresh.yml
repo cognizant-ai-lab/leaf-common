@@ -30,4 +30,4 @@ steps:
     description: Run unit tests (nosetests)
     working_directory: ${{CF_REPO_NAME}}
     commands:
-      - nosetests -v
+      - nosetests -v --with-ignore-docstrings .
