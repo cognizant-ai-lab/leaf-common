@@ -2,6 +2,7 @@
 Base class for condition representation
 """
 
+import math
 import random
 
 OPERATORS = [">=", "<=", ">", "<"]
@@ -15,6 +16,8 @@ THE_MAX = "max"
 THE_TOTAL = "total"
 NO_ACTION = -1
 GRANULARITY = 100
+DECIMAL_DIGITS = int(math.log10(GRANULARITY))
+FLOAT_FORMAT = "." + str(DECIMAL_DIGITS) + "f"
 MAX_EXPONENT = 3
 
 
@@ -26,15 +29,16 @@ class Condition:  # pylint: disable-msg=R0902, R0912
     def __init__(self, states, max_lookback):
         self.states = states
         self.max_lookback = max_lookback
+        self.first_state_lookback = random.randint(0, self.max_lookback)
         self.first_state = random.choice(list(states.keys()))
         self.first_state_coefficient = random.randint(0, GRANULARITY) / GRANULARITY
         self.first_state_exponent = 1  # random.randint(1, MAX_EXPONENT)
-        self.first_state_lookback = random.randint(0, self.max_lookback)
         self.operator = random.choice(OPERATORS)
-        choices = list(states.keys()) + [THE_VALUE]
-        choices.remove(self.first_state)
-        self.second_state = random.choice(choices)
         self.second_state_lookback = random.randint(0, self.max_lookback)
+        choices = list(list(states.keys()) + [THE_VALUE])
+        if self.first_state_lookback == self.second_state_lookback:
+            choices.remove(self.first_state)
+        self.second_state = random.choice(choices)
         self.second_state_value = random.randint(0, GRANULARITY) / GRANULARITY
         self.second_state_coefficient = random.randint(0, GRANULARITY) / GRANULARITY
         self.second_state_exponent = 1  # random.randint(1, MAX_EXPONENT)
@@ -54,24 +58,25 @@ class Condition:  # pylint: disable-msg=R0902, R0912
         :param min_maxes: A dictionary of domain features minimum and maximum values
         :return: condition.toString()
         """
-        first_condition = str(self.first_state_coefficient) + '*' + self.states[self.first_state]
-        if self.first_state_exponent > 1:
-            first_condition = first_condition + '^' + str(self.first_state_exponent)
+        first_condition = format(self.first_state_coefficient, FLOAT_FORMAT) + '*' + str(self.states[self.first_state])
         if self.first_state_lookback > 0:
             first_condition = first_condition + "[" + str(self.first_state_lookback) + "]"
+        if self.first_state_exponent > 1:
+            first_condition = first_condition + '^' + str(self.first_state_exponent)
         if self.second_state in self.states:
-            second_condition = str(self.second_state_coefficient) + '*' + self.states[self.second_state]
-            if self.second_state_exponent > 1:
-                second_condition = second_condition + '^' + str(self.second_state_exponent)
+            second_condition = format(self.second_state_coefficient, FLOAT_FORMAT) + \
+                               '*' + self.states[self.second_state]
             if self.second_state_lookback > 0:
                 second_condition = second_condition + "[" + str(self.second_state_lookback) + "]"
+            if self.second_state_exponent > 1:
+                second_condition = second_condition + '^' + str(self.second_state_exponent)
         elif min_maxes:
             min_value = min_maxes[self.first_state, THE_MIN]
             max_value = min_maxes[self.first_state, THE_MAX]
-            second_condition = str(min_value + self.second_state_value * (max_value - min_value))
+            second_condition = format((min_value + self.second_state_value * (max_value - min_value)), FLOAT_FORMAT)
             second_condition = second_condition + " {" + str(min_value) + ".." + str(max_value) + "}"
         else:
-            second_condition = str(self.second_state_value)
+            second_condition = format(self.second_state_value, FLOAT_FORMAT)
 
         return first_condition + " " + self.operator + " " + second_condition
 
