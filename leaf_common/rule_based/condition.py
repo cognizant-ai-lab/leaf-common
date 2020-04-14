@@ -56,7 +56,8 @@ class Condition:  # pylint: disable-msg=R0902
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
-    def get_str(self, min_maxes: Dict[(str, str)]=None) -> str:
+    # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
+    def get_str(self, min_maxes: Dict[(str, str)]=None) -> str:  # noqa: E252
         """
         String representation for condition
         :param min_maxes: A dictionary of domain features minimum and maximum values
