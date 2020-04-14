@@ -1,38 +1,42 @@
 """
 Base class for condition representation
 """
+import random
+from typing import Dict, List
 
 import math
-import random
 
 OPERATORS = [">=", "<=", ">", "<"]
-CONDITION_ELEMENTS = \
-    ["first_state", "first_state_coefficient", "first_state_exponent", "first_state_lookback", "operator",
-     "second_state", "second_state_coefficient", "second_state_exponent", "second_state_lookback", "second_state_value"]
+CONDITION_ELEMENTS = [
+    "first_state", "first_state_coefficient", "first_state_exponent", "first_state_lookback", "operator",
+    "second_state", "second_state_coefficient", "second_state_exponent", "second_state_lookback", "second_state_value"
+]
 THE_VALUE = "value"
 THE_ACTION = 0
 THE_MIN = "min"
 THE_MAX = "max"
 THE_TOTAL = "total"
-NO_ACTION = -1
 GRANULARITY = 100
 DECIMAL_DIGITS = int(math.log10(GRANULARITY))
 FLOAT_FORMAT = "." + str(DECIMAL_DIGITS) + "f"
 MAX_EXPONENT = 3
 
 
-class Condition:  # pylint: disable-msg=R0902, R0912
+class Condition:  # pylint: disable-msg=R0902
     """
-    Condition representation based class.
+    A class that encapsulates a binary condition with two operands (self.first_state and self.second_state)
+    The operands used by the condition are randomly chosen at construction time from the list of states supplied
+    from the Domain.
+    An operator is randomly chosen from the `OPERATORS` list.
     """
 
-    def __init__(self, states, max_lookback):
+    def __init__(self, states: Dict[str, str], max_lookback: int):
         self.states = states
         self.max_lookback = max_lookback
         self.first_state_lookback = random.randint(0, self.max_lookback)
-        self.first_state = random.choice(list(states.keys()))
+        self.first_state: str = random.choice(list(states.keys()))
         self.first_state_coefficient = random.randint(0, GRANULARITY) / GRANULARITY
-        self.first_state_exponent = 1  # random.randint(1, MAX_EXPONENT)
+        self.first_state_exponent = 1
         self.operator = random.choice(OPERATORS)
         self.second_state_lookback = random.randint(0, self.max_lookback)
         choices = list(states.keys()) + [THE_VALUE]
@@ -41,10 +45,10 @@ class Condition:  # pylint: disable-msg=R0902, R0912
         self.second_state = random.choice(choices)
         self.second_state_value = random.randint(0, GRANULARITY) / GRANULARITY
         self.second_state_coefficient = random.randint(0, GRANULARITY) / GRANULARITY
-        self.second_state_exponent = 1  # random.randint(1, MAX_EXPONENT)
+        self.second_state_exponent = 1
 
     def __str__(self):
-        return self.get_str(None)
+        return self.get_str()
 
     def __repr__(self):
         return self.__str__()
@@ -52,7 +56,7 @@ class Condition:  # pylint: disable-msg=R0902, R0912
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
-    def get_str(self, min_maxes):
+    def get_str(self, min_maxes: Dict[(str, str)]=None) -> str:
         """
         String representation for condition
         :param min_maxes: A dictionary of domain features minimum and maximum values
@@ -80,44 +84,47 @@ class Condition:  # pylint: disable-msg=R0902, R0912
 
         return first_condition + " " + self.operator + " " + second_condition
 
-    def get_second_state_value(self, er_states, nb_states, first_state, min_maxes):  # noqa: C901
+    def get_second_state_value(self, domain_states: List[Dict[str, float]], nb_states: int,
+                               min_maxes: Dict[(str, str)]) -> float:
         """
         Get second state value
-        :param er_states: list of domain states
+        :param domain_states: list of domain states
         :param nb_states: the number of domain states
-        :param first_state: the first state
         :param min_maxes: list of states min and max values
         :return: the second state
         """
         if self.second_state in self.states.keys():
-            second_state = er_states[nb_states - self.second_state_lookback][self.second_state]
+            second_state_idx = nb_states - self.second_state_lookback
+            second_state = domain_states[second_state_idx][self.second_state]
             second_state = (second_state ** self.second_state_exponent) * self.second_state_coefficient
         else:
-            the_min = min_maxes[first_state, THE_MIN]
-            the_max = min_maxes[first_state, THE_MAX]
+            the_min = min_maxes[self.first_state, THE_MIN]
+            the_max = min_maxes[self.first_state, THE_MAX]
             the_range = the_max - the_min
             second_state = the_min + the_range * self.second_state_value
 
         return second_state
 
-    def parse(self, er_states, min_maxes):
+    def parse(self, domain_states: List[Dict[str, float]], min_maxes: Dict[(str, str)]) -> bool:
         """
         Parse a condition
-        :param er_states: list of domain states
-        :param min_maxes: list of states min and max values
-        :return: the result
+        :param domain_states: list of domain states
+        :param min_maxes: list of min and max values, one pair per state
+        :return: A boolean indicating whether this condition is satisfied by the given domain states
         """
-        nb_states = len(er_states) - 1
+        nb_states = len(domain_states) - 1
         if nb_states < self.first_state_lookback or nb_states < self.second_state_lookback:
             return False
-        first_state = er_states[nb_states - self.first_state_lookback][self.first_state] ** self.first_state_exponent
-        first_state = first_state * self.first_state_coefficient
-        second_state = self.get_second_state_value(er_states, nb_states, self.first_state, min_maxes)
-        condition = \
-            (self.operator == ">=" and first_state >= second_state) or \
-            (self.operator == "<=" and first_state <= second_state) or \
-            (self.operator == ">" and first_state > second_state) or \
-            (self.operator == "<" and first_state < second_state)
+        domain_state_idx = nb_states - self.first_state_lookback
+        domain_state_value = domain_states[domain_state_idx][self.first_state]
+        operand_1 = (domain_state_value ** self.first_state_exponent) * self.first_state_coefficient
+        operand_2 = self.get_second_state_value(domain_states, nb_states, min_maxes)
+        condition = (
+            (self.operator == ">=" and operand_1 >= operand_2) or
+            (self.operator == "<=" and operand_1 <= operand_2) or
+            (self.operator == ">" and operand_1 > operand_2) or
+            (self.operator == "<" and operand_1 < operand_2)
+        )
         return condition
 
     def copy(self, states):
