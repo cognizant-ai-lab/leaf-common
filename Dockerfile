@@ -4,7 +4,6 @@
 FROM python:3.6-stretch
 
 ENV APP_HOME /usr/local/cognizant
-ARG MY_GITHUB_PW
 
 USER root
 
