@@ -1,14 +1,13 @@
 """ Base class for rule representation """
 
 import random
-import sys
 
 import jsonpickle
 import jsonpickle.ext.numpy as jsonpickle_numpy
 import numpy
 
-
-from leaf_common.rule_based.condition import THE_MIN, THE_MAX, THE_TOTAL
+from leaf_common.candidates.constants import ACTION_MARKER
+from leaf_common.rule_based.condition import THE_MIN, THE_MAX
 from leaf_common.rule_based.rule import NO_ACTION, Rule, THE_ACTION, LOOK_BACK, THE_LOOKBACK
 
 jsonpickle_numpy.register_handlers()
@@ -16,9 +15,9 @@ jsonpickle_numpy.register_handlers()
 RULE_FILTER_FACTOR = 1
 MAX_LOOKBACK = 0
 NUMBER_OF_BUILDING_BLOCK_RULES = 3
-ACTION_MARKER = "a_"
 AGE_STATE = "age"
 MEM_FACTOR = 100  # max memory cells required
+THE_TOTAL = "total"
 
 
 class RulesAgent:
@@ -31,7 +30,7 @@ class RulesAgent:
 
     def __init__(self, states, actions, initial_state, uid="rule_based"):
         self.uid = uid
-        self.er_states = []
+        self.domain_states = []
         self.last_action = NO_ACTION
         self.state = initial_state
         self.actions = actions
@@ -84,9 +83,9 @@ class RulesAgent:
         Removes actions from state
         :return: action-less state
         """
-        keep = [key for key in self.er_states[0] if not key.startswith(ACTION_MARKER)]
+        keep = [key for key in self.domain_states[0] if not key.startswith(ACTION_MARKER)]
         new_states = []
-        for state in self.er_states:
+        for state in self.domain_states:
             row = {new_key: state[new_key] for new_key in keep}
             new_states.append(row)
         return new_states
@@ -131,21 +130,21 @@ class RulesAgent:
         :return: the chosen action
         """
         poll_dict = dict.fromkeys(self.actions.keys(), 0)
-        nb_states = len(self.er_states) - 1
-        self.revise_state_minmaxes(self.er_states[nb_states])
+        nb_states = len(self.domain_states) - 1
+        if self.domain_states:
+            self.revise_state_minmaxes(self.domain_states[nb_states])
         if not self.rules:
-            print("Fatal: an empty rule set detected")
-            sys.exit(1)
+            raise RuntimeError("Fatal: an empty rule set detected")
         anyone_voted = False
         for rule in self.rules:
-            result = rule.parse(self.er_states, self.state_min_maxes)
+            result = rule.parse(self.domain_states, self.state_min_maxes)
             if result[THE_ACTION] != NO_ACTION:
                 if result[THE_ACTION] in self.actions.keys():
                     poll_dict[result[THE_ACTION]] += 1
                     anyone_voted = True
                 if result[THE_ACTION] == LOOK_BACK:
                     lookback = result[THE_LOOKBACK]
-                    poll_dict[self.get_action_in_state(self.er_states[nb_states - lookback])] += 1
+                    poll_dict[self.get_action_in_state(self.domain_states[nb_states - lookback])] += 1
                     anyone_voted = True
         if not anyone_voted:
             self.times_applied += 1
@@ -158,15 +157,15 @@ class RulesAgent:
         :return: the chosen action
         """
         current_state = dict(self.state)
-        self.er_states.append(current_state)  # copy current state into history
-        while len(self.er_states) > self.state_history_size:
+        self.domain_states.append(current_state)  # copy current state into history
+        while len(self.domain_states) > self.state_history_size:
             index_to_delete = 1
-            del self.er_states[index_to_delete]
+            del self.domain_states[index_to_delete]
         action_to_perform = self.parse_rules()
         if action_to_perform == NO_ACTION:
             random_action = random.choice(list(self.actions.keys()))
             action_to_perform = random_action
-        self.set_action_in_state(action_to_perform, self.er_states[len(self.er_states) - 1])
+        self.set_action_in_state(action_to_perform, self.domain_states[len(self.domain_states) - 1])
         return action_to_perform
 
     def copy_rules(self, rules):
@@ -204,15 +203,15 @@ class RulesAgent:
             actions[i, :] = action
         return actions
 
-    def act(self, observations, reward, done):
+    def act(self, observations, _reward, _done):
         """
         Act based on the observations
         :param observations: the input state
-        :param reward: Not used
-        :param done: Not used
+        :param _reward: Not used
+        :param _done: Not used
         :return: an action
         """
-        del reward, done
+        del _reward, _done
 
         for key in self.states.keys():
             self.state[key] = observations[int(key)]
@@ -225,7 +224,7 @@ class RulesAgent:
         """
         Reset rules agent
         """
-        self.er_states = []
+        self.domain_states = []
 
     def add_rule(self, rule):
         """
@@ -245,11 +244,11 @@ class RulesAgent:
         :return: True if the rule exists in the rule set
         """
         for i in range(len(self.rules)):
-            if len(self.rules[i].condition_string) == len(rule.condition_string):
+            if len(self.rules[i].conditions) == len(rule.conditions):
                 shortcut = True
-                for j in range(len(self.rules[i].condition_string)):
-                    if self.rules[i].condition_string[j].get_str(None) != \
-                            rule.condition_string[j].get_str(None):
+                for j in range(len(self.rules[i].conditions)):
+                    if self.rules[i].conditions[j].get_str(None) != \
+                            rule.conditions[j].get_str(None):
                         shortcut = False
                 if shortcut:
                     return True
@@ -260,7 +259,7 @@ class RulesAgent:
         """
         Converts a RulesAgent in the form of a JSON string to an instance of RulesAgent.
 
-        :param String containing RulesAgent's state.
+        :param rules_agent_string containing RulesAgent's state.
         :return: An instance of `RulesAgent` populated from the supplied JSON string.
         """
 
