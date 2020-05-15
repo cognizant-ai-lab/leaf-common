@@ -1,10 +1,6 @@
-ESP SDK Software
+leaf common Software
 Copyright (C) 2020 Cognizant Digital Business, Evolutionary AI. All Rights Reserved.
 
 This product contains software developed by the
-Cognizant Evolutionary AI organization, and may contain already 
-patented, patent pending, or yet to be patented material.
-
-Any use of this software for any purpose requires a 
-commercially negotiated contract between any party 
-posessing or using the software, and Cognizant Digital Business.
+Cognizant Evolutionary AI organization, and contains
+potential trade secrets of Cognizant.
