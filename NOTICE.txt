@@ -3,4 +3,4 @@ Copyright (C) 2020 Cognizant Digital Business, Evolutionary AI. All Rights Reser
 
 This product contains software developed by the
 Cognizant Evolutionary AI organization, and contains
-potential trade secrets of Cognizant.
+trade secrets of Cognizant.
