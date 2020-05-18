@@ -1,0 +1,6 @@
+leaf common Software
+Copyright (C) 2020 Cognizant Digital Business, Evolutionary AI. All Rights Reserved.
+
+This product contains software developed by the
+Cognizant Evolutionary AI organization, and contains
+trade secrets of Cognizant.
