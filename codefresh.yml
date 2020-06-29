@@ -54,10 +54,10 @@ steps:
             - pip -V
             - export PYTHONPATH=$PWD
 
-    static_checks:
-        title: Run static checks
+    flake8:
+        title: Run static flake8 checks
         image: python:3.6-buster
-        description: Run static analysis (Pylint and Flake8)
+        description: Run Flake8
         commands:
             - export VENV=./venv/codefresh
             - export PATH="$PWD/$VENV/bin:$PATH"
@@ -68,9 +68,22 @@ steps:
             - echo "PYTHONPATH=$PYTHONPATH"
             - export FLAKE8_CMD=`which flake8`
             - echo "FLAKE8_CMD=$FLAKE8_CMD"
+            - $FLAKE8_CMD .
+
+    pylint:
+        title: Run static pylint checks
+        image: python:3.6-buster
+        description: Run Pylint
+        commands:
+            - export VENV=./venv/codefresh
+            - export PATH="$PWD/$VENV/bin:$PATH"
+            - echo "PATH=$PATH"
+            - cd '${{CF_REPO_NAME}}'
+            - git status
+            - export PYTHONPATH=$PWD
+            - echo "PYTHONPATH=$PYTHONPATH"
             - export PYLINT_CMD=`which pylint`
             - echo "PYLINT_CMD=$PYLINT_CMD"
-            - $FLAKE8_CMD .
             - $PYLINT_CMD $(find . -name \*.py | xargs)
 
     tests:
