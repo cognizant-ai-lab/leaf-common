@@ -5,7 +5,7 @@ steps:
         # Images come from hierarchy at: https://github.com/docker-library/python
         image: python:3.6-buster
         commands:
-            - rm -rf leafbuild '${{CF_REPO_NAME}}' venv
+            - rm -rf leafbuild '${{CF_REPO_NAME}}'
 
     clone_leafbuild_repo:
         type: git-clone
@@ -34,13 +34,8 @@ steps:
         commands:
             - bash leafbuild/scripts/setup_artifactory.sh
             - bash leafbuild/scripts/setup_aws.sh
-            - export VENV=./venv/codefresh
-            - mkdir -p $VENV
             - pip install pip==20.0.2
             - pip install virtualenv==20.0.23
-            - export VENV_CMD=`which virtualenv`
-            - $VENV_CMD $VENV
-            - export PATH="$PWD/$VENV/bin:$PATH"
             - pip install pip==20.0.2
             - pip install virtualenv==20.0.23
             - cd '${{CF_REPO_NAME}}'
@@ -54,8 +49,6 @@ steps:
         image: python:3.6-buster
         description: Run Flake8
         commands:
-            - export VENV=./venv/codefresh
-            - export PATH="$PWD/$VENV/bin:$PATH"
             - echo "PATH=$PATH"
             - cd '${{CF_REPO_NAME}}'
             - git status
@@ -70,8 +63,6 @@ steps:
         image: python:3.6-buster
         description: Run Pylint
         commands:
-            - export VENV=./venv/codefresh
-            - export PATH="$PWD/$VENV/bin:$PATH"
             - echo "PATH=$PATH"
             - cd '${{CF_REPO_NAME}}'
             - git status
@@ -86,8 +77,6 @@ steps:
         image: python:3.6-buster
         description: Run unit tests (nosetests)
         commands:
-            - export VENV=./venv/codefresh
-            - export PATH="$PWD/$VENV/bin:$PATH"
             - mkdir -p $HOME/.enn
             - cd '${{CF_REPO_NAME}}'
             - git status
@@ -101,4 +90,4 @@ steps:
         title: Clean up CodeFresh volume
         image: python:3.6-buster
         commands:
-            - rm -rf leafbuild '${{CF_REPO_NAME}}' venv
+            - rm -rf leafbuild '${{CF_REPO_NAME}}'
