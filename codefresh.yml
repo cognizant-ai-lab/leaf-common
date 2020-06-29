@@ -41,6 +41,7 @@ steps:
             - export VENV_CMD=`which virtualenv`
             - $VENV_CMD $VENV
             - export PATH="$PWD/$VENV/bin:$PATH"
+            - source $VENV/bin/activate
             - pip install pip==20.0.2
             - pip install virtualenv==20.0.23
             - cd '${{CF_REPO_NAME}}'
@@ -61,6 +62,7 @@ steps:
             - git status
             - export PYTHONPATH=$PWD
             - echo "PYTHONPATH=$PYTHONPATH"
+            - source $VENV/bin/activate
             - export FLAKE8_CMD=`which flake8`
             - echo "FLAKE8_CMD=$FLAKE8_CMD"
             - $FLAKE8_CMD .
@@ -77,6 +79,7 @@ steps:
             - git status
             - export PYTHONPATH=$PWD
             - echo "PYTHONPATH=$PYTHONPATH"
+            - source $VENV/bin/activate
             - export PYLINT_CMD=`which pylint`
             - echo "PYLINT_CMD=$PYLINT_CMD"
             - $PYLINT_CMD $(find . -name \*.py | xargs)
@@ -93,6 +96,7 @@ steps:
             - git status
             - export PYTHONPATH=$PWD
             - echo "PYTHONPATH=$PYTHONPATH"
+            - source $VENV/bin/activate
             - export NOSETESTS_CMD=`which nosetests`
             - echo "NOSETESTS=$NOSETESTS_CMD"
             - $NOSETESTS_CMD -v --with-ignore-docstrings .
