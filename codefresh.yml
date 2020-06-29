@@ -1,33 +1,90 @@
 version: '1.0'
 steps:
-  clone_leaf-common:
-    type: git-clone
-    title: Clone leaf-common
-    repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
-    revision: '${{CF_REVISION}}'
-    git: github
+    start_clean:
+        title: Clean up CodeFresh volume
+        # Images come from hierarchy at: https://github.com/docker-library/python
+        image: python:3.6-buster
+        commands:
+            - rm -rf leafbuild '${{CF_REPO_NAME}}' venv
 
-  leaf_common_build:
-    title: Build Docker image
-    image_name: leaf-common
-    type: build
-    dockerfile: ./Dockerfile
-    working_directory: ${{CF_REPO_NAME}}
-    tag: ${{CF_REVISION}}
+    clone_leafbuild_repo:
+        type: git-clone
+        title: Clone leafbuild repo
+        description: Clone the leafbuild repository to pick up Dockerfile \
+                     and any other build stuff common between repos.
+        repo: leaf-ai/leafbuild
+        git: github
+        revision: master
 
-  static_checks:
-    title: Run static checks
-    image: ${{leaf_common_build}}
-    description: Run static analysis (Pylint and Flake8)
-    working_directory: ${{CF_REPO_NAME}}
-    commands:
-      - flake8 .
-      - pylint $(find . -name \*.py | xargs)
+    clone_leaf-common:
+        type: git-clone
+        title: Clone leaf-common
+        repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
+        revision: '${{CF_REVISION}}'
+        git: github
 
-  tests:
-    title: Run unit tests
-    image: ${{leaf_common_build}}
-    description: Run unit tests (nosetests)
-    working_directory: ${{CF_REPO_NAME}}
-    commands:
-      - nosetests -v --with-ignore-docstrings .
+    install_dependencies_and_setup:
+        title: Install dependencies and setup security
+        image: python:3.6-buster
+        description: >-
+            1. Setup environment for artifactory and AWS.
+            2. Create a virtualenv inside the CodeFresh workspace
+               so that it is transferable between freestyle steps.
+            3. Install python dependencies
+            4. Run setup scripts to...
+                a. generate grpc files 
+                a. security_config.hocon files 
+            5. Sequester security_config.hocon file away
+               so that it is transferable between freestyle steps.
+        commands:
+            - bash leafbuild/scripts/setup_artifactory.sh
+            - bash leafbuild/scripts/setup_aws.sh
+            - export VENV=./venv/codefresh
+            - mkdir -p $VENV
+            - pip install pip==20.0.2
+            - pip install virtualenv==20.0.23
+            - export VENV_CMD=`which virtualenv`
+            - $VENV_CMD $VENV
+            - export PATH="$PWD/$VENV/bin:$PATH"
+            - pip install pip==20.0.2
+            - pip install virtualenv==20.0.23
+            - cd '${{CF_REPO_NAME}}'
+            - git status
+            - pip --no-cache-dir install -r requirements.txt
+            - pip -V
+            - export PYTHONPATH=$PWD
+
+    static_checks:
+        title: Run static checks
+        image: ${{leaf_common_build}}
+        description: Run static analysis (Pylint and Flake8)
+        working_directory: ${{CF_REPO_NAME}}
+        commands:
+            - export VENV=./venv/codefresh
+            - export PATH="$PWD/$VENV/bin:$PATH"
+            - git status
+            - export PYTHONPATH=$PWD
+            - echo "PYTHONPATH=$PYTHONPATH"
+            - flake8 .
+            - pylint $(find . -name \*.py | xargs)
+
+    tests:
+        title: Run unit tests
+        image: ${{leaf_common_build}}
+        description: Run unit tests (nosetests)
+        working_directory: ${{CF_REPO_NAME}}
+        commands:
+            - export VENV=./venv/codefresh
+            - export PATH="$PWD/$VENV/bin:$PATH"
+            - mkdir -p $HOME/.enn
+            - cd deepbilevel
+            - git status
+            - export PYTHONPATH=$PWD
+            - echo "PYTHONPATH=$PYTHONPATH"
+            - nosetests -v --with-ignore-docstrings .
+
+    end_clean:
+        title: Clean up CodeFresh volume
+        image: python:3.6-buster
+        commands:
+            - rm -rf leafbuild '${{CF_REPO_NAME}}' venv
