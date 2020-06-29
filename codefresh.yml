@@ -62,13 +62,16 @@ steps:
         commands:
             - export VENV=./venv/codefresh
             - export PATH="$PWD/$VENV/bin:$PATH"
+            - echo "PATH=$PATH"
             - git status
             - export PYTHONPATH=$PWD
             - echo "PYTHONPATH=$PYTHONPATH"
-            - which flake8
-            - which pylint
-            - flake8 .
-            - pylint $(find . -name \*.py | xargs)
+            - export FLAKE8_CMD=`which flake8`
+            - echo "FLAKE8_CMD=$FLAKE8_CMD"
+            - export PYLINT_CMD=`which pylint`
+            - echo "PYLINT_CMD=$PYLINT_CMD"
+            - $FLAKE8_CMD .
+            - $PYLINT_CMD $(find . -name \*.py | xargs)
 
     tests:
         title: Run unit tests
@@ -83,8 +86,9 @@ steps:
             - git status
             - export PYTHONPATH=$PWD
             - echo "PYTHONPATH=$PYTHONPATH"
-            - which nosetests
-            - nosetests -v --with-ignore-docstrings .
+            - export NOSETESTS_CMD=`which nosetests`
+            - echo "NOSETESTS=$NOSETESTS_CMD"
+            - $NOSETESTS_CMD -v --with-ignore-docstrings .
 
     end_clean:
         title: Clean up CodeFresh volume
