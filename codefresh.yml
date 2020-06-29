@@ -1,33 +1,96 @@
 version: '1.0'
 steps:
-  clone_leaf-common:
-    type: git-clone
-    title: Clone leaf-common
-    repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
-    revision: '${{CF_REVISION}}'
-    git: github
+    start_clean:
+        title: Clean up CodeFresh volume
+        # Images come from hierarchy at: https://github.com/docker-library/python
+        image: python:3.6-buster
+        commands:
+            - rm -rf '${{CF_REPO_NAME}}' venv
 
-  leaf_common_build:
-    title: Build Docker image
-    image_name: leaf-common
-    type: build
-    dockerfile: ./Dockerfile
-    working_directory: ${{CF_REPO_NAME}}
-    tag: ${{CF_REVISION}}
+    clone_leaf-common:
+        type: git-clone
+        title: Clone leaf-common
+        repo: '${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}'
+        revision: '${{CF_REVISION}}'
+        git: github
 
-  static_checks:
-    title: Run static checks
-    image: ${{leaf_common_build}}
-    description: Run static analysis (Pylint and Flake8)
-    working_directory: ${{CF_REPO_NAME}}
-    commands:
-      - flake8 .
-      - pylint $(find . -name \*.py | xargs)
+    install_dependencies_and_setup:
+        title: Install dependencies and setup security
+        image: python:3.6-buster
+        shell: bash
+        description: >-
+            1. Create a virtualenv inside the CodeFresh workspace
+               so that it is transferable between freestyle steps.
+            2. Install python dependencies
+        commands:
+            - export VENV=./venv/codefresh
+            - mkdir -p $VENV
+            - pip install pip==20.0.2
+            - pip install virtualenv==20.0.23
+            - export VENV_CMD=`which virtualenv`
+            - $VENV_CMD $VENV
+            - source $VENV/bin/activate
+            - pip install pip==20.0.2
+            - pip install virtualenv==20.0.23
+            - cd '${{CF_REPO_NAME}}'
+            - git status
+            - pip --no-cache-dir install -r requirements.txt
+            - pip -V
+            - export PYTHONPATH=$PWD
 
-  tests:
-    title: Run unit tests
-    image: ${{leaf_common_build}}
-    description: Run unit tests (nosetests)
-    working_directory: ${{CF_REPO_NAME}}
-    commands:
-      - nosetests -v --with-ignore-docstrings .
+    flake8:
+        title: Run static flake8 checks
+        image: python:3.6-buster
+        shell: bash
+        description: Run Flake8
+        commands:
+            - export VENV=./venv/codefresh
+            - source $VENV/bin/activate
+            - echo "PATH=$PATH"
+            - cd '${{CF_REPO_NAME}}'
+            - git status
+            - export PYTHONPATH=$PWD
+            - echo "PYTHONPATH=$PYTHONPATH"
+            - export FLAKE8_CMD=`which flake8`
+            - echo "FLAKE8_CMD=$FLAKE8_CMD"
+            - $FLAKE8_CMD .
+
+    pylint:
+        title: Run static pylint checks
+        image: python:3.6-buster
+        shell: bash
+        description: Run Pylint
+        commands:
+            - export VENV=./venv/codefresh
+            - source $VENV/bin/activate
+            - echo "PATH=$PATH"
+            - cd '${{CF_REPO_NAME}}'
+            - git status
+            - export PYTHONPATH=$PWD
+            - echo "PYTHONPATH=$PYTHONPATH"
+            - export PYLINT_CMD=`which pylint`
+            - echo "PYLINT_CMD=$PYLINT_CMD"
+            - $PYLINT_CMD $(find . -name \*.py | xargs)
+
+    tests:
+        title: Run unit tests
+        image: python:3.6-buster
+        shell: bash
+        description: Run unit tests (nosetests)
+        commands:
+            - export VENV=./venv/codefresh
+            - source $VENV/bin/activate
+            - mkdir -p $HOME/.enn
+            - cd '${{CF_REPO_NAME}}'
+            - git status
+            - export PYTHONPATH=$PWD
+            - echo "PYTHONPATH=$PYTHONPATH"
+            - export NOSETESTS_CMD=`which nosetests`
+            - echo "NOSETESTS=$NOSETESTS_CMD"
+            - $NOSETESTS_CMD -v --with-ignore-docstrings .
+
+    end_clean:
+        title: Clean up CodeFresh volume
+        image: python:3.6-buster
+        commands:
+            - rm -rf '${{CF_REPO_NAME}}' venv
