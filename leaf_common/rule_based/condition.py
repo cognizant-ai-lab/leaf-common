@@ -1,17 +1,25 @@
 """
 Base class for condition representation
 """
-import random
-from typing import Dict, List, Tuple
+
+from typing import Dict
+from typing import List
+from typing import Tuple
 
 import math
 
-OPERATORS = [">=", "<=", ">", "<"]
 CONDITION_ELEMENTS = [
-    "first_state", "first_state_coefficient", "first_state_exponent", "first_state_lookback", "operator",
-    "second_state", "second_state_coefficient", "second_state_exponent", "second_state_lookback", "second_state_value"
+    "first_state",
+    "first_state_coefficient",
+    "first_state_exponent",
+    "first_state_lookback",
+    "operator",
+    "second_state",
+    "second_state_coefficient",
+    "second_state_exponent",
+    "second_state_lookback",
+    "second_state_value"
 ]
-THE_VALUE = "value"
 THE_MIN = "min"
 THE_MAX = "max"
 GRANULARITY = 100
@@ -29,17 +37,16 @@ class Condition:  # pylint: disable-msg=R0902
     def __init__(self, states: Dict[str, str], max_lookback: int):
         self.states = states
         self.max_lookback = max_lookback
-        self.first_state_lookback: int = random.randint(0, self.max_lookback)
-        self.first_state_key: str = random.choice(list(states.keys()))
-        self.first_state_coefficient: float = random.randint(0, GRANULARITY) / GRANULARITY
-        self.operator: str = random.choice(OPERATORS)
-        self.second_state_lookback: int = random.randint(0, self.max_lookback)
-        choices = list(states.keys()) + [THE_VALUE]
-        if self.first_state_lookback == self.second_state_lookback:
-            choices.remove(self.first_state_key)
-        self.second_state_key: str = random.choice(choices)
-        self.second_state_value: float = random.randint(0, GRANULARITY) / GRANULARITY
-        self.second_state_coefficient: float = random.randint(0, GRANULARITY) / GRANULARITY
+
+        # Genetic Material fields
+        self.first_state_lookback: int = None
+        self.first_state_key: str = None
+        self.first_state_coefficient: float = None
+        self.operator: str = None
+        self.second_state_lookback: int = None
+        self.second_state_key: str = None
+        self.second_state_value: float = None
+        self.second_state_coefficient: float = None
 
     def __str__(self):
         return self.get_str()

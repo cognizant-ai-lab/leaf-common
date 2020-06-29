@@ -7,14 +7,17 @@ import jsonpickle.ext.numpy as jsonpickle_numpy
 import numpy
 
 from leaf_common.candidates.constants import ACTION_MARKER
-from leaf_common.rule_based.condition import THE_MIN, THE_MAX
-from leaf_common.rule_based.rule import NO_ACTION, Rule, THE_ACTION, LOOK_BACK, THE_LOOKBACK
+from leaf_common.rule_based.condition import THE_MIN
+from leaf_common.rule_based.condition import THE_MAX
+from leaf_common.rule_based.rule import Rule
+from leaf_common.rule_based.rule import LOOK_BACK
+from leaf_common.rule_based.rule import NO_ACTION
+from leaf_common.rule_based.rule import THE_ACTION
+from leaf_common.rule_based.rule import THE_LOOKBACK
 
 jsonpickle_numpy.register_handlers()
 
 RULE_FILTER_FACTOR = 1
-MAX_LOOKBACK = 0
-NUMBER_OF_BUILDING_BLOCK_RULES = 3
 AGE_STATE = "age"
 MEM_FACTOR = 100  # max memory cells required
 THE_TOTAL = "total"
@@ -37,17 +40,15 @@ class RulesAgent:
         self.states = states
         self.state_history_size = MEM_FACTOR * len(self.actions)
         self.state[AGE_STATE] = 0
-        self.default_action = random.choice(list(self.actions.keys()))
+        self.default_action = None
         self.times_applied = 0
         self.state_min_maxes = {}
+        self.rules = []
+
         for state in self.states.keys():
             self.state_min_maxes[state, THE_MIN] = 0
             self.state_min_maxes[state, THE_MAX] = 0
             self.state_min_maxes[state, THE_TOTAL] = 0
-        self.rules = []
-        for _ in range(0, random.randint(1, NUMBER_OF_BUILDING_BLOCK_RULES)):
-            rule = Rule(states, actions, MAX_LOOKBACK)
-            self.add_rule(rule)
 
     def __str__(self):
         rules_str = ""
