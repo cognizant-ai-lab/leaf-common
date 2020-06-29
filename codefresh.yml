@@ -31,11 +31,6 @@ steps:
             2. Create a virtualenv inside the CodeFresh workspace
                so that it is transferable between freestyle steps.
             3. Install python dependencies
-            4. Run setup scripts to...
-                a. generate grpc files 
-                a. security_config.hocon files 
-            5. Sequester security_config.hocon file away
-               so that it is transferable between freestyle steps.
         commands:
             - bash leafbuild/scripts/setup_artifactory.sh
             - bash leafbuild/scripts/setup_aws.sh
