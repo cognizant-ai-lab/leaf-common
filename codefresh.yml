@@ -26,24 +26,22 @@ steps:
     install_dependencies_and_setup:
         title: Install dependencies and setup security
         image: python:3.6-buster
+        shell: bash
         description: >-
             1. Setup environment for artifactory and AWS.
             2. Create a virtualenv inside the CodeFresh workspace
                so that it is transferable between freestyle steps.
-               Note that we are not actually activating the venv,
-               but instead we are installing things into it because
-               enough other environment variables are set up to do that.
             3. Install python dependencies
         commands:
-            - bash leafbuild/scripts/setup_artifactory.sh
-            - bash leafbuild/scripts/setup_aws.sh
+            - leafbuild/scripts/setup_artifactory.sh
+            - leafbuild/scripts/setup_aws.sh
             - export VENV=./venv/codefresh
             - mkdir -p $VENV
             - pip install pip==20.0.2
             - pip install virtualenv==20.0.23
             - export VENV_CMD=`which virtualenv`
             - $VENV_CMD $VENV
-            - export PATH="$PWD/$VENV/bin:$PATH"
+            - source $VENV/bin/activate
             - pip install pip==20.0.2
             - pip install virtualenv==20.0.23
             - cd '${{CF_REPO_NAME}}'
@@ -55,10 +53,11 @@ steps:
     flake8:
         title: Run static flake8 checks
         image: python:3.6-buster
+        shell: bash
         description: Run Flake8
         commands:
             - export VENV=./venv/codefresh
-            - export PATH="$PWD/$VENV/bin:$PATH"
+            - source $VENV/bin/activate
             - echo "PATH=$PATH"
             - cd '${{CF_REPO_NAME}}'
             - git status
@@ -71,10 +70,11 @@ steps:
     pylint:
         title: Run static pylint checks
         image: python:3.6-buster
+        shell: bash
         description: Run Pylint
         commands:
             - export VENV=./venv/codefresh
-            - export PATH="$PWD/$VENV/bin:$PATH"
+            - source $VENV/bin/activate
             - echo "PATH=$PATH"
             - cd '${{CF_REPO_NAME}}'
             - git status
@@ -87,10 +87,11 @@ steps:
     tests:
         title: Run unit tests
         image: python:3.6-buster
+        shell: bash
         description: Run unit tests (nosetests)
         commands:
             - export VENV=./venv/codefresh
-            - export PATH="$PWD/$VENV/bin:$PATH"
+            - source $VENV/bin/activate
             - mkdir -p $HOME/.enn
             - cd '${{CF_REPO_NAME}}'
             - git status
