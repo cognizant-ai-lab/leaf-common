@@ -21,11 +21,15 @@ class Rule:
     """
 
     def __init__(self, states: Dict[str, str], actions: Dict[str, str], max_lookback: int):
+
+        # State/Config needed for evaluation
         self.max_lookback = max_lookback
         self.actions = actions
+        self.times_applied = 0
+
+        # Genetic Material
         self.action = None
         self.action_lookback = None
-        self.times_applied = 0
         self.conditions: List[Condition] = []
 
     def __str__(self):

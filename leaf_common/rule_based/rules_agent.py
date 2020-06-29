@@ -32,6 +32,8 @@ class RulesAgent:
     # Nine is reasonable in this case.
 
     def __init__(self, states, actions, initial_state, uid="rule_based"):
+
+        # State/Config needed for evaluation
         self.uid = uid
         self.domain_states = []
         self.last_action = NO_ACTION
@@ -43,12 +45,13 @@ class RulesAgent:
         self.default_action = None
         self.times_applied = 0
         self.state_min_maxes = {}
-        self.rules = []
-
         for state in self.states.keys():
             self.state_min_maxes[state, THE_MIN] = 0
             self.state_min_maxes[state, THE_MAX] = 0
             self.state_min_maxes[state, THE_TOTAL] = 0
+
+        # Genetic Material
+        self.rules = []
 
     def __str__(self):
         rules_str = ""

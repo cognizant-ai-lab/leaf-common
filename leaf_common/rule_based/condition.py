@@ -35,6 +35,8 @@ class Condition:  # pylint: disable-msg=R0902
     """
 
     def __init__(self, states: Dict[str, str], max_lookback: int):
+
+        # State/Config needed for evaluation
         self.states = states
         self.max_lookback = max_lookback
 
