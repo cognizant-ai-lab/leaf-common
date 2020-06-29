@@ -58,11 +58,11 @@ steps:
         title: Run static checks
         image: python:3.6-buster
         description: Run static analysis (Pylint and Flake8)
-        working_directory: ${{CF_REPO_NAME}}
         commands:
             - export VENV=./venv/codefresh
             - export PATH="$PWD/$VENV/bin:$PATH"
             - echo "PATH=$PATH"
+            - cd '${{CF_REPO_NAME}}'
             - git status
             - export PYTHONPATH=$PWD
             - echo "PYTHONPATH=$PYTHONPATH"
@@ -77,12 +77,11 @@ steps:
         title: Run unit tests
         image: python:3.6-buster
         description: Run unit tests (nosetests)
-        working_directory: ${{CF_REPO_NAME}}
         commands:
             - export VENV=./venv/codefresh
             - export PATH="$PWD/$VENV/bin:$PATH"
             - mkdir -p $HOME/.enn
-            - cd deepbilevel
+            - cd '${{CF_REPO_NAME}}'
             - git status
             - export PYTHONPATH=$PWD
             - echo "PYTHONPATH=$PYTHONPATH"
