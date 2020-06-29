@@ -5,16 +5,7 @@ steps:
         # Images come from hierarchy at: https://github.com/docker-library/python
         image: python:3.6-buster
         commands:
-            - rm -rf leafbuild '${{CF_REPO_NAME}}' venv
-
-    clone_leafbuild_repo:
-        type: git-clone
-        title: Clone leafbuild repo
-        description: Clone the leafbuild repository to pick up Dockerfile \
-                     and any other build stuff common between repos.
-        repo: leaf-ai/leafbuild
-        git: github
-        revision: master
+            - rm -rf '${{CF_REPO_NAME}}' venv
 
     clone_leaf-common:
         type: git-clone
@@ -102,4 +93,4 @@ steps:
         title: Clean up CodeFresh volume
         image: python:3.6-buster
         commands:
-            - rm -rf leafbuild '${{CF_REPO_NAME}}' venv
+            - rm -rf '${{CF_REPO_NAME}}' venv
