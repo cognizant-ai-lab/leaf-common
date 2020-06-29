@@ -9,7 +9,6 @@ import numpy
 from leaf_common.candidates.constants import ACTION_MARKER
 from leaf_common.rule_based.condition import THE_MIN
 from leaf_common.rule_based.condition import THE_MAX
-from leaf_common.rule_based.rule import Rule
 from leaf_common.rule_based.rule import LOOK_BACK
 from leaf_common.rule_based.rule import NO_ACTION
 from leaf_common.rule_based.rule import THE_ACTION
