@@ -30,6 +30,8 @@ steps:
             1. Setup environment for artifactory and AWS.
             2. Create a virtualenv inside the CodeFresh workspace
                so that it is transferable between freestyle steps.
+               Note that we are not actually activating the venv,
+               but instead we are installing things into it.
             3. Install python dependencies
         commands:
             - bash leafbuild/scripts/setup_artifactory.sh
