@@ -56,7 +56,7 @@ steps:
 
     static_checks:
         title: Run static checks
-        image: ${{leaf_common_build}}
+        image: python:3.6-buster
         description: Run static analysis (Pylint and Flake8)
         working_directory: ${{CF_REPO_NAME}}
         commands:
@@ -70,7 +70,7 @@ steps:
 
     tests:
         title: Run unit tests
-        image: ${{leaf_common_build}}
+        image: python:3.6-buster
         description: Run unit tests (nosetests)
         working_directory: ${{CF_REPO_NAME}}
         commands:
