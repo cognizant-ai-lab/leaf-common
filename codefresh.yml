@@ -65,6 +65,8 @@ steps:
             - git status
             - export PYTHONPATH=$PWD
             - echo "PYTHONPATH=$PYTHONPATH"
+            - which flake8
+            - which pylint
             - flake8 .
             - pylint $(find . -name \*.py | xargs)
 
@@ -81,6 +83,7 @@ steps:
             - git status
             - export PYTHONPATH=$PWD
             - echo "PYTHONPATH=$PYTHONPATH"
+            - which nosetests
             - nosetests -v --with-ignore-docstrings .
 
     end_clean:
