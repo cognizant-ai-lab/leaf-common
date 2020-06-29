@@ -28,13 +28,10 @@ steps:
         image: python:3.6-buster
         shell: bash
         description: >-
-            1. Setup environment for artifactory and AWS.
-            2. Create a virtualenv inside the CodeFresh workspace
+            1. Create a virtualenv inside the CodeFresh workspace
                so that it is transferable between freestyle steps.
-            3. Install python dependencies
+            2. Install python dependencies
         commands:
-            - bash leafbuild/scripts/setup_artifactory.sh
-            - bash leafbuild/scripts/setup_aws.sh
             - export VENV=./venv/codefresh
             - mkdir -p $VENV
             - pip install pip==20.0.2
