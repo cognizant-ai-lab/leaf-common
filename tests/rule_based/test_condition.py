@@ -100,10 +100,10 @@ class TestCondition(TestCase):
         condition = Condition(states, max_lookback=5)
         condition.first_state_lookback = lookback1
         condition.first_state_key = list(states)[0]
-        condition.first_state_coefficient = 42
+        condition.first_state_coefficient = 0.42
         condition.operator = condition_type
         condition.second_state_lookback = lookback2
         condition.second_state_key = list(states)[1]
-        condition.second_state_value = 32
-        condition.second_state_coefficient = 84
+        condition.second_state_value = 0.32
+        condition.second_state_coefficient = 0.84
         return condition
