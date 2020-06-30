@@ -85,7 +85,7 @@ class TestRulesAgent(TestCase):
 
     @staticmethod
     def _create_rules_agent(rule1_action, rule2_action):
-        with patch('leaf_common.rule_based.rules_agent.Rule', autospec=True) as mock_rule, \
+        with patch('leaf_common.rule_based.rule.Rule', autospec=True) as mock_rule, \
                 patch('leaf_common.rule_based.rules_agent.random.randint', autospec=True) as mock_randint:
             mock_rule_1 = MagicMock()
             mock_rule_2 = MagicMock()
