@@ -41,7 +41,6 @@ class RulesAgent:
         self.states = states
         self.state_history_size = MEM_FACTOR * len(self.actions)
         self.state[AGE_STATE] = 0
-        self.default_action = None
         self.times_applied = 0
         self.state_min_maxes = {}
         for state in self.states.keys():
@@ -50,6 +49,7 @@ class RulesAgent:
             self.state_min_maxes[state, THE_TOTAL] = 0
 
         # Genetic Material
+        self.default_action = None
         self.rules = []
 
     def __str__(self):
