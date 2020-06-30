@@ -20,7 +20,7 @@ class Rule:
     Rule representation based class.
     """
 
-    def __init__(self, states: Dict[str, str], actions: Dict[str, str], max_lookback: int):
+    def __init__(self, actions: Dict[str, str], max_lookback: int):
 
         # State/Config needed for evaluation
         self.max_lookback = max_lookback
@@ -89,7 +89,7 @@ class Rule:
         :param actions: A dictionary of domain actions
         :return: the copied rule
         """
-        rule = Rule(states, actions, self.max_lookback)
+        rule = Rule(actions, self.max_lookback)
         rule.conditions = []
         for condition in self.conditions:
             rule.add_condition(condition.copy(states))
