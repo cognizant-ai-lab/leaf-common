@@ -92,8 +92,8 @@ class TestCondition(TestCase):
 
     @staticmethod
     def _create_condition(condition_type, lookback1=0, lookback2=0):
-        with patch('leaf_common.rule_based.condition.random.randint', autospec=True) as mock_random_int, \
-                patch('leaf_common.rule_based.condition.random.choice', autospec=True) as mock_random_choice:
+        with patch('leaf_common.rule_based.rules_agent.random.randint', autospec=True) as mock_random_int, \
+                patch('leaf_common.rule_based.rules_agent.random.choice', autospec=True) as mock_random_choice:
             # We simulate two states, keys '0' and '1'
             states = {'0': 'S_0', '1': 'S_1'}
 
