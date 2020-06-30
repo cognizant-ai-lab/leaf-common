@@ -97,7 +97,6 @@ class TestCondition(TestCase):
         states = {'0': 'S_0', '1': 'S_1'}
 
         # Set up canned random numbers to express: 0.42*S_0 <condition> 0.69*S_1
-        mock_random_choice.side_effect = [list(states)[0], condition_type, list(states)[1]]
         condition = Condition(states, max_lookback=5)
         condition.first_state_lookback = lookback1
         condition.first_state_key = list(states)[0]
