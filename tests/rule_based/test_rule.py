@@ -53,4 +53,4 @@ class TestRule(TestCase):
             mock_condition.side_effect = [mock_condition_1, mock_condition_2]
             mock_randint.side_effect = [0, 2]
             mock_randchoice.return_value = '1'
-            return Rule(states={'0': 'S1', '1': 'S2'}, actions={'0': 'action1', '1': 'action2'}, max_lookback=0)
+            return Rule(actions={'0': 'action1', '1': 'action2'}, max_lookback=0)
