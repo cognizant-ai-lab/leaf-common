@@ -39,9 +39,7 @@ class TestRule(TestCase):
 
     @staticmethod
     def _create_rule(first_condition_true, second_condition_true):
-        with patch('leaf_common.rule_based.rule.Condition', autospec=True) as mock_condition, \
-                patch('leaf_common.rule_based.rules_agent.random.choice', autospec=True) as mock_randchoice, \
-                patch('leaf_common.rule_based.rules_agent.random.randint', autospec=True) as mock_randint:
+        with patch('leaf_common.rule_based.rule.Condition', autospec=True) as mock_condition:
             mock_condition_1 = MagicMock()
             mock_condition_1.parse.return_value = first_condition_true
             mock_condition_1.action = 'action1'
@@ -50,7 +48,11 @@ class TestRule(TestCase):
             mock_condition_2.parse.return_value = second_condition_true
             mock_condition_2.action = 'action2'
             mock_condition_2.get_str.return_value = 'condition2_str'
-            mock_condition.side_effect = [mock_condition_1, mock_condition_2]
-            mock_randint.side_effect = [0, 2]
-            mock_randchoice.return_value = '1'
-            return Rule(actions={'0': 'action1', '1': 'action2'}, max_lookback=0)
+
+            rule = Rule(actions={'0': 'action1', '1': 'action2'}, max_lookback=0)
+            rule.action = '1'
+            rule.action_lookback = 0
+            rule.add_condition(mock_condition_1)
+            rule.add_condition(mock_condition_2)
+
+            return rule
