@@ -115,10 +115,10 @@ class Condition:  # pylint: disable-msg=R0902
         operand_1 = domain_state_value * self.first_state_coefficient
         operand_2 = self.get_second_state_value(domain_states, nb_states, min_maxes)
         condition = (
-            (self.operator == ">=" and operand_1 >= operand_2) or
-            (self.operator == "<=" and operand_1 <= operand_2) or
-            (self.operator == ">" and operand_1 > operand_2) or
-            (self.operator == "<" and operand_1 < operand_2)
+            (self.operator == RulesEvaluationConstants.GREATER_THAN_EQUAL and operand_1 >= operand_2) or
+            (self.operator == RulesEvaluationConstants.LESS_THAN_EQUAL and operand_1 <= operand_2) or
+            (self.operator == RulesEvaluationConstants.GREATER_THAN and operand_1 > operand_2) or
+            (self.operator == RulesEvaluationConstants.LESS_THAN and operand_1 < operand_2)
         )
         return condition
 
