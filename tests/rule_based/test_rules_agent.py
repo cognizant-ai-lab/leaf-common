@@ -6,17 +6,22 @@ import tempfile
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from leaf_common.rule_based.rule import THE_ACTION
 from leaf_common.rule_based.rules_agent import RulesAgent
-
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-FIXTURES_PATH = os.path.join(ROOT_DIR, '..', 'fixtures')
+from leaf_common.rule_based.rules_evaluation_constants \
+    import RulesEvaluationConstants
 
 
 class TestRulesAgent(TestCase):
     """
     Unit tests for RulesAgent
     """
+
+    def __init__(self):
+        super(TestRulesAgent, self).__init__()
+        root_dir = os.path.dirname(os.path.abspath(__file__))
+        self.fixtures_path = os.path.join(root_dir, '..', 'fixtures')
+
+
     def test_serialize_roundtrip(self):
         """
         Verify simple roundtrip with serializer
@@ -36,7 +41,7 @@ class TestRulesAgent(TestCase):
         """
         Verify roundtrip with persisted agent "from the field" (gen 50 Flappy Bird)
         """
-        rules_file = os.path.join(FIXTURES_PATH, 'saved_agent.rules')
+        rules_file = os.path.join(self.fixtures_path, 'saved_agent.rules')
         agent = RulesAgent.load(rules_file)
 
         with tempfile.NamedTemporaryFile('w') as saved_agent_file:
@@ -53,8 +58,9 @@ class TestRulesAgent(TestCase):
         """
 
         # Set it up so mock rules agree on action1
-        agent, num_rules = self._create_rules_agent(rule1_action={THE_ACTION: 'action1'},
-                                                    rule2_action={THE_ACTION: 'action1'})
+        agent, num_rules = self._create_rules_agent(
+            rule1_action={RulesEvaluationConstants.THE_ACTION: 'action1'},
+            rule2_action={RulesEvaluationConstants.THE_ACTION: 'action1'})
 
         self.assertEqual(num_rules, len(agent.rules))
 
@@ -71,8 +77,9 @@ class TestRulesAgent(TestCase):
         """
 
         # Set it up so mock rules vote differently -- 1 for action1, 1 for action2
-        agent, num_rules = self._create_rules_agent(rule1_action={THE_ACTION: 'action1'},
-                                                    rule2_action={THE_ACTION: 'action2'})
+        agent, num_rules = self._create_rules_agent(
+            rule1_action={RulesEvaluationConstants.THE_ACTION: 'action1'},
+            rule2_action={RulesEvaluationConstants.THE_ACTION: 'action2'})
 
         self.assertEqual(num_rules, len(agent.rules))
 

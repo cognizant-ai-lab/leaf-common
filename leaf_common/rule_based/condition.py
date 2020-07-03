@@ -6,24 +6,8 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
-import math
-
-CONDITION_ELEMENTS = [
-    "first_state",
-    "first_state_coefficient",
-    "first_state_exponent",
-    "first_state_lookback",
-    "operator",
-    "second_state",
-    "second_state_coefficient",
-    "second_state_exponent",
-    "second_state_lookback",
-    "second_state_value"
-]
-THE_MIN = "min"
-THE_MAX = "max"
-GRANULARITY = 100
-DECIMAL_DIGITS = int(math.log10(GRANULARITY))
+from leaf_common.rule_based.rules_evaluation_constants \
+    import RulesEvaluationConstants
 
 
 class Condition:  # pylint: disable-msg=R0902
@@ -71,7 +55,7 @@ class Condition:  # pylint: disable-msg=R0902
         key1 = self.states[self.first_state_key]
         lookback1 = self.first_state_lookback
 
-        first_condition = f'{coeff1:.{DECIMAL_DIGITS}f}*{key1}'
+        first_condition = f'{coeff1:.{RulesEvaluationConstants.DECIMAL_DIGITS}f}*{key1}'
         if lookback1 > 0:
             first_condition = f'{first_condition}[{lookback1}]'
 
@@ -79,16 +63,17 @@ class Condition:  # pylint: disable-msg=R0902
             coeff2 = self.second_state_coefficient
             key2 = self.states[self.second_state_key]
             lookback2 = self.second_state_lookback
-            second_condition = f'{coeff2:.{DECIMAL_DIGITS}f}*{key2}'
+            second_condition = f'{coeff2:.{RulesEvaluationConstants.DECIMAL_DIGITS}f}*{key2}'
             if self.second_state_lookback > 0:
                 second_condition = f'{second_condition}[{lookback2}]'
         elif min_maxes:
-            min_value = min_maxes[self.first_state_key, THE_MIN]
-            max_value = min_maxes[self.first_state_key, THE_MAX]
+            min_value = min_maxes[self.first_state_key, RulesEvaluationConstants.THE_MIN]
+            max_value = min_maxes[self.first_state_key, RulesEvaluationConstants.THE_MAX]
             second_condition_val = (min_value + self.second_state_value * (max_value - min_value))
-            second_condition = f'{second_condition_val:.{DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
+            second_condition = \
+                f'{second_condition_val:.{RulesEvaluationConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
         else:
-            second_condition = f'{self.second_state_value:.{DECIMAL_DIGITS}f}'
+            second_condition = f'{self.second_state_value:.{RulesEvaluationConstants.DECIMAL_DIGITS}f}'
 
         return f'{first_condition} {self.operator} {second_condition}'
 
@@ -106,8 +91,8 @@ class Condition:  # pylint: disable-msg=R0902
             second_state = domain_states[second_state_idx][self.second_state_key]
             second_state *= self.second_state_coefficient
         else:
-            the_min = min_maxes[self.first_state_key, THE_MIN]
-            the_max = min_maxes[self.first_state_key, THE_MAX]
+            the_min = min_maxes[self.first_state_key, RulesEvaluationConstants.THE_MIN]
+            the_max = min_maxes[self.first_state_key, RulesEvaluationConstants.THE_MAX]
             the_range = the_max - the_min
             second_state = the_min + the_range * self.second_state_value
 
