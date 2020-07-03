@@ -21,7 +21,6 @@ class TestRulesAgent(TestCase):
         root_dir = os.path.dirname(os.path.abspath(__file__))
         self.fixtures_path = os.path.join(root_dir, '..', 'fixtures')
 
-
     def test_serialize_roundtrip(self):
         """
         Verify simple roundtrip with serializer

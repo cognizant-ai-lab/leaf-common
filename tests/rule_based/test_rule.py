@@ -9,7 +9,6 @@ from leaf_common.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
 
 
-
 class TestRule(TestCase):
     """
     Unit tests for Rules class
