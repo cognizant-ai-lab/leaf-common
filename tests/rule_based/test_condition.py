@@ -13,8 +13,8 @@ class TestCondition(TestCase):
     Unit tests for `Condition` class
     """
 
-    def __init__(self):
-        super(TestCondition, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(TestCondition, self).__init__(*args, **kwargs)
         self.min_max = {
             RulesEvaluationConstants.THE_MIN: 0,
             RulesEvaluationConstants.THE_MAX: 10

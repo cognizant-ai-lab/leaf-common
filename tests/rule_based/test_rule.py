@@ -14,8 +14,8 @@ class TestRule(TestCase):
     Unit tests for Rules class
     """
 
-    def __init__(self):
-        super(TestRule, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(TestRule, self).__init__(*args, **kwargs)
         self.min_maxes = {
             ('0', RulesEvaluationConstants.THE_MIN): 0,
             ('0', RulesEvaluationConstants.THE_MAX): 10,
