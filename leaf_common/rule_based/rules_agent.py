@@ -13,6 +13,7 @@ from leaf_common.rule_based.rules_evaluation_constants \
 # Static initialization - Bleck!
 jsonpickle_numpy.register_handlers()
 
+
 class RulesAgent:
     """
     Evolving Rule-based actor class.
@@ -68,7 +69,7 @@ class RulesAgent:
         for state in self.states.keys():
             self.state_min_maxes[state, RulesEvaluationConstants.THE_TOTAL] = \
                 self.state_min_maxes[state, RulesEvaluationConstants.THE_TOTAL] + \
-                    current_state[state]
+                current_state[state]
             if current_state[state] < self.state_min_maxes[state, RulesEvaluationConstants.THE_MIN]:
                 self.state_min_maxes[state, RulesEvaluationConstants.THE_MIN] = current_state[state]
             if current_state[state] > self.state_min_maxes[state, RulesEvaluationConstants.THE_MAX]:
