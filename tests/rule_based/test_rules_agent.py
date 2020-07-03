@@ -16,8 +16,8 @@ class TestRulesAgent(TestCase):
     Unit tests for RulesAgent
     """
 
-    def __init__(self):
-        super(TestRulesAgent, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(TestRulesAgent, self).__init__(*args, **kwargs)
         root_dir = os.path.dirname(os.path.abspath(__file__))
         self.fixtures_path = os.path.join(root_dir, '..', 'fixtures')
 
