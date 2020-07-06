@@ -7,12 +7,8 @@ from typing import List
 from typing import Tuple
 
 from leaf_common.rule_based.condition import Condition
-
-RULE_ELEMENTS = ["condition", "action", "action_lookback"]
-THE_LOOKBACK = 1
-LOOK_BACK = "lb"
-THE_ACTION = 0
-NO_ACTION = -1
+from leaf_common.rule_based.rules_evaluation_constants \
+    import RulesEvaluationConstants
 
 
 class Rule:
@@ -70,17 +66,17 @@ class Rule:
 
         for condition in self.conditions:
             if not condition.parse(domain_states, min_maxes):
-                return [NO_ACTION, 0]
+                return [RulesEvaluationConstants.NO_ACTION, 0]
         nb_states = len(domain_states) - 1
 
         # If the lookback is greater than the number of states we have, we can't evaluate the condition so
-        # default to NO_ACTION
+        # default to RulesEvaluationConstants.NO_ACTION
         if nb_states < self.action_lookback:
-            return [NO_ACTION, 0]
+            return [RulesEvaluationConstants.NO_ACTION, 0]
         self.times_applied += 1
         if self.action_lookback == 0:
             return [self.action, 0]
-        return [LOOK_BACK, self.action_lookback]
+        return [RulesEvaluationConstants.LOOK_BACK, self.action_lookback]
 
     def copy(self, states, actions):
         """

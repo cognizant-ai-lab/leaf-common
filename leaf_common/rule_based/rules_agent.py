@@ -7,19 +7,12 @@ import jsonpickle.ext.numpy as jsonpickle_numpy
 import numpy
 
 from leaf_common.candidates.constants import ACTION_MARKER
-from leaf_common.rule_based.condition import THE_MIN
-from leaf_common.rule_based.condition import THE_MAX
-from leaf_common.rule_based.rule import LOOK_BACK
-from leaf_common.rule_based.rule import NO_ACTION
-from leaf_common.rule_based.rule import THE_ACTION
-from leaf_common.rule_based.rule import THE_LOOKBACK
+from leaf_common.rule_based.rules_evaluation_constants \
+    import RulesEvaluationConstants
 
+
+# Static initialization - Bleck!
 jsonpickle_numpy.register_handlers()
-
-RULE_FILTER_FACTOR = 1
-AGE_STATE = "age"
-MEM_FACTOR = 100  # max memory cells required
-THE_TOTAL = "total"
 
 
 class RulesAgent:
@@ -35,18 +28,18 @@ class RulesAgent:
         # State/Config needed for evaluation
         self.uid = uid
         self.domain_states = []
-        self.last_action = NO_ACTION
+        self.last_action = RulesEvaluationConstants.NO_ACTION
         self.state = initial_state
         self.actions = actions
         self.states = states
-        self.state_history_size = MEM_FACTOR * len(self.actions)
-        self.state[AGE_STATE] = 0
+        self.state_history_size = RulesEvaluationConstants.MEM_FACTOR * len(self.actions)
+        self.state[RulesEvaluationConstants.AGE_STATE_KEY] = 0
         self.times_applied = 0
         self.state_min_maxes = {}
         for state in self.states.keys():
-            self.state_min_maxes[state, THE_MIN] = 0
-            self.state_min_maxes[state, THE_MAX] = 0
-            self.state_min_maxes[state, THE_TOTAL] = 0
+            self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = 0
+            self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = 0
+            self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = 0
 
         # Genetic Material
         self.default_action = None
@@ -75,11 +68,13 @@ class RulesAgent:
         :param current_state: the current state
         """
         for state in self.states.keys():
-            self.state_min_maxes[state, THE_TOTAL] = self.state_min_maxes[state, THE_TOTAL] + current_state[state]
-            if current_state[state] < self.state_min_maxes[state, THE_MIN]:
-                self.state_min_maxes[state, THE_MIN] = current_state[state]
-            if current_state[state] > self.state_min_maxes[state, THE_MAX]:
-                self.state_min_maxes[state, THE_MAX] = current_state[state]
+            self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = \
+                self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] + \
+                current_state[state]
+            if current_state[state] < self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY]:
+                self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = current_state[state]
+            if current_state[state] > self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
+                self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_state[state]
 
     def remove_actions_from_state(self):
         """
@@ -125,7 +120,7 @@ class RulesAgent:
         for action in self.actions:
             if state[ACTION_MARKER + action]:
                 return action
-        return NO_ACTION
+        return RulesEvaluationConstants.NO_ACTION
 
     def parse_rules(self):
         """
@@ -141,12 +136,12 @@ class RulesAgent:
         anyone_voted = False
         for rule in self.rules:
             result = rule.parse(self.domain_states, self.state_min_maxes)
-            if result[THE_ACTION] != NO_ACTION:
-                if result[THE_ACTION] in self.actions.keys():
-                    poll_dict[result[THE_ACTION]] += 1
+            if result[RulesEvaluationConstants.ACTION_KEY] != RulesEvaluationConstants.NO_ACTION:
+                if result[RulesEvaluationConstants.ACTION_KEY] in self.actions.keys():
+                    poll_dict[result[RulesEvaluationConstants.ACTION_KEY]] += 1
                     anyone_voted = True
-                if result[THE_ACTION] == LOOK_BACK:
-                    lookback = result[THE_LOOKBACK]
+                if result[RulesEvaluationConstants.ACTION_KEY] == RulesEvaluationConstants.LOOK_BACK:
+                    lookback = result[RulesEvaluationConstants.LOOKBACK_KEY]
                     poll_dict[self.get_action_in_state(self.domain_states[nb_states - lookback])] += 1
                     anyone_voted = True
         if not anyone_voted:
@@ -165,7 +160,7 @@ class RulesAgent:
             index_to_delete = 1
             del self.domain_states[index_to_delete]
         action_to_perform = self.parse_rules()
-        if action_to_perform == NO_ACTION:
+        if action_to_perform == RulesEvaluationConstants.NO_ACTION:
             random_action = random.choice(list(self.actions.keys()))
             action_to_perform = random_action
         self.set_action_in_state(action_to_perform, self.domain_states[len(self.domain_states) - 1])
@@ -219,7 +214,7 @@ class RulesAgent:
         for key in self.states.keys():
             self.state[key] = observations[int(key)]
         self.last_action = self.choose_action()
-        self.state[AGE_STATE] += 1
+        self.state[RulesEvaluationConstants.AGE_STATE_KEY] += 1
         action = numpy.array(list(self.last_action.values()))
         return action
 

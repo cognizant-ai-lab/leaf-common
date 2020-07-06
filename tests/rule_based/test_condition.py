@@ -4,20 +4,28 @@ Unit tests for `Condition` class
 from unittest import TestCase
 
 from leaf_common.rule_based.condition import Condition
-from leaf_common.rule_based.condition import THE_MIN
-from leaf_common.rule_based.condition import THE_MAX
+from leaf_common.rule_based.rules_evaluation_constants \
+    import RulesEvaluationConstants
 
 
 class TestCondition(TestCase):
     """
     Unit tests for `Condition` class
     """
+
+    def __init__(self, *args, **kwargs):
+        super(TestCondition, self).__init__(*args, **kwargs)
+        self.min_max = {
+            RulesEvaluationConstants.MIN_KEY: 0,
+            RulesEvaluationConstants.MAX_KEY: 10
+        }
+
     def test_greater_true(self):
         """
         Make sure '>' works when evaluation is true
         """
         condition = self._create_condition('>')
-        result = condition.parse([{'0': 3, '1': 1}], {THE_MIN: 0, THE_MAX: 10})
+        result = condition.parse([{'0': 3, '1': 1}], self.min_max)
         self.assertTrue(result)
 
     def test_greater_false(self):
@@ -25,7 +33,7 @@ class TestCondition(TestCase):
         Make sure '>' works when evaluation is false
         """
         condition = self._create_condition('>')
-        result = condition.parse([{'0': 3, '1': 4}], {THE_MIN: 0, THE_MAX: 10})
+        result = condition.parse([{'0': 3, '1': 4}], self.min_max)
         self.assertFalse(result)
 
     def test_less_true(self):
@@ -33,7 +41,7 @@ class TestCondition(TestCase):
         Make sure '<' works when evaluation is true
         """
         condition = self._create_condition('<')
-        result = condition.parse([{'0': 1, '1': 2}], {THE_MIN: 0, THE_MAX: 10})
+        result = condition.parse([{'0': 1, '1': 2}], self.min_max)
         self.assertTrue(result)
 
     def test_less_false(self):
@@ -41,7 +49,7 @@ class TestCondition(TestCase):
         Make sure '<' works when evaluation is false
         """
         condition = self._create_condition('<')
-        result = condition.parse([{'0': 3, '1': 1}], {THE_MIN: 0, THE_MAX: 10})
+        result = condition.parse([{'0': 3, '1': 1}], self.min_max)
         self.assertFalse(result)
 
     def test_ge_true(self):
@@ -49,7 +57,7 @@ class TestCondition(TestCase):
         Make sure '>=' works when evaluation is true
         """
         condition = self._create_condition('<')
-        result = condition.parse([{'0': 3, '1': 1}], {THE_MIN: 0, THE_MAX: 10})
+        result = condition.parse([{'0': 3, '1': 1}], self.min_max)
         self.assertFalse(result)
 
     def test_ge_equality(self):
@@ -57,7 +65,7 @@ class TestCondition(TestCase):
         Make sure '>=' works when evaluation is true and values are equal (edge case)
         """
         condition = self._create_condition('<')
-        result = condition.parse([{'0': 2, '1': 1}], {THE_MIN: 0, THE_MAX: 10})
+        result = condition.parse([{'0': 2, '1': 1}], self.min_max)
         self.assertFalse(result)
 
     def test_le_true(self):
@@ -65,7 +73,7 @@ class TestCondition(TestCase):
         Make sure '<=' works when evaluation is true
         """
         condition = self._create_condition('<=')
-        result = condition.parse([{'0': 1, '1': 2}], {THE_MIN: 0, THE_MAX: 10})
+        result = condition.parse([{'0': 1, '1': 2}], self.min_max)
         self.assertTrue(result)
 
     def test_le_false(self):
@@ -73,7 +81,7 @@ class TestCondition(TestCase):
         Make sure '<=' works when evaluation is false
         """
         condition = self._create_condition('<=')
-        result = condition.parse([{'0': 3, '1': 1}], {THE_MIN: 0, THE_MAX: 10})
+        result = condition.parse([{'0': 3, '1': 1}], self.min_max)
         self.assertFalse(result)
 
     def test_to_string(self):

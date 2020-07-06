@@ -4,13 +4,9 @@ Unit tests for Rules class
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from leaf_common.rule_based.condition import THE_MIN
-from leaf_common.rule_based.condition import THE_MAX
 from leaf_common.rule_based.rule import Rule
-from leaf_common.rule_based.rule import NO_ACTION
-
-MIN_MAXES = {('0', THE_MIN): 0, ('0', THE_MAX): 10, ('1', THE_MIN): 10, ('1', THE_MAX): 20}
-DOMAIN_STATES = [{'0': 0.0, '1': 15.0}, {'0': 0.5, '1': 16.0}]
+from leaf_common.rule_based.rules_evaluation_constants \
+    import RulesEvaluationConstants
 
 
 class TestRule(TestCase):
@@ -18,13 +14,31 @@ class TestRule(TestCase):
     Unit tests for Rules class
     """
 
+    def __init__(self, *args, **kwargs):
+        super(TestRule, self).__init__(*args, **kwargs)
+        self.min_maxes = {
+            ('0', RulesEvaluationConstants.MIN_KEY): 0,
+            ('0', RulesEvaluationConstants.MAX_KEY): 10,
+            ('1', RulesEvaluationConstants.MIN_KEY): 10,
+            ('1', RulesEvaluationConstants.MAX_KEY): 20
+        }
+        self.domain_states = [
+            {
+                '0': 0.0,
+                '1': 15.0
+            },
+            {
+                '0': 0.5,
+                '1': 16.0
+            }
+        ]
+
     def test_parse_conditions_true(self):
         """
         Verify rule parsing when conditions return True
         """
         rule = self._create_rule(True, True)
-        result = rule.parse([{'0': 0.0, '1': 15.0}, {'0': 0.5, '1': 16.0}],
-                            {('0', THE_MIN): 0, ('0', THE_MAX): 10, ('1', THE_MIN): 10, ('1', THE_MAX): 20})
+        result = rule.parse(self.domain_states, self.min_maxes)
 
         self.assertEqual('1', result[0])
         self.assertEqual(0, result[1])
@@ -34,9 +48,9 @@ class TestRule(TestCase):
         Verify rule parsing when conditions return mixture of True and False
         """
         rule = self._create_rule(True, False)
-        result = rule.parse(DOMAIN_STATES, MIN_MAXES)
+        result = rule.parse(self.domain_states, self.min_maxes)
 
-        self.assertEqual(NO_ACTION, result[0])
+        self.assertEqual(RulesEvaluationConstants.NO_ACTION, result[0])
         self.assertEqual(0, result[1])
 
     @staticmethod
