@@ -21,7 +21,8 @@ class RulesEvaluationConstants():
     LOOK_BACK = "lb"
     NO_ACTION = -1
 
-    # TODO: If these are used as a keys, they would be better off as a strings
+    # pylint: disable-fixme
+    # XXX If these are used as a keys, they would be better off as a strings
     #       Think: More intelligible in JSON.
     ACTION_KEY = 0
     LOOKBACK_KEY = 1
