@@ -78,7 +78,6 @@ class Rule:
             return [self.action, 0]
         return [RulesEvaluationConstants.LOOK_BACK, self.action_lookback]
 
-
     def add_condition(self, condition: Condition):
         """
         Add a condition to the rule in ascending order if not already exists
