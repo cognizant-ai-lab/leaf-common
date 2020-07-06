@@ -4,8 +4,6 @@ See class comment
 
 import math
 
-from leaf_common.candidates.constants import ACTION_MARKER
-
 
 class RulesEvaluationConstants():
     """
@@ -48,5 +46,3 @@ class RulesEvaluationConstants():
     LESS_THAN_EQUAL = "<="
     GREATER_THAN = ">"
     GREATER_THAN_EQUAL = ">="
-
-    ACTION_MARKER = ACTION_MARKER

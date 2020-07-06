@@ -6,6 +6,7 @@ import jsonpickle
 import jsonpickle.ext.numpy as jsonpickle_numpy
 import numpy
 
+from leaf_common.candidates.constants import ACTION_MARKER
 from leaf_common.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
 
@@ -80,7 +81,7 @@ class RulesAgent:
         Removes actions from state
         :return: action-less state
         """
-        keep = [key for key in self.domain_states[0] if not key.startswith(RulesEvaluationConstants.ACTION_MARKER)]
+        keep = [key for key in self.domain_states[0] if not key.startswith(ACTION_MARKER)]
         new_states = []
         for state in self.domain_states:
             row = {new_key: state[new_key] for new_key in keep}
@@ -101,7 +102,7 @@ class RulesAgent:
         :param action: action
         """
         for act in self.actions:
-            state[RulesEvaluationConstants.ACTION_MARKER + act] = act == action
+            state[ACTION_MARKER + act] = act == action
 
     def get_action_state(self):
         """
@@ -117,7 +118,7 @@ class RulesAgent:
         :return: the action
         """
         for action in self.actions:
-            if state[RulesEvaluationConstants.ACTION_MARKER + action]:
+            if state[ACTION_MARKER + action]:
                 return action
         return RulesEvaluationConstants.NO_ACTION
 
