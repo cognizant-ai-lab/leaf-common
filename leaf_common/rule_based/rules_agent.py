@@ -166,27 +166,6 @@ class RulesAgent:
         self.set_action_in_state(action_to_perform, self.domain_states[len(self.domain_states) - 1])
         return action_to_perform
 
-    def copy_rules(self, rules):
-        """
-        Copies a rule set
-        :param rules: the source
-        :return: the cloned rule
-        """
-        self.rules = []
-        for rule in rules:
-            self.add_rule(rule.copy(self.states, self.actions))
-
-    def clone_agent(self, reference_actor):
-        """
-        Clones a rules_agent
-        :param reference_actor: source agent
-        :return: cloned rules_agent
-        """
-        self.state_history_size = reference_actor.state_history_size
-        self.default_action = reference_actor.default_action
-        self.state_min_maxes = dict(reference_actor.state_min_maxes)
-        self.copy_rules(reference_actor.rules)
-
     def prescribe(self, context):
         """
         Prescribe actions for a list of states

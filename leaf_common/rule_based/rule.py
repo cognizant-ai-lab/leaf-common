@@ -78,20 +78,6 @@ class Rule:
             return [self.action, 0]
         return [RulesEvaluationConstants.LOOK_BACK, self.action_lookback]
 
-    def copy(self, states, actions):
-        """
-        Copy a rule
-        :param states: A dictionary of domain inputs
-        :param actions: A dictionary of domain actions
-        :return: the copied rule
-        """
-        rule = Rule(actions, self.max_lookback)
-        rule.conditions = []
-        for condition in self.conditions:
-            rule.add_condition(condition.copy(states))
-        rule.action = self.action
-        rule.action_lookback = self.action_lookback
-        return rule
 
     def add_condition(self, condition: Condition):
         """

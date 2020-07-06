@@ -121,20 +121,3 @@ class Condition:  # pylint: disable-msg=R0902
             (self.operator == RulesEvaluationConstants.LESS_THAN and operand_1 < operand_2)
         )
         return condition
-
-    def copy(self, states):
-        """
-        Copy a condition
-        :param states: A dictionary of domain inputs
-        :return: the copied condition
-        """
-        condition = Condition(states, self.max_lookback)
-        condition.first_state_key = self.first_state_key
-        condition.first_state_coefficient = self.first_state_coefficient
-        condition.first_state_lookback = self.first_state_lookback
-        condition.operator = self.operator
-        condition.second_state_key = self.second_state_key
-        condition.second_state_coefficient = self.second_state_coefficient
-        condition.second_state_lookback = self.second_state_lookback
-        condition.second_state_value = self.second_state_value
-        return condition
