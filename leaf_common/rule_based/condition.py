@@ -67,8 +67,8 @@ class Condition:  # pylint: disable-msg=R0902
             if self.second_state_lookback > 0:
                 second_condition = f'{second_condition}[{lookback2}]'
         elif min_maxes:
-            min_value = min_maxes[self.first_state_key, RulesEvaluationConstants.THE_MIN]
-            max_value = min_maxes[self.first_state_key, RulesEvaluationConstants.THE_MAX]
+            min_value = min_maxes[self.first_state_key, RulesEvaluationConstants.MIN_KEY]
+            max_value = min_maxes[self.first_state_key, RulesEvaluationConstants.MAX_KEY]
             second_condition_val = (min_value + self.second_state_value * (max_value - min_value))
             second_condition = \
                 f'{second_condition_val:.{RulesEvaluationConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
@@ -91,8 +91,8 @@ class Condition:  # pylint: disable-msg=R0902
             second_state = domain_states[second_state_idx][self.second_state_key]
             second_state *= self.second_state_coefficient
         else:
-            the_min = min_maxes[self.first_state_key, RulesEvaluationConstants.THE_MIN]
-            the_max = min_maxes[self.first_state_key, RulesEvaluationConstants.THE_MAX]
+            the_min = min_maxes[self.first_state_key, RulesEvaluationConstants.MIN_KEY]
+            the_max = min_maxes[self.first_state_key, RulesEvaluationConstants.MAX_KEY]
             the_range = the_max - the_min
             second_state = the_min + the_range * self.second_state_value
 

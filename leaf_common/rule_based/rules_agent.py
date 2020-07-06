@@ -33,13 +33,13 @@ class RulesAgent:
         self.actions = actions
         self.states = states
         self.state_history_size = RulesEvaluationConstants.MEM_FACTOR * len(self.actions)
-        self.state[RulesEvaluationConstants.AGE_STATE] = 0
+        self.state[RulesEvaluationConstants.AGE_STATE_KEY] = 0
         self.times_applied = 0
         self.state_min_maxes = {}
         for state in self.states.keys():
-            self.state_min_maxes[state, RulesEvaluationConstants.THE_MIN] = 0
-            self.state_min_maxes[state, RulesEvaluationConstants.THE_MAX] = 0
-            self.state_min_maxes[state, RulesEvaluationConstants.THE_TOTAL] = 0
+            self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = 0
+            self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = 0
+            self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = 0
 
         # Genetic Material
         self.default_action = None
@@ -68,13 +68,13 @@ class RulesAgent:
         :param current_state: the current state
         """
         for state in self.states.keys():
-            self.state_min_maxes[state, RulesEvaluationConstants.THE_TOTAL] = \
-                self.state_min_maxes[state, RulesEvaluationConstants.THE_TOTAL] + \
+            self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = \
+                self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] + \
                 current_state[state]
-            if current_state[state] < self.state_min_maxes[state, RulesEvaluationConstants.THE_MIN]:
-                self.state_min_maxes[state, RulesEvaluationConstants.THE_MIN] = current_state[state]
-            if current_state[state] > self.state_min_maxes[state, RulesEvaluationConstants.THE_MAX]:
-                self.state_min_maxes[state, RulesEvaluationConstants.THE_MAX] = current_state[state]
+            if current_state[state] < self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY]:
+                self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = current_state[state]
+            if current_state[state] > self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
+                self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_state[state]
 
     def remove_actions_from_state(self):
         """
@@ -136,12 +136,12 @@ class RulesAgent:
         anyone_voted = False
         for rule in self.rules:
             result = rule.parse(self.domain_states, self.state_min_maxes)
-            if result[RulesEvaluationConstants.THE_ACTION] != RulesEvaluationConstants.NO_ACTION:
-                if result[RulesEvaluationConstants.THE_ACTION] in self.actions.keys():
-                    poll_dict[result[RulesEvaluationConstants.THE_ACTION]] += 1
+            if result[RulesEvaluationConstants.ACTION_KEY] != RulesEvaluationConstants.NO_ACTION:
+                if result[RulesEvaluationConstants.ACTION_KEY] in self.actions.keys():
+                    poll_dict[result[RulesEvaluationConstants.ACTION_KEY]] += 1
                     anyone_voted = True
-                if result[RulesEvaluationConstants.THE_ACTION] == RulesEvaluationConstants.LOOK_BACK:
-                    lookback = result[RulesEvaluationConstants.THE_LOOKBACK]
+                if result[RulesEvaluationConstants.ACTION_KEY] == RulesEvaluationConstants.LOOK_BACK:
+                    lookback = result[RulesEvaluationConstants.LOOKBACK_KEY]
                     poll_dict[self.get_action_in_state(self.domain_states[nb_states - lookback])] += 1
                     anyone_voted = True
         if not anyone_voted:
@@ -214,7 +214,7 @@ class RulesAgent:
         for key in self.states.keys():
             self.state[key] = observations[int(key)]
         self.last_action = self.choose_action()
-        self.state[RulesEvaluationConstants.AGE_STATE] += 1
+        self.state[RulesEvaluationConstants.AGE_STATE_KEY] += 1
         action = numpy.array(list(self.last_action.values()))
         return action
 

@@ -17,10 +17,10 @@ class TestRule(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestRule, self).__init__(*args, **kwargs)
         self.min_maxes = {
-            ('0', RulesEvaluationConstants.THE_MIN): 0,
-            ('0', RulesEvaluationConstants.THE_MAX): 10,
-            ('1', RulesEvaluationConstants.THE_MIN): 10,
-            ('1', RulesEvaluationConstants.THE_MAX): 20
+            ('0', RulesEvaluationConstants.MIN_KEY): 0,
+            ('0', RulesEvaluationConstants.MAX_KEY): 10,
+            ('1', RulesEvaluationConstants.MIN_KEY): 10,
+            ('1', RulesEvaluationConstants.MAX_KEY): 20
         }
         self.domain_states = [
             {

@@ -12,16 +12,19 @@ class RulesEvaluationConstants():
 
     # Rules stuff
     RULE_FILTER_FACTOR = 1
-    AGE_STATE = "age"
+    AGE_STATE_KEY = "age"
     MEM_FACTOR = 100  # max memory cells required
-    THE_TOTAL = "total"
+    TOTAL_KEY = "total"
 
     # Rule stuff
     RULE_ELEMENTS = ["condition", "action", "action_lookback"]
-    THE_LOOKBACK = 1
     LOOK_BACK = "lb"
-    THE_ACTION = 0
     NO_ACTION = -1
+
+    # TODO: If these are used as a keys, they would be better off as a strings
+    #       Think: More intelligible in JSON.
+    ACTION_KEY = 0
+    LOOKBACK_KEY = 1
 
     # Condition stuff
     CONDITION_ELEMENTS = [
@@ -36,8 +39,8 @@ class RulesEvaluationConstants():
         "second_state_lookback",
         "second_state_value"
     ]
-    THE_MIN = "min"
-    THE_MAX = "max"
+    MIN_KEY = "min"
+    MAX_KEY = "max"
     GRANULARITY = 100
     DECIMAL_DIGITS = int(math.log10(GRANULARITY))
 

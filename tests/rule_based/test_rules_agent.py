@@ -58,8 +58,8 @@ class TestRulesAgent(TestCase):
 
         # Set it up so mock rules agree on action1
         agent, num_rules = self._create_rules_agent(
-            rule1_action={RulesEvaluationConstants.THE_ACTION: 'action1'},
-            rule2_action={RulesEvaluationConstants.THE_ACTION: 'action1'})
+            rule1_action={RulesEvaluationConstants.ACTION_KEY: 'action1'},
+            rule2_action={RulesEvaluationConstants.ACTION_KEY: 'action1'})
 
         self.assertEqual(num_rules, len(agent.rules))
 
@@ -77,8 +77,8 @@ class TestRulesAgent(TestCase):
 
         # Set it up so mock rules vote differently -- 1 for action1, 1 for action2
         agent, num_rules = self._create_rules_agent(
-            rule1_action={RulesEvaluationConstants.THE_ACTION: 'action1'},
-            rule2_action={RulesEvaluationConstants.THE_ACTION: 'action2'})
+            rule1_action={RulesEvaluationConstants.ACTION_KEY: 'action1'},
+            rule2_action={RulesEvaluationConstants.ACTION_KEY: 'action2'})
 
         self.assertEqual(num_rules, len(agent.rules))
 

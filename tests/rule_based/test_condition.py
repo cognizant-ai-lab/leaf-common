@@ -16,8 +16,8 @@ class TestCondition(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCondition, self).__init__(*args, **kwargs)
         self.min_max = {
-            RulesEvaluationConstants.THE_MIN: 0,
-            RulesEvaluationConstants.THE_MAX: 10
+            RulesEvaluationConstants.MIN_KEY: 0,
+            RulesEvaluationConstants.MAX_KEY: 10
         }
 
     def test_greater_true(self):
