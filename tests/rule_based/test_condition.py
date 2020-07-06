@@ -2,9 +2,10 @@
 Unit tests for `Condition` class
 """
 from unittest import TestCase
-from unittest.mock import patch
 
-from leaf_common.rule_based.condition import Condition, THE_MIN, THE_MAX
+from leaf_common.rule_based.condition import Condition
+from leaf_common.rule_based.condition import THE_MIN
+from leaf_common.rule_based.condition import THE_MAX
 
 
 class TestCondition(TestCase):
@@ -92,19 +93,17 @@ class TestCondition(TestCase):
 
     @staticmethod
     def _create_condition(condition_type, lookback1=0, lookback2=0):
-        with patch('leaf_common.rule_based.condition.random.randint', autospec=True) as mock_random_int, \
-                patch('leaf_common.rule_based.condition.random.choice', autospec=True) as mock_random_choice:
-            # We simulate two states, keys '0' and '1'
-            states = {'0': 'S_0', '1': 'S_1'}
+        # We simulate two states, keys '0' and '1'
+        states = {'0': 'S_0', '1': 'S_1'}
 
-            # Set up canned random numbers to express: 0.42*S_0 <condition> 0.69*S_1
-            mock_random_choice.side_effect = [list(states)[0], condition_type, list(states)[1]]
-            mock_random_int.side_effect = [
-                lookback1,  # first_state_lookback
-                42,  # first_state_coefficient
-                lookback2,  # second_state_lookback
-                32,  # second_state_value
-                84  # second_state_coefficient
-            ]
-            condition = Condition(states, max_lookback=5)
-            return condition
+        # Set up canned random numbers to express: 0.42*S_0 <condition> 0.69*S_1
+        condition = Condition(states, max_lookback=5)
+        condition.first_state_lookback = lookback1
+        condition.first_state_key = list(states)[0]
+        condition.first_state_coefficient = 0.42
+        condition.operator = condition_type
+        condition.second_state_lookback = lookback2
+        condition.second_state_key = list(states)[1]
+        condition.second_state_value = 0.32
+        condition.second_state_coefficient = 0.84
+        return condition

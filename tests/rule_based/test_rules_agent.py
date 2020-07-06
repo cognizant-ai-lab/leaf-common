@@ -4,7 +4,7 @@ Unit tests for RulesAgent
 import os
 import tempfile
 from unittest import TestCase
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 from leaf_common.rule_based.rule import THE_ACTION
 from leaf_common.rule_based.rules_agent import RulesAgent
@@ -85,18 +85,15 @@ class TestRulesAgent(TestCase):
 
     @staticmethod
     def _create_rules_agent(rule1_action, rule2_action):
-        with patch('leaf_common.rule_based.rules_agent.Rule', autospec=True) as mock_rule, \
-                patch('leaf_common.rule_based.rules_agent.random.randint', autospec=True) as mock_randint:
-            mock_rule_1 = MagicMock()
-            mock_rule_2 = MagicMock()
-            mock_rule_1.conditions = [MagicMock()]
-            mock_rule_2.conditions = [MagicMock()]
-            mock_rule_1.parse.return_value = rule1_action
-            mock_rule_2.parse.return_value = rule2_action
-            mock_rule.side_effect = [mock_rule_1, mock_rule_2]
-            num_rules = 2
-            mock_randint.return_value = num_rules
-            agent = RulesAgent(states={'k1': 'value1', 'k2': 'value2'},
-                               actions={'action1': 'action_value1', 'action2': 'action_value2'},
-                               initial_state={'state1': 'value1'})
-            return agent, num_rules
+        mock_rule_1 = MagicMock()
+        mock_rule_2 = MagicMock()
+        mock_rule_1.conditions = [MagicMock()]
+        mock_rule_2.conditions = [MagicMock()]
+        mock_rule_1.parse.return_value = rule1_action
+        mock_rule_2.parse.return_value = rule2_action
+        agent = RulesAgent(states={'k1': 'value1', 'k2': 'value2'},
+                           actions={'action1': 'action_value1', 'action2': 'action_value2'},
+                           initial_state={'state1': 'value1'})
+        agent.rules.append(mock_rule_1)
+        agent.rules.append(mock_rule_2)
+        return agent, len(agent.rules)

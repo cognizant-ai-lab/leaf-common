@@ -2,8 +2,9 @@
 Base class for rule representation
 """
 
-import random
-from typing import Dict, List, Tuple
+from typing import Dict
+from typing import List
+from typing import Tuple
 
 from leaf_common.rule_based.condition import Condition
 
@@ -12,7 +13,6 @@ THE_LOOKBACK = 1
 LOOK_BACK = "lb"
 THE_ACTION = 0
 NO_ACTION = -1
-NUMBER_OF_BUILDING_BLOCK_CONDITIONS = 1
 
 
 class Rule:
@@ -20,16 +20,17 @@ class Rule:
     Rule representation based class.
     """
 
-    def __init__(self, states: Dict[str, str], actions: Dict[str, str], max_lookback: int):
+    def __init__(self, actions: Dict[str, str], max_lookback: int):
+
+        # State/Config needed for evaluation
         self.max_lookback = max_lookback
         self.actions = actions
-        self.action = random.choice(list(actions.keys()))
-        self.action_lookback = random.randint(0, self.max_lookback)
         self.times_applied = 0
+
+        # Genetic Material
+        self.action = None
+        self.action_lookback = None
         self.conditions: List[Condition] = []
-        for _ in range(0, random.randint(1, NUMBER_OF_BUILDING_BLOCK_CONDITIONS)):
-            condition = Condition(states, self.max_lookback)
-            self.add_condition(condition)
 
     def __str__(self):
         return self.get_str()
@@ -88,7 +89,7 @@ class Rule:
         :param actions: A dictionary of domain actions
         :return: the copied rule
         """
-        rule = Rule(states, actions, self.max_lookback)
+        rule = Rule(actions, self.max_lookback)
         rule.conditions = []
         for condition in self.conditions:
             rule.add_condition(condition.copy(states))
