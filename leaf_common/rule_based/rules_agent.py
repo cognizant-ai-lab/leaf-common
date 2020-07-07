@@ -203,34 +203,6 @@ class RulesAgent:
         """
         self.domain_states = []
 
-    def add_rule(self, rule):
-        """
-        Add a rule if it's not already exist in the rule set
-        :param rule: A rule
-        :return: True if successful
-        """
-        if self.contains(rule):
-            return False
-        self.rules.append(rule)
-        return True
-
-    def contains(self, rule):
-        """
-        Check to see if a rule set already contains a rule
-        :param rule: A rule to be checked
-        :return: True if the rule exists in the rule set
-        """
-        for i in range(len(self.rules)):
-            if len(self.rules[i].conditions) == len(rule.conditions):
-                shortcut = True
-                for j in range(len(self.rules[i].conditions)):
-                    if self.rules[i].conditions[j].get_str(None) != \
-                            rule.conditions[j].get_str(None):
-                        shortcut = False
-                if shortcut:
-                    return True
-        return False
-
     @staticmethod
     def decode(rules_agent_string: str) -> 'RulesAgent':
         """

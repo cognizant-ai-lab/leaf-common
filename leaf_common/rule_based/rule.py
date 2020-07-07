@@ -77,33 +77,3 @@ class Rule:
         if self.action_lookback == 0:
             return [self.action, 0]
         return [RulesEvaluationConstants.LOOK_BACK, self.action_lookback]
-
-    def add_condition(self, condition: Condition):
-        """
-        Add a condition to the rule in ascending order if not already exists
-        :param condition: A condition
-        :return: True if successful
-        """
-        if self.contains(condition):
-            return False
-        str_new_condition = condition.get_str()
-        insertion_index = 0
-        for i in range(len(self.conditions)):
-            str_condition = self.conditions[i].get_str()
-            if str_new_condition < str_condition:
-                insertion_index += 1
-            else:
-                self.conditions.insert(insertion_index, condition)
-                return True
-        self.conditions.append(condition)
-        return True
-
-    def contains(self, condition):
-        """
-        Check if a condition is not already exist in the rule
-        :param condition: A condition
-        :return: True if exists, False otherwise
-        """
-        str_condition = "(" + condition.get_str(None) + ")"
-        str_rule = self.get_str()
-        return str_condition in str_rule
