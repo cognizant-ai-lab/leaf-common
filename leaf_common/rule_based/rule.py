@@ -16,10 +16,9 @@ class Rule:
     Rule representation based class.
     """
 
-    def __init__(self, actions: Dict[str, str], max_lookback: int):
+    def __init__(self, actions: Dict[str, str]):
 
         # State/Config needed for evaluation
-        self.max_lookback = max_lookback
         self.actions = actions
         self.times_applied = 0
 

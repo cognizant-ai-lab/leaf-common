@@ -18,11 +18,10 @@ class Condition:  # pylint: disable-msg=R0902
     An operator is randomly chosen from the `OPERATORS` list.
     """
 
-    def __init__(self, states: Dict[str, str], max_lookback: int):
+    def __init__(self, states: Dict[str, str]):
 
         # State/Config needed for evaluation
         self.states = states
-        self.max_lookback = max_lookback
 
         # Genetic Material fields
         self.first_state_lookback: int = None
