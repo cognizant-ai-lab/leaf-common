@@ -66,10 +66,10 @@ class TestRule(TestCase):
         mock_condition_2.action = 'action2'
         mock_condition_2.get_str.return_value = 'condition2_str'
 
-        rule = Rule(actions={'0': 'action1', '1': 'action2'}, max_lookback=0)
+        rule = Rule(actions={'0': 'action1', '1': 'action2'})
         rule.action = '1'
         rule.action_lookback = 0
-        rule.add_condition(mock_condition_1)
-        rule.add_condition(mock_condition_2)
+        rule.conditions.append(mock_condition_1)
+        rule.conditions.append(mock_condition_2)
 
         return rule

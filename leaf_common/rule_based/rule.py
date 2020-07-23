@@ -16,10 +16,9 @@ class Rule:
     Rule representation based class.
     """
 
-    def __init__(self, actions: Dict[str, str], max_lookback: int):
+    def __init__(self, actions: Dict[str, str]):
 
         # State/Config needed for evaluation
-        self.max_lookback = max_lookback
         self.actions = actions
         self.times_applied = 0
 
@@ -77,48 +76,3 @@ class Rule:
         if self.action_lookback == 0:
             return [self.action, 0]
         return [RulesEvaluationConstants.LOOK_BACK, self.action_lookback]
-
-    def copy(self, states, actions):
-        """
-        Copy a rule
-        :param states: A dictionary of domain inputs
-        :param actions: A dictionary of domain actions
-        :return: the copied rule
-        """
-        rule = Rule(actions, self.max_lookback)
-        rule.conditions = []
-        for condition in self.conditions:
-            rule.add_condition(condition.copy(states))
-        rule.action = self.action
-        rule.action_lookback = self.action_lookback
-        return rule
-
-    def add_condition(self, condition: Condition):
-        """
-        Add a condition to the rule in ascending order if not already exists
-        :param condition: A condition
-        :return: True if successful
-        """
-        if self.contains(condition):
-            return False
-        str_new_condition = condition.get_str()
-        insertion_index = 0
-        for i in range(len(self.conditions)):
-            str_condition = self.conditions[i].get_str()
-            if str_new_condition < str_condition:
-                insertion_index += 1
-            else:
-                self.conditions.insert(insertion_index, condition)
-                return True
-        self.conditions.append(condition)
-        return True
-
-    def contains(self, condition):
-        """
-        Check if a condition is not already exist in the rule
-        :param condition: A condition
-        :return: True if exists, False otherwise
-        """
-        str_condition = "(" + condition.get_str(None) + ")"
-        str_rule = self.get_str()
-        return str_condition in str_rule
