@@ -39,24 +39,6 @@ class RepresentationType(str, Enum):
         return leaf_representation
 
     @staticmethod
-    def get_file_type_for_representation(representation: 'RepresentationType') -> str:
-        """
-        Determines which file type (extension) to use for a given representation
-        :param representation: Representation of candidates, chosen from this enum itself
-        :return: A string indicating which file extension to use
-        """
-        if representation == RepresentationType.KerasNN:
-            file_type = 'hd5'
-        elif representation == RepresentationType.NNWeights:
-            file_type = 'pickle'
-        elif representation == RepresentationType.RuleBased:
-            file_type = 'rules'
-        else:
-            file_type = None
-
-        return file_type
-
-    @staticmethod
     def is_valid_file_type(file_name: str, representation: 'RepresentationType'):
         """
         Determines whether the supplied filename is valid, that is, whether it is consistent with the supplied
