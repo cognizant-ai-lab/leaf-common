@@ -48,7 +48,6 @@ class TestRulesAgent(TestCase):
             reloaded_agent = RulesAgent.load(saved_agent_file.name)
 
         self.assertIsNot(agent, reloaded_agent)
-        self.assertEqual(agent, reloaded_agent)
 
     def test_parse_rules_agree(self):
         """
