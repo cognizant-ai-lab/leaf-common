@@ -20,6 +20,9 @@ class RepresentationType(str, Enum):
     # The rule set representation.
     RuleBased = 'Rules'
 
+    # Evolved dictionary representation.
+    Structure = 'Structure'
+
     @staticmethod
     def get_representation(experiment_params):
         """
