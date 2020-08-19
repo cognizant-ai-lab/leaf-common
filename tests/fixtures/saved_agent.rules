@@ -9021,16 +9021,13 @@
       },
       "conditions": [
         {
-          "first_state": "1",
+          "first_state_key": "1",
           "first_state_coefficient": 0.98,
-          "first_state_exponent": 1,
           "first_state_lookback": 0,
-          "max_lookback": 0,
           "operator": ">",
           "py/object": "leaf_common.rule_based.condition.Condition",
-          "second_state": "value",
+          "second_state_key": "value",
           "second_state_coefficient": 0.72,
-          "second_state_exponent": 1,
           "second_state_lookback": 0,
           "second_state_value": 0.78,
           "states": {
@@ -9045,16 +9042,13 @@
           }
         },
         {
-          "first_state": "6",
+          "first_state_key": "6",
           "first_state_coefficient": 0.69,
-          "first_state_exponent": 1,
           "first_state_lookback": 0,
-          "max_lookback": 0,
           "operator": "<=",
           "py/object": "leaf_common.rule_based.condition.Condition",
-          "second_state": "0",
+          "second_state_key": "0",
           "second_state_coefficient": 0.46,
-          "second_state_exponent": 1,
           "second_state_lookback": 0,
           "second_state_value": 0.28,
           "states": {
@@ -9069,16 +9063,13 @@
           }
         },
         {
-          "first_state": "4",
+          "first_state_key": "4",
           "first_state_coefficient": 0.48,
-          "first_state_exponent": 1,
           "first_state_lookback": 0,
-          "max_lookback": 0,
           "operator": ">=",
           "py/object": "leaf_common.rule_based.condition.Condition",
-          "second_state": "1",
+          "second_state_key": "1",
           "second_state_coefficient": 0.08,
-          "second_state_exponent": 1,
           "second_state_lookback": 0,
           "second_state_value": 0.95,
           "states": {
@@ -9093,16 +9084,13 @@
           }
         },
         {
-          "first_state": "3",
+          "first_state_key": "3",
           "first_state_coefficient": 0.26,
-          "first_state_exponent": 1,
           "first_state_lookback": 0,
-          "max_lookback": 0,
           "operator": "<",
           "py/object": "leaf_common.rule_based.condition.Condition",
-          "second_state": "2",
+          "second_state_key": "2",
           "second_state_coefficient": 0.63,
-          "second_state_exponent": 1,
           "second_state_lookback": 0,
           "second_state_value": 0.7,
           "states": {
@@ -9117,18 +9105,7 @@
           }
         }
       ],
-      "max_lookback": 0,
       "py/object": "leaf_common.rule_based.rule.Rule",
-      "states": {
-        "0": "player_y",
-        "1": "player_vel",
-        "2": "next_pipe_dist_to_player",
-        "3": "next_pipe_top_y",
-        "4": "next_pipe_bottom_y",
-        "5": "next_next_pipe_dist_to_player",
-        "6": "next_next_pipe_top_y",
-        "7": "next_next_pipe_bottom_y"
-      },
       "times_applied": 736
     },
     {
@@ -9140,16 +9117,13 @@
       },
       "conditions": [
         {
-          "first_state": "1",
+          "first_state_key": "1",
           "first_state_coefficient": 0.98,
-          "first_state_exponent": 1,
           "first_state_lookback": 0,
-          "max_lookback": 0,
           "operator": ">",
           "py/object": "leaf_common.rule_based.condition.Condition",
-          "second_state": "value",
+          "second_state_key": "value",
           "second_state_coefficient": 0.72,
-          "second_state_exponent": 1,
           "second_state_lookback": 0,
           "second_state_value": 0.78,
           "states": {
@@ -9164,16 +9138,13 @@
           }
         },
         {
-          "first_state": "6",
+          "first_state_key": "6",
           "first_state_coefficient": 0.69,
-          "first_state_exponent": 1,
           "first_state_lookback": 0,
-          "max_lookback": 0,
           "operator": "<=",
           "py/object": "leaf_common.rule_based.condition.Condition",
-          "second_state": "0",
+          "second_state_key": "0",
           "second_state_coefficient": 0.46,
-          "second_state_exponent": 1,
           "second_state_lookback": 0,
           "second_state_value": 0.28,
           "states": {
@@ -9188,16 +9159,13 @@
           }
         },
         {
-          "first_state": "4",
+          "first_state_key": "4",
           "first_state_coefficient": 0.48,
-          "first_state_exponent": 1,
           "first_state_lookback": 0,
-          "max_lookback": 0,
           "operator": ">=",
           "py/object": "leaf_common.rule_based.condition.Condition",
-          "second_state": "1",
+          "second_state_key": "1",
           "second_state_coefficient": 0.08,
-          "second_state_exponent": 1,
           "second_state_lookback": 0,
           "second_state_value": 0.95,
           "states": {
@@ -9212,16 +9180,13 @@
           }
         },
         {
-          "first_state": "3",
+          "first_state_key": "3",
           "first_state_coefficient": 0.42,
-          "first_state_exponent": 1,
           "first_state_lookback": 0,
-          "max_lookback": 0,
           "operator": "<",
           "py/object": "leaf_common.rule_based.condition.Condition",
-          "second_state": "5",
+          "second_state_key": "5",
           "second_state_coefficient": 0.49,
-          "second_state_exponent": 1,
           "second_state_lookback": 0,
           "second_state_value": 0.59,
           "states": {
@@ -9236,16 +9201,13 @@
           }
         },
         {
-          "first_state": "4",
+          "first_state_key": "4",
           "first_state_coefficient": 0.37,
-          "first_state_exponent": 1,
           "first_state_lookback": 0,
-          "max_lookback": 0,
           "operator": ">=",
           "py/object": "leaf_common.rule_based.condition.Condition",
-          "second_state": "1",
+          "second_state_key": "1",
           "second_state_coefficient": 0.08,
-          "second_state_exponent": 1,
           "second_state_lookback": 0,
           "second_state_value": 0.95,
           "states": {
@@ -9260,16 +9222,13 @@
           }
         },
         {
-          "first_state": "5",
+          "first_state_key": "5",
           "first_state_coefficient": 0.19,
-          "first_state_exponent": 1,
           "first_state_lookback": 0,
-          "max_lookback": 0,
           "operator": ">=",
           "py/object": "leaf_common.rule_based.condition.Condition",
-          "second_state": "0",
+          "second_state_key": "0",
           "second_state_coefficient": 0.87,
-          "second_state_exponent": 1,
           "second_state_lookback": 0,
           "second_state_value": 0.0,
           "states": {
@@ -9284,18 +9243,7 @@
           }
         }
       ],
-      "max_lookback": 0,
       "py/object": "leaf_common.rule_based.rule.Rule",
-      "states": {
-        "0": "player_y",
-        "1": "player_vel",
-        "2": "next_pipe_dist_to_player",
-        "3": "next_pipe_top_y",
-        "4": "next_pipe_bottom_y",
-        "5": "next_next_pipe_dist_to_player",
-        "6": "next_next_pipe_top_y",
-        "7": "next_next_pipe_bottom_y"
-      },
       "times_applied": 0
     }
   ],
