@@ -9019,7 +9019,7 @@
         "0": "0",
         "1": "1"
       },
-      "condition_string": [
+      "conditions": [
         {
           "first_state": "1",
           "first_state_coefficient": 0.98,
@@ -9138,7 +9138,7 @@
         "0": "0",
         "1": "1"
       },
-      "condition_string": [
+      "conditions": [
         {
           "first_state": "1",
           "first_state_coefficient": 0.98,
