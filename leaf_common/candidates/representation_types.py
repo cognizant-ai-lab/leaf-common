@@ -20,6 +20,9 @@ class RepresentationType(str, Enum):
     # The rule set representation.
     RuleBased = 'Rules'
 
+    # Evolved dictionary representation.
+    Structure = 'Structure'
+
     @staticmethod
     def get_representation(experiment_params):
         """
@@ -37,35 +40,3 @@ class RepresentationType(str, Enum):
             except KeyError:
                 raise ValueError('Invalid representation type: "{}"'.format(representation_type_as_string))
         return leaf_representation
-
-    @staticmethod
-    def get_file_type_for_representation(representation: 'RepresentationType') -> str:
-        """
-        Determines which file type (extension) to use for a given representation
-        :param representation: Representation of candidates, chosen from this enum itself
-        :return: A string indicating which file extension to use
-        """
-        if representation == RepresentationType.KerasNN:
-            file_type = 'hd5'
-        elif representation == RepresentationType.NNWeights:
-            file_type = 'pickle'
-        elif representation == RepresentationType.RuleBased:
-            file_type = 'rules'
-        else:
-            file_type = None
-
-        return file_type
-
-    @staticmethod
-    def is_valid_file_type(file_name: str, representation: 'RepresentationType'):
-        """
-        Determines whether the supplied filename is valid, that is, whether it is consistent with the supplied
-        candidate representation type.
-        :param file_name:
-        :param representation:
-        :return:
-        """
-        is_valid_keras_nn_file = representation == RepresentationType.KerasNN and file_name.endswith('.hd5')
-        is_valid_weights_nn_file = representation == RepresentationType.NNWeights and file_name.endswith('.pickle')
-        is_valid_rule_set_file = representation == RepresentationType.RuleBased and file_name.endswith('.rules')
-        return is_valid_keras_nn_file or is_valid_weights_nn_file or is_valid_rule_set_file

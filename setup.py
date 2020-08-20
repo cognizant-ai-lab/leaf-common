@@ -28,7 +28,7 @@ def _read(fname):
 
 setup(
     name='leaf-common',
-    version='1.1.2',
+    version='1.1.4',
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
     packages=find_packages('.', exclude=['tests']),
     install_requires=[

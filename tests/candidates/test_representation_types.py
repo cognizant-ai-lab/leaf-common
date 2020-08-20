@@ -59,21 +59,3 @@ class TestRepresentationType(TestCase):
         Verify default when None is passed
         """
         self.assertEqual(RepresentationType.KerasNN, RepresentationType.get_representation(None))
-
-    def test_valid_file_types(self):
-        """
-        Verify valid file extensions for each representation and ensure invalid ones rejected
-        """
-        self.assertTrue(RepresentationType.is_valid_file_type('test.hd5', RepresentationType.KerasNN))
-        self.assertTrue(RepresentationType.is_valid_file_type('test.pickle', RepresentationType.NNWeights))
-        self.assertTrue(RepresentationType.is_valid_file_type('test.rules', RepresentationType.RuleBased))
-        self.assertFalse(RepresentationType.is_valid_file_type('test.rules', RepresentationType.KerasNN))
-        self.assertFalse(RepresentationType.is_valid_file_type('test.pickle', RepresentationType.KerasNN))
-        self.assertFalse(RepresentationType.is_valid_file_type('test.hd5', RepresentationType.NNWeights))
-
-    def test_unknown_file_type(self):
-        """
-        Verify behavior when garbage file type passed
-        """
-        self.assertFalse(RepresentationType.is_valid_file_type('test.json', RepresentationType.RuleBased))
-        self.assertFalse(RepresentationType.is_valid_file_type('test.txt', RepresentationType.KerasNN))

@@ -39,9 +39,6 @@ class Condition:  # pylint: disable-msg=R0902
     def __repr__(self):
         return self.__str__()
 
-    def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
-
     # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
     def get_str(self, min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
         """
