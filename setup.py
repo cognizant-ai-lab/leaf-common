@@ -7,6 +7,8 @@ import sys
 
 from setuptools import setup, find_packages
 
+LIBRARY_VERSION = "1.1.5"
+
 CURRENT_PYTHON = sys.version_info[:2]
 REQUIRED_PYTHON = (3, 6)
 
@@ -28,7 +30,7 @@ def _read(fname):
 
 setup(
     name='leaf-common',
-    version='1.1.4',
+    version=LIBRARY_VERSION,
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
     packages=find_packages('.', exclude=['tests']),
     install_requires=[

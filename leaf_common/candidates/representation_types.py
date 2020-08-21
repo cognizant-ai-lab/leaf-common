@@ -18,7 +18,7 @@ class RepresentationType(str, Enum):
     NNWeights = 'NNWeights'
 
     # The rule set representation.
-    RuleBased = 'Rules'
+    RuleBased = 'RuleBased'
 
     # Evolved dictionary representation.
     Structure = 'Structure'
