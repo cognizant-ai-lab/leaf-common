@@ -73,7 +73,6 @@ class PopulationSession():
         """
         raise NotImplementedError
 
-
     def get_population(self, experiment_id, checkpoint_id):
         """
         :param experiment_id: A String unique to the experiment
@@ -101,8 +100,6 @@ class PopulationSession():
                 passed in when the population was created
         """
         raise NotImplementedError
-
-
 
     def get_service_info(self):
         """
