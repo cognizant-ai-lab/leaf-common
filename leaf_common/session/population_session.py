@@ -1,4 +1,3 @@
-
 # Copyright (C) 2019-2020 Cognizant Digital Business, Evolutionary AI.
 # All Rights Reserved.
 # Issued under the Academic Public License.
@@ -9,6 +8,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comments.
+"""
 
 
 class PopulationSession():
