@@ -30,7 +30,7 @@ class PopulationSessionFactory():
                        metadata: dict = None,
                        security_cfg: dict = None,
                        umbrella_timeout: object = None,
-                       grc_options: dict = None) -> PopulationSession:
+                       connection_options: dict = None) -> PopulationSession:
         """
         :param population_service_host: The host name of for the
                     Population Service hosting the algorithm
@@ -50,8 +50,9 @@ class PopulationSessionFactory():
                         GRPC Channel.  Default is None, uses insecure channel.
         :param umbrella_timeout: A Timeout object under which the length of all
                         looping and retries should be considered
-        :param grpc_options: A dictionary of key/value pairs to be included
-                        as GRPC options when constructing the channel.
+        :param connection_options: A dictionary of key/value pairs to be used
+                        when constructing/configuring the communications channel
+                        to the service.
 
         :return: an appropriate PopulationSession instance based on the
                     arguments
