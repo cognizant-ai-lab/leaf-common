@@ -21,6 +21,7 @@ class PopulationSessionFactory():
     communicating with a Population Service and/or underlying algorithm.
     """
 
+    # pylint: disable=too-many-arguments
     def create_session(self, population_service_host: str,
                        population_service_port: str,
                        timeout_in_seconds: int = None,
