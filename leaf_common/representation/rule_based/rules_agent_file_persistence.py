@@ -1,6 +1,6 @@
 
 from leaf_common.persistence.factory.simple_file_persistence import SimpleFilePersistence
-from leaf_common.rule_based.rules_agent_serialization_format import RulesAgentSerializationFormat
+from leaf_common.representation.rule_based.rules_agent_serialization_format import RulesAgentSerializationFormat
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
 
 

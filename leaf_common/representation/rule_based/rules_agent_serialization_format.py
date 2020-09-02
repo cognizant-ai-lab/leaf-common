@@ -8,7 +8,7 @@ from io import StringIO
 from typing import TextIO
 
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
-from leaf_common.rule_based.rules_agent import RulesAgent
+from leaf_common.representation.rule_based.rules_agent import RulesAgent
 
 
 class RulesAgentSerializationFormat(SerializationFormat):
