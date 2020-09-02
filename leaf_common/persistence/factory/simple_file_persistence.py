@@ -43,7 +43,7 @@ class SimpleFilePersistence(Persistence):
         """
         with self.serialization_format.from_object(obj) as buffer_fileobj:
             with open(self.file_name, 'w') as dest_fileobj:
-                shutil.copyfileobj(bufffer_fileobj, dest_fileobj)
+                shutil.copyfileobj(buffer_fileobj, dest_fileobj)
 
     def restore(self) -> object:
         """

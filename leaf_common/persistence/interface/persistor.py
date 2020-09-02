@@ -10,6 +10,7 @@
 #
 # END COPYRIGHT
 
+
 class Persistor():
     """
     This interface provides a way to save an object

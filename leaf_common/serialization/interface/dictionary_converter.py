@@ -28,7 +28,6 @@ class DictionaryConverter():
         """
         raise NotImplementedError
 
-
     def from_dict(self, obj_dict):
         """
         :param obj_dict: The data-only dictionary to be converted into an object

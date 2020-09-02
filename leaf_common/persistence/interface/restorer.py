@@ -10,6 +10,7 @@
 #
 # END COPYRIGHT
 
+
 class Restorer():
     """
     This interface provides a way to retrieve an object
