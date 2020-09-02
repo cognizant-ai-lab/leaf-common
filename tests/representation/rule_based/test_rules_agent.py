@@ -6,8 +6,8 @@ import tempfile
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from leaf_common.rule_based.rules_agent import RulesAgent
-from leaf_common.rule_based.rules_evaluation_constants \
+from leaf_common.representation.rule_based.rules_agent import RulesAgent
+from leaf_common.representation.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
 
 
