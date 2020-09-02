@@ -19,7 +19,7 @@ class TestRulesAgent(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestRulesAgent, self).__init__(*args, **kwargs)
         root_dir = os.path.dirname(os.path.abspath(__file__))
-        self.fixtures_path = os.path.join(root_dir, '..', 'fixtures')
+        self.fixtures_path = os.path.join(root_dir, '../..', 'fixtures')
 
     def test_serialize_roundtrip(self):
         """
