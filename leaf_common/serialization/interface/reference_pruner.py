@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 
 class ReferencePruner():

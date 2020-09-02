@@ -1,6 +1,7 @@
 """
-See class comment.
+See class comment for details.
 """
+
 import jsonpickle
 import jsonpickle.ext.numpy as jsonpickle_numpy
 

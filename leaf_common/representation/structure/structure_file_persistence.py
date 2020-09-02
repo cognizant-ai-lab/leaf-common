@@ -1,3 +1,6 @@
+"""
+See class comment for details.
+"""
 
 from leaf_common.persistence.factory.simple_file_persistence import SimpleFilePersistence
 from leaf_common.representation.structure.structure_serialization_format import StructureSerializationFormat
@@ -21,4 +24,4 @@ class StructureFilePersistence(SimpleFilePersistence):
         use_format = serialization_format
         if use_format is None:
             use_format = StructureSerializationFormat()
-        super(self, StructureFilePersistence).__init__(file_name, use_format)
+        super(StructureFilePersistence, self).__init__(file_name, use_format)

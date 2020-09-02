@@ -1,3 +1,6 @@
+"""
+See class comment for details.
+"""
 
 from leaf_common.persistence.factory.simple_file_persistence import SimpleFilePersistence
 from leaf_common.representation.rule_based.rules_agent_serialization_format import RulesAgentSerializationFormat
@@ -21,4 +24,4 @@ class RulesAgentFilePersistence(SimpleFilePersistence):
         use_format = serialization_format
         if use_format is None:
             use_format = RulesAgentSerializationFormat()
-        super(self, RulesAgentFilePersistence).__init__(file_name, use_format)
+        super(RulesAgentFilePersistence, self).__init__(file_name, use_format)
