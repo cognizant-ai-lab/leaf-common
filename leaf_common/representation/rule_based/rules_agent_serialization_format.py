@@ -2,11 +2,11 @@
 See class comment for details.
 """
 
-import jsonpickle
-import jsonpickle.ext.numpy as jsonpickle_numpy
-
 from io import StringIO
 from typing import TextIO
+
+import jsonpickle
+import jsonpickle.ext.numpy as jsonpickle_numpy
 
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
 from leaf_common.representation.rule_based.rules_agent import RulesAgent
