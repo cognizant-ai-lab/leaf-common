@@ -18,7 +18,6 @@ import os
 import shutil
 
 from leaf_common.persistence.interface.persistence import Persistence
-from leaf_common.serialization.interface.file_extension_provider import FileExtensionProvider
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
 
 
@@ -73,24 +72,18 @@ class SimpleFilePersistence(Persistence):
 
         return obj
 
-    def affix_file_extension(self, file_reference: str,
-                             extension_provider: FileExtensionProvider = None) -> str:
+    def affix_file_extension(self, file_reference: str) -> str:
         """
         Affixes the SerializationFormat's file extension if it is not
         already on the file_reference
 
         :param file_reference: The file reference to use
-        :param extension_provider: A FileExtensionProvider implementation to use.
-                        Default of None uses the SerializationFormat passed in.
         """
         if file_reference is None:
             raise ValueError("file_reference cannot be None")
 
         # Figure out the FileExtensionProvider to use
-        use_extension = extension_provider
-        if extension_provider is None:
-            use_extension = self.serialization_format
-        extension = use_extension.get_file_extension()
+        extension = self.serialization_format.get_file_extension()
 
         # Add the file extension if necessary
         use_ref = file_reference
