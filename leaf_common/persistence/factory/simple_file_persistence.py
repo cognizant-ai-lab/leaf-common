@@ -27,35 +27,39 @@ class SimpleFilePersistence(Persistence):
     saves/restores an object to a file using a SerializationFormat object.
     """
 
-    def __init__(self, file_name: str, serialization_format: SerializationFormat):
+    def __init__(self, serialization_format: SerializationFormat):
         """
         Constructor.
 
-        :param file_name: The file name to save to/restore from
         :param serialization_format: A means of serializing an object by way of a
                           SerializationFormat implementation
         """
-        self.file_name = file_name
         self.serialization_format = serialization_format
 
-    def persist(self, obj: object) -> None:
+    def persist(self, obj: object, file_reference: str) -> None:
         """
         Persists the object passed in.
 
         :param obj: an object to persist
+        :param file_reference: The file reference to use when persisting.
         """
+        file_name = self.affix_file_extension(file_reference)
+
         with self.serialization_format.from_object(obj) as buffer_fileobj:
-            with open(self.file_name, 'w') as dest_fileobj:
+            with open(file_name, 'w') as dest_fileobj:
                 shutil.copyfileobj(buffer_fileobj, dest_fileobj)
 
-    def restore(self) -> object:
+    def restore(self, file_reference: str) -> object:
         """
+        :param file_reference: The file reference to use when restoring.
         :return: an object from some persisted store
         """
+        file_name = self.affix_file_extension(file_reference)
+
         obj = None
         with io.BytesIO() as buffer_fileobj:
 
-            with open(self.file_name, 'r') as source_fileobj:
+            with open(file_name, 'r') as source_fileobj:
                 shutil.copyfileobj(source_fileobj, buffer_fileobj)
 
             # Move pointer to beginning of buffer
@@ -65,3 +69,21 @@ class SimpleFilePersistence(Persistence):
             obj = self.serialization_format.to_object(buffer_fileobj)
 
         return obj
+
+    def affix_file_extension(self, file_reference: str) -> str:
+        """
+        Affixes the SerializationFormat's file extension if it is not
+        already on the file_reference
+        :param file_reference: The file reference to use
+        """
+        if file_reference is None:
+            raise ValueError("file_reference cannot be None")
+
+        use_ref = file_reference
+
+        # Add the file extension if necessary
+        extension = self.serialization_format.get_file_extension()
+        if not file_reference.endswith(extension):
+            use_ref = file_reference + extension
+
+        return use_ref

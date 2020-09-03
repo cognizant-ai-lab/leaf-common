@@ -13,15 +13,14 @@ class RulesAgentFilePersistence(SimpleFilePersistence):
     saves/restores a RulesAgent to a file.
     """
 
-    def __init__(self, file_name: str, serialization_format: SerializationFormat = None):
+    def __init__(self, serialization_format: SerializationFormat = None):
         """
         Constructor.
 
-        :param file_name: The file name to save to/restore from
         :param serialization_format: A means of serializing a RulesAgent
                 by default this is None and a RulesAgentSerializationFormat is used
         """
         use_format = serialization_format
         if use_format is None:
             use_format = RulesAgentSerializationFormat()
-        super(RulesAgentFilePersistence, self).__init__(file_name, use_format)
+        super(RulesAgentFilePersistence, self).__init__(use_format)

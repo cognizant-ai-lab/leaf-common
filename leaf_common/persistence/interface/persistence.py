@@ -23,16 +23,22 @@ class Persistence(Persistor, Restorer):
     How and where entities are persisted are left as implementation details.
     """
 
-    def persist(self, obj):
+    def persist(self, obj: object, file_reference: str = None):
         """
         Persists the object passed in.
 
         :param obj: an object to persist
+        :param file_reference: The file reference to use when persisting.
+                Default is None, implying the file reference is up to the
+                implementation.
         """
         raise NotImplementedError
 
-    def restore(self):
+    def restore(self, file_reference: str = None):
         """
+        :param file_reference: The file reference to use when restoring.
+                Default is None, implying the file reference is up to the
+                implementation.
         :return: an object from some persisted store
         """
         raise NotImplementedError
