@@ -38,7 +38,7 @@ class RepresentationPersistenceFactory():
         implementation.
 
         :param rep_type: A RepresentationType to look up
-        :return persistence: A Persistence implementation corresponding to the rep_type
+        :return: A Persistence implementation corresponding to the rep_type
         """
 
         persistence = self._map.get(rep_type, None)
