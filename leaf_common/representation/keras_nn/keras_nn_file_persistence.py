@@ -29,7 +29,7 @@ class KerasNNFilePersistence(Persistence, FileExtensionProvider):
         """
         return ".h5"
 
-    def persist(self, obj: object, file_reference: str = None):
+    def persist(self, obj: object, file_reference: str = None) -> str:
         """
         Persists the object passed in.
 
@@ -42,6 +42,8 @@ class KerasNNFilePersistence(Persistence, FileExtensionProvider):
         # Use everything opaquely, so as not to explicitly drag in unwanted dependencies
         keras_model = self._evaluator.keras_model_from_bytes(obj)
         keras_model.save(file_name, include_optimizer=False)
+
+        return file_name
 
     def restore(self, file_reference: str = None):
         """

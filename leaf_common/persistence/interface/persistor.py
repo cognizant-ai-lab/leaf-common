@@ -20,7 +20,7 @@ class Persistor():
     to some storage like a file, a database or S3.
     """
 
-    def persist(self, obj: object, file_reference: str = None):
+    def persist(self, obj: object, file_reference: str = None) -> object:
         """
         Persists the object passed in.
 
@@ -28,5 +28,6 @@ class Persistor():
         :param file_reference: The file reference to use when persisting.
                 Default is None, implying the file reference is up to the
                 implementation.
+        :return an object describing the location to which the object was persisted
         """
         raise NotImplementedError

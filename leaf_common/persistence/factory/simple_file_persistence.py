@@ -37,7 +37,7 @@ class SimpleFilePersistence(Persistence):
         """
         self.serialization_format = serialization_format
 
-    def persist(self, obj: object, file_reference: str = None) -> None:
+    def persist(self, obj: object, file_reference: str = None) -> str:
         """
         Persists the object passed in.
 
@@ -49,6 +49,8 @@ class SimpleFilePersistence(Persistence):
         with self.serialization_format.from_object(obj) as buffer_fileobj:
             with open(file_name, 'w') as dest_fileobj:
                 shutil.copyfileobj(buffer_fileobj, dest_fileobj)
+
+        return file_name
 
     def restore(self, file_reference: str = None) -> object:
         """
