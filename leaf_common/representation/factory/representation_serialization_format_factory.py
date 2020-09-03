@@ -24,7 +24,8 @@ class RepresentationSerializationFormatFactory():
         """
 
         # Initialize the map
-        self._map = {}
+        self._type_map = {}
+        self._extension_map = {}
 
         # Do some simple registrations
         self.register(RepresentationType.KerasNN, KerasNNSerializationFormat(model_translator))
@@ -41,7 +42,7 @@ class RepresentationSerializationFormatFactory():
         :return: A SerializationFormat implementation corresponding to the rep_type
         """
 
-        serialization_format = self._map.get(rep_type, None)
+        serialization_format = self._type_map.get(rep_type, None)
 
         if serialization_format is None:
             raise ValueError(f"Unknown representation_type: {rep_type}")
@@ -85,7 +86,7 @@ class RepresentationSerializationFormatFactory():
         :param rep_type: A RepresentationType to use as a key
         :param serialization_format: A SerializationFormat implementation to use as a value
         """
-        self._map[rep_type] = serialization_format
+        self._type_map[rep_type] = serialization_format
 
         extension = serialization_format.get_file_extension()
         self._extension_map[extension] = serialization_format
