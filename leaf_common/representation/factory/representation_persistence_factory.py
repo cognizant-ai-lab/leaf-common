@@ -24,7 +24,8 @@ class RepresentationPersistenceFactory():
         """
 
         # Initialize the map
-        self._map = {}
+        self._type_map = {}
+        self._extension_map = {}
 
         # Do some simple registrations
         self.register(RepresentationType.KerasNN, KerasNNFilePersistence(model_translator))
@@ -32,7 +33,7 @@ class RepresentationPersistenceFactory():
         self.register(RepresentationType.Structure, StructureFilePersistence())
         self.register(RepresentationType.RuleBased, RulesAgentFilePersistence())
 
-    def create_persistence(self, rep_type: RepresentationType) -> Persistence:
+    def create_from_representation_type(self, rep_type: RepresentationType) -> Persistence:
         """
         Given a RepresentationType, return its register()-ed Persistence
         implementation.
@@ -41,10 +42,40 @@ class RepresentationPersistenceFactory():
         :return: A Persistence implementation corresponding to the rep_type
         """
 
-        persistence = self._map.get(rep_type, None)
+        persistence = self._type_map.get(rep_type, None)
 
         if persistence is None:
             raise ValueError(f"Unknown representation_type: {rep_type}")
+
+        return persistence
+
+    def create_from_filename(self, filename: str) -> Persistence:
+        """
+        Given a filename, return its register()-ed Persistence
+        implementation.
+
+        :param filename: A string filename whose file extension is used as a key for look up
+        :return: A Persistence implementation corresponding to the filename
+        """
+
+        persistence = None
+        found_key = None
+
+        for key in self._extension_map.keys():
+
+            use_key = filename is not None and filename.endswith(key):
+            if use_key:
+                # Use the longest match of the file extension keys
+                # Assume this means more specific
+                if found_key is not None and len(key) < len(found_key):
+                    use_key = False
+
+            if use_key:
+                found_key = key
+                persistence = self._extension_map.get(key)
+
+        if persistence is None:
+            raise ValueError(f"Unknown file extension in file name: {filename}")
 
         return persistence
 
@@ -55,4 +86,7 @@ class RepresentationPersistenceFactory():
         :param rep_type: A RepresentationType to use as a key
         :param persistence: A Persistence implementation to use as a value
         """
-        self._map[rep_type] = persistence
+        self._type_map[rep_type] = persistence
+
+        extension = persistence.get_file_extension()
+        self._extension_map[extension] = persistence

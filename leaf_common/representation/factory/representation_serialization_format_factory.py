@@ -32,7 +32,7 @@ class RepresentationSerializationFormatFactory():
         self.register(RepresentationType.Structure, StructureSerializationFormat())
         self.register(RepresentationType.RuleBased, RulesAgentSerializationFormat())
 
-    def create_serialization_format(self, rep_type: RepresentationType) -> SerializationFormat:
+    def create_from_representation_type(self, rep_type: RepresentationType) -> SerializationFormat:
         """
         Given a RepresentationType, return its register()-ed SerializationFormat
         implementation.
@@ -48,6 +48,36 @@ class RepresentationSerializationFormatFactory():
 
         return serialization_format
 
+    def create_from_filename(self, filename: str) -> SerializationFormat:
+        """
+        Given a filename, return its register()-ed SerializationFormat
+        implementation.
+
+        :param filename: A string filename whose file extension is used as a key for look up
+        :return: A SerializationFormat implementation corresponding to the filename
+        """
+
+        serialization_format = None
+        found_key = None
+
+        for key in self._extension_map.keys():
+
+            use_key = filename is not None and filename.endswith(key):
+            if use_key:
+                # Use the longest match of the file extension keys
+                # Assume this means more specific
+                if found_key is not None and len(key) < len(found_key):
+                    use_key = False
+
+            if use_key:
+                found_key = key
+                serialization_format = self._extension_map.get(key)
+
+        if serialization_format is None:
+            raise ValueError(f"Unknown file extension in file name: {filename}")
+
+        return serialization_format
+
     def register(self, rep_type: RepresentationType, serialization_format: SerializationFormat):
         """
         Register a SerializationFormat implementation for a RepresentationType
@@ -56,3 +86,6 @@ class RepresentationSerializationFormatFactory():
         :param serialization_format: A SerializationFormat implementation to use as a value
         """
         self._map[rep_type] = serialization_format
+
+        extension = serialization_format.get_file_extension()
+        self._extension_map[extension] = serialization_format
