@@ -36,7 +36,7 @@ class KerasNNFilePersistence(Persistence, FileExtensionProvider):
         :param obj: an object to persist
         :param file_reference: The file reference to use when persisting.
                 Default is None, implying the file reference is up to the
-                implementation. 
+                implementation.
         """
         file_name = self.simple.affix_file_extension(file_reference)
 
@@ -49,7 +49,7 @@ class KerasNNFilePersistence(Persistence, FileExtensionProvider):
         """
         :param file_reference: The file reference to use when restoring.
                 Default is None, implying the file reference is up to the
-                implementation. 
+                implementation.
         :return: an object from some persisted store
         """
         raise NotImplementedError
