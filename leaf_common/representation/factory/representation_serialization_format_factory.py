@@ -61,7 +61,7 @@ class RepresentationSerializationFormatFactory():
         serialization_format = None
         found_key = None
 
-        for key in self._extension_map.keys():
+        for key, value in self._extension_map.items():
 
             use_key = filename is not None and filename.endswith(key)
             if use_key:
@@ -72,7 +72,7 @@ class RepresentationSerializationFormatFactory():
 
             if use_key:
                 found_key = key
-                serialization_format = self._extension_map.get(key)
+                serialization_format = value
 
         if serialization_format is None:
             raise ValueError(f"Unknown file extension in file name: {filename}")

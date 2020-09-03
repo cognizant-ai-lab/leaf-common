@@ -61,7 +61,7 @@ class RepresentationPersistenceFactory():
         persistence = None
         found_key = None
 
-        for key in self._extension_map.keys():
+        for key, value in self._extension_map.items():
 
             use_key = filename is not None and filename.endswith(key)
             if use_key:
@@ -72,7 +72,7 @@ class RepresentationPersistenceFactory():
 
             if use_key:
                 found_key = key
-                persistence = self._extension_map.get(key)
+                persistence = value
 
         if persistence is None:
             raise ValueError(f"Unknown file extension in file name: {filename}")
