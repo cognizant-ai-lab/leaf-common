@@ -42,11 +42,12 @@ class KerasNNSerializationFormat(SerializationFormat):
                 It is expected that the file-like object be open
                 and be pointing at the beginning of the data
                 (ala seek to the beginning).
-    
+
                 After calling this method, the seek pointer
                 will be at the end of the data. Closing of the
                 fileobj is left to the caller.
         :return: the deserialized object
         """
-        keras_model = self._evaluator.keras_model_from_bytes(obj)
+        model_bytes = fileobj.getvalue()
+        keras_model = self._evaluator.keras_model_from_bytes(model_bytes)
         return keras_model

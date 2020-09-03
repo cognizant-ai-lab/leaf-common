@@ -3,8 +3,7 @@ See class comment for details
 """
 
 from leaf_common.persistence.factory.simple_file_persistence import SimpleFilePersistence
-from leaf_common.persistence.interface.persistence import Persistence
-from leaf_common.serialization.interface.file_extension_provider import FileExtensionProvider
+from leaf_common.representation.keras_nn.keras_nn_serialization_format import KerasNNSerializationFormat
 
 
 class KerasNNFilePersistence(SimpleFilePersistence):
