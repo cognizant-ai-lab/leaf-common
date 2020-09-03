@@ -42,7 +42,7 @@ class KerasNNFilePersistence(Persistence, FileExtensionProvider):
 
         # Convert the received bytes to a Keras model
         # Use everything opaquely, so as not to explicitly drag in unwanted dependencies
-        keras_model = self._evaluator.keras_model_from_bytes(model_bytes)
+        keras_model = self._evaluator.keras_model_from_bytes(obj)
         keras_model.save(file_name, include_optimizer=False)
 
     def restore(self, file_reference: str):
