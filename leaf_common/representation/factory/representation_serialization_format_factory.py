@@ -16,19 +16,19 @@ class RepresentationSerializationFormatFactory():
     for the RepresentationType
     """
 
-    def __init__(self, evaluator=None):
+    def __init__(self, model_translator=None):
         """
         Constructor.
 
-        :param evaluator: optional Evaluator implementation for KerasNN
+        :param model_translator: optional ModelTranslator implementation for KerasNN
         """
 
         # Initialize the map
         self._map = {}
 
         # Do some simple registrations
-        self.register(RepresentationType.KerasNN, KerasNNSerializationFormat(evaluator))
-        self.register(RepresentationType.NNWeights, KerasNNSerializationFormat(evaluator))
+        self.register(RepresentationType.KerasNN, KerasNNSerializationFormat(model_translator))
+        self.register(RepresentationType.NNWeights, KerasNNSerializationFormat(model_translator))
         self.register(RepresentationType.Structure, StructureSerializationFormat())
         self.register(RepresentationType.RuleBased, RulesAgentSerializationFormat())
 

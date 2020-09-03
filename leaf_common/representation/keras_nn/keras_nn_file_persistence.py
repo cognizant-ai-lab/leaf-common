@@ -3,6 +3,7 @@ See class comment for details
 """
 
 from leaf_common.persistence.factory.simple_file_persistence import SimpleFilePersistence
+from leaf_common.representation.keras_nn.keras_nn_model_translator import KerasNNModelTranslator
 from leaf_common.representation.keras_nn.keras_nn_serialization_format import KerasNNSerializationFormat
 
 
@@ -12,13 +13,14 @@ class KerasNNFilePersistence(SimpleFilePersistence):
     Keras neural-nets to/from a file.
     """
 
-    def __init__(self, evaluator):
+    def __init__(self, model_translator: KerasNNModelTranslator):
         """
         Constructor
 
-        :param evaluator: The EspEvaluator to use to help decode the model bytes
+        :param model_translator: The KerasNNModelTranslator (often an EspEvaluator)
+                 to use to help decode the model bytes
         """
-        serialization_format = KerasNNSerializationFormat(evaluator)
+        serialization_format = KerasNNSerializationFormat(model_translator)
         super(KerasNNFilePersistence, self).__init__(serialization_format)
 
     def persist(self, obj: object, file_reference: str = None) -> str:

@@ -16,19 +16,19 @@ class RepresentationPersistenceFactory():
     for the RepresentationType
     """
 
-    def __init__(self, evaluator=None):
+    def __init__(self, model_translator=None):
         """
         Constructor.
 
-        :param evaluator: optional Evaluator implementation for KerasNN
+        :param model_translator: optional ModelTranslator implementation for KerasNN
         """
 
         # Initialize the map
         self._map = {}
 
         # Do some simple registrations
-        self.register(RepresentationType.KerasNN, KerasNNFilePersistence(evaluator))
-        self.register(RepresentationType.NNWeights, KerasNNFilePersistence(evaluator))
+        self.register(RepresentationType.KerasNN, KerasNNFilePersistence(model_translator))
+        self.register(RepresentationType.NNWeights, KerasNNFilePersistence(model_translator))
         self.register(RepresentationType.Structure, StructureFilePersistence())
         self.register(RepresentationType.RuleBased, RulesAgentFilePersistence())
 

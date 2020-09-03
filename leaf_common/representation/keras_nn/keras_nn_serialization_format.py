@@ -2,6 +2,7 @@
 See class comment for details
 """
 
+from leaf_common.representation.keras_nn.keras_nn_model_translator import KerasNNModelTranslator
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
 
 
@@ -11,13 +12,14 @@ class KerasNNSerializationFormat(SerializationFormat):
     Keras neural-nets to/from a stream.
     """
 
-    def __init__(self, evaluator):
+    def __init__(self, model_translator: KerasNNModelTranslator):
         """
         Constructor
 
-        :param evaluator: The EspEvaluator to use to help decode the model bytes
+        :param evaluator: The KerasNNModelTranslator (often a EspEvaluator)
+                          to use to help decode the model bytes
         """
-        self._evaluator = evaluator
+        self._model_translator = model_translator
 
     def get_file_extension(self):
         """
@@ -49,5 +51,5 @@ class KerasNNSerializationFormat(SerializationFormat):
         :return: the deserialized object
         """
         model_bytes = fileobj.getvalue()
-        keras_model = self._evaluator.keras_model_from_bytes(model_bytes)
+        keras_model = self._model_translator.keras_model_from_bytes(model_bytes)
         return keras_model
