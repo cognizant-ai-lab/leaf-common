@@ -62,7 +62,7 @@ class RepresentationSerializationFormatFactory():
 
         for key in self._extension_map.keys():
 
-            use_key = filename is not None and filename.endswith(key):
+            use_key = filename is not None and filename.endswith(key)
             if use_key:
                 # Use the longest match of the file extension keys
                 # Assume this means more specific
