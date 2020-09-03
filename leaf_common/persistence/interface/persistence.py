@@ -15,9 +15,10 @@ See class comment for details.
 
 from leaf_common.persistence.interface.persistor import Persistor
 from leaf_common.persistence.interface.restorer import Restorer
+from leaf_common.serialization.interface.file_extension_provider import FileExtensionProvider
 
 
-class Persistence(Persistor, Restorer):
+class Persistence(Persistor, Restorer, FileExtensionProvider):
     """
     Interface which allows multiple mechanisms of persistence for an object.
     How and where entities are persisted are left as implementation details.
@@ -41,5 +42,12 @@ class Persistence(Persistor, Restorer):
                 Default is None, implying the file reference is up to the
                 implementation.
         :return: an object from some persisted store
+        """
+        raise NotImplementedError
+
+    def get_file_extension(self):
+        """
+        :return: A string representing a file extension for the
+                serialization method, including the ".".
         """
         raise NotImplementedError
