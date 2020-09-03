@@ -7,7 +7,7 @@ from leaf_common.persistence.interface.persistence import Persistence
 from leaf_common.serialization.interface.file_extension_provider import FileExtensionProvider
 
 
-class KerasNNFilePersistence(SimpleFilePersistence)
+class KerasNNFilePersistence(SimpleFilePersistence):
     """
     Implementation of the Persistence interface, enough to save/restore
     Keras neural-nets to/from a file.

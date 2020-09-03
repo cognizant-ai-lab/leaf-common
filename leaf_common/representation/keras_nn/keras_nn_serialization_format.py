@@ -7,8 +7,8 @@ from leaf_common.serialization.interface.serialization_format import Serializati
 
 class KerasNNSerializationFormat(SerializationFormat):
     """
-    Implementation of the Persistence interface, enough to save/restore
-    Keras neural-nets to/from a file.
+    Implementation of the SerializationFormat interface, enough to encode/decode
+    Keras neural-nets to/from a stream.
     """
 
     def __init__(self, evaluator):
@@ -33,6 +33,7 @@ class KerasNNSerializationFormat(SerializationFormat):
                 bytes.  Any file cursors should be set to the beginning
                 of the data (ala seek to the beginning).
         """
+        # Not yet
         raise NotImplementedError
 
     def to_object(self, fileobj):

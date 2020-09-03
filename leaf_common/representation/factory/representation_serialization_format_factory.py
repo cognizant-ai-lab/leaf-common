@@ -10,7 +10,7 @@ from leaf_common.representation.rule_based.rules_agent_serialization_format impo
 from leaf_common.representation.structure.structure_serialization_format import StructureSerializationFormat
 
 
-class RepresentationPersistenceFactory():
+class RepresentationSerializationFormatFactory():
     """
     Factory class which returns a leaf-common SerializationFormat class
     for the RepresentationType
@@ -34,7 +34,7 @@ class RepresentationPersistenceFactory():
 
     def create_serialization_format(self, rep_type: RepresentationType) -> SerializationFormat:
         """
-        Given a RepresentationType, return its register()-ed Persistence
+        Given a RepresentationType, return its register()-ed SerializationFormat
         implementation.
 
         :param rep_type: A RepresentationType to look up
@@ -50,9 +50,9 @@ class RepresentationPersistenceFactory():
 
     def register(self, rep_type: RepresentationType, serialization_format: SerializationFormat):
         """
-        Register a Persistence implementation for a RepresentationType
+        Register a SerializationFormat implementation for a RepresentationType
 
         :param rep_type: A RepresentationType to use as a key
         :param serialization_format: A SerializationFormat implementation to use as a value
         """
-        self._map[rep_type] = persistence
+        self._map[rep_type] = serialization_format
