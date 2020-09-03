@@ -4,10 +4,10 @@ See class comment for details.
 
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.persistence.interface.persistence import Persistence
-from leaf_common.representation.rule_based.rules_agent_file_persistence \
-    import RulesAgentFilePersistence
-from leaf_common.representation.structure.structure_file_persistence \
-    import StructureFilePersistence
+
+from leaf_common.representation.keras_nn.keras_nn_file_persistence import KerasNNFilePersistence
+from leaf_common.representation.rule_based.rules_agent_file_persistence import RulesAgentFilePersistence
+from leaf_common.representation.structure.structure_file_persistence import StructureFilePersistence
 
 
 class RepresentationPersistenceFactory():
@@ -25,6 +25,8 @@ class RepresentationPersistenceFactory():
         self._map = {}
 
         # Do some simple registrations
+        self.register(RepresentationType.KerasNN, KerasNNFilePersistence())
+        self.register(RepresentationType.NNWeights, KerasNNFilePersistence())
         self.register(RepresentationType.Structure, StructureFilePersistence())
         self.register(RepresentationType.RuleBased, RulesAgentFilePersistence())
 
