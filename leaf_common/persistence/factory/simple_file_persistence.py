@@ -61,7 +61,7 @@ class SimpleFilePersistence(Persistence):
         obj = None
         with io.BytesIO() as buffer_fileobj:
 
-            with open(file_name, 'r') as source_fileobj:
+            with open(file_name, 'rb') as source_fileobj:
                 shutil.copyfileobj(source_fileobj, buffer_fileobj)
 
             # Move pointer to beginning of buffer
