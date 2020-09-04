@@ -4,8 +4,8 @@ Unit tests for Rules class
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from leaf_common.rule_based.rule import Rule
-from leaf_common.rule_based.rules_evaluation_constants \
+from leaf_common.representation.rule_based.rule import Rule
+from leaf_common.representation.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
 
 

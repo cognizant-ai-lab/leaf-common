@@ -7,7 +7,7 @@ import jsonpickle.ext.numpy as jsonpickle_numpy
 import numpy
 
 from leaf_common.candidates.constants import ACTION_MARKER
-from leaf_common.rule_based.rules_evaluation_constants \
+from leaf_common.representation.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
 
 
