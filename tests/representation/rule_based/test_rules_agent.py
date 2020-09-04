@@ -30,9 +30,8 @@ class TestRulesAgent(TestCase):
                            initial_state={'state1': 'value1'})
 
         with tempfile.NamedTemporaryFile('w') as saved_agent_file:
-            agent.save(saved_agent_file.name)
-
             persistence = RulesAgentFilePersistence()
+            persistence.persist(agent, saved_agent_file.name)
             reloaded_agent = persistence.restore(saved_agent_file.name)
 
         self.assertIsNot(agent, reloaded_agent)
@@ -46,9 +45,8 @@ class TestRulesAgent(TestCase):
         agent = persistence.restore(rules_file)
 
         with tempfile.NamedTemporaryFile('w') as saved_agent_file:
-            agent.save(saved_agent_file.name)
-
             persistence = RulesAgentFilePersistence()
+            persistence.persist(agent, saved_agent_file.name)
             reloaded_agent = persistence.restore(saved_agent_file.name)
 
         self.assertIsNot(agent, reloaded_agent)
