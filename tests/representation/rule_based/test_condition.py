@@ -3,8 +3,8 @@ Unit tests for `Condition` class
 """
 from unittest import TestCase
 
-from leaf_common.rule_based.condition import Condition
-from leaf_common.rule_based.rules_evaluation_constants \
+from leaf_common.representation.rule_based.condition import Condition
+from leaf_common.representation.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
 
 

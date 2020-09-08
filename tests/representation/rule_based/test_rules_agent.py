@@ -6,8 +6,8 @@ import tempfile
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from leaf_common.rule_based.rules_agent import RulesAgent
-from leaf_common.rule_based.rules_evaluation_constants \
+from leaf_common.representation.rule_based.rules_agent import RulesAgent
+from leaf_common.representation.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
 
 
@@ -19,7 +19,7 @@ class TestRulesAgent(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestRulesAgent, self).__init__(*args, **kwargs)
         root_dir = os.path.dirname(os.path.abspath(__file__))
-        self.fixtures_path = os.path.join(root_dir, '..', 'fixtures')
+        self.fixtures_path = os.path.join(root_dir, '../..', 'fixtures')
 
     def test_serialize_roundtrip(self):
         """
