@@ -2,17 +2,11 @@
 
 import random
 
-import jsonpickle
-import jsonpickle.ext.numpy as jsonpickle_numpy
 import numpy
 
 from leaf_common.candidates.constants import ACTION_MARKER
 from leaf_common.representation.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
-
-
-# Static initialization - Bleck!
-jsonpickle_numpy.register_handlers()
 
 
 class RulesAgent:
@@ -199,44 +193,3 @@ class RulesAgent:
         Reset rules agent
         """
         self.domain_states = []
-
-    @staticmethod
-    def decode(rules_agent_string: str) -> 'RulesAgent':
-        """
-        Converts a RulesAgent in the form of a JSON string to an instance of RulesAgent.
-
-        :param rules_agent_string containing RulesAgent's state.
-        :return: An instance of `RulesAgent` populated from the supplied JSON string.
-        """
-
-        return jsonpickle.decode(rules_agent_string, keys=True)
-
-    def encode(self) -> str:
-        """
-        Converts an individual into a human-readable JSON string
-        :return: String containing RulesAgent's state
-        """
-        return jsonpickle.encode(self, keys=True)
-
-    def save(self, file_name: str) -> None:
-        """
-        Save this rules agent (and associated members) to a file in JSON format.
-
-        :param file_name: A string containing a reference to a writeable file. The file will be overwritten.
-        :return None but current state of this object is dumped as JSON to the file provided.
-        """
-        json_string = self.encode()
-        with open(file_name, 'w') as output_file:
-            output_file.write(json_string)
-
-    @staticmethod
-    def load(file_name: str) -> 'RulesAgent':
-        """
-        Load a rules agent from a JSON file
-
-        :param file_name: A string containing a reference to a readable file that contains the agent in serialized
-        JSON format
-        :return An instance of `RulesAgent` populated from the given file
-        """
-        with open(file_name, 'r') as input_file:
-            return RulesAgent.decode(input_file.read())

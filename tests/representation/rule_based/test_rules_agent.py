@@ -7,6 +7,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 
 from leaf_common.representation.rule_based.rules_agent import RulesAgent
+from leaf_common.representation.rule_based.rules_agent_file_persistence import RulesAgentFilePersistence
 from leaf_common.representation.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
 
@@ -29,9 +30,9 @@ class TestRulesAgent(TestCase):
                            initial_state={'state1': 'value1'})
 
         with tempfile.NamedTemporaryFile('w') as saved_agent_file:
-            agent.save(saved_agent_file.name)
-
-            reloaded_agent = RulesAgent.load(saved_agent_file.name)
+            persistence = RulesAgentFilePersistence()
+            persistence.persist(agent, saved_agent_file.name)
+            reloaded_agent = persistence.restore(saved_agent_file.name)
 
         self.assertIsNot(agent, reloaded_agent)
 
@@ -40,12 +41,13 @@ class TestRulesAgent(TestCase):
         Verify roundtrip with persisted agent "from the field" (gen 50 Flappy Bird)
         """
         rules_file = os.path.join(self.fixtures_path, 'saved_agent.rules')
-        agent = RulesAgent.load(rules_file)
+        persistence = RulesAgentFilePersistence()
+        agent = persistence.restore(rules_file)
 
         with tempfile.NamedTemporaryFile('w') as saved_agent_file:
-            agent.save(saved_agent_file.name)
-
-            reloaded_agent = RulesAgent.load(saved_agent_file.name)
+            persistence = RulesAgentFilePersistence()
+            persistence.persist(agent, saved_agent_file.name)
+            reloaded_agent = persistence.restore(saved_agent_file.name)
 
         self.assertIsNot(agent, reloaded_agent)
 
