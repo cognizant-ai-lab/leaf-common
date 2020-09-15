@@ -5,7 +5,6 @@ See class comment for details.
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
 
-from leaf_common.representation.keras_nn.keras_nn_serialization_format import KerasNNSerializationFormat
 from leaf_common.representation.rule_based.rules_agent_serialization_format import RulesAgentSerializationFormat
 from leaf_common.representation.structure.structure_serialization_format import StructureSerializationFormat
 
@@ -16,11 +15,9 @@ class RepresentationSerializationFormatFactory():
     for the RepresentationType
     """
 
-    def __init__(self, model_translator=None):
+    def __init__(self):
         """
         Constructor.
-
-        :param model_translator: optional ModelTranslator implementation for KerasNN
         """
 
         # Initialize the map
@@ -28,8 +25,6 @@ class RepresentationSerializationFormatFactory():
         self._extension_map = {}
 
         # Do some simple registrations
-        self.register(RepresentationType.KerasNN, KerasNNSerializationFormat(model_translator))
-        self.register(RepresentationType.NNWeights, KerasNNSerializationFormat(model_translator))
         self.register(RepresentationType.Structure, StructureSerializationFormat())
         self.register(RepresentationType.RuleBased, RulesAgentSerializationFormat())
 
