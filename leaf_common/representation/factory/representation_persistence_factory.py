@@ -5,7 +5,6 @@ See class comment for details.
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.persistence.interface.persistence import Persistence
 
-from leaf_common.representation.keras_nn.keras_nn_file_persistence import KerasNNFilePersistence
 from leaf_common.representation.rule_based.rules_agent_file_persistence import RulesAgentFilePersistence
 from leaf_common.representation.structure.structure_file_persistence import StructureFilePersistence
 
@@ -16,11 +15,9 @@ class RepresentationPersistenceFactory():
     for the RepresentationType
     """
 
-    def __init__(self, model_translator=None):
+    def __init__(self):
         """
         Constructor.
-
-        :param model_translator: optional ModelTranslator implementation for KerasNN
         """
 
         # Initialize the map
@@ -28,8 +25,6 @@ class RepresentationPersistenceFactory():
         self._extension_map = {}
 
         # Do some simple registrations
-        self.register(RepresentationType.KerasNN, KerasNNFilePersistence(model_translator))
-        self.register(RepresentationType.NNWeights, KerasNNFilePersistence(model_translator))
         self.register(RepresentationType.Structure, StructureFilePersistence())
         self.register(RepresentationType.RuleBased, RulesAgentFilePersistence())
 
