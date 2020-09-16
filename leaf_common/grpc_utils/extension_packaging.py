@@ -24,7 +24,7 @@ class ExtensionPackaging(object):
 
         # Protobuf 3 has no concept of None. Instead we set to
         # the default value of a bytes field which is the value below.
-        _b=sys.version_info[0]<3 and (lambda x:x) or (lambda x:x.encode('latin1'))
+        _b = sys.version_info[0] < 3 and (lambda x: x) or (lambda x: x.encode('latin1'))
         self.none_bytes = _b("")
 
     def to_extension_bytes(self, obj):
