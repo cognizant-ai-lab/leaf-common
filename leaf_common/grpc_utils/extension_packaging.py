@@ -24,9 +24,8 @@ class ExtensionPackaging(object):
 
         # Protobuf 3 has no concept of None. Instead we set to
         # the default value of a bytes field which is the value below.
-        _b=sys.version_info[0]<3 and (lambda x:x) or (lambda x:x.encode('latin1'))
+        _b = sys.version_info[0] < 3 and (lambda x: x) or (lambda x: x.encode('latin1'))
         self.none_bytes = _b("")
-
 
     def to_extension_bytes(self, obj):
         """
@@ -49,22 +48,21 @@ class ExtensionPackaging(object):
             return extension_bytes
 
         use_obj = obj
-        if isinstance(use_obj, dict): 
+        if isinstance(use_obj, dict):
             # For now just do JSON for the sake of language compatibility
             # XXX Might allow other format conversion in future
             use_obj = json.dumps(use_obj)
 
-        if isinstance(use_obj, str): 
+        if isinstance(use_obj, str):
             use_obj = bytearray(use_obj, self.string_encoding)
 
-        if isinstance(use_obj, bytearray): 
+        if isinstance(use_obj, bytearray):
             use_obj = bytes(use_obj)
 
         if isinstance(use_obj, bytes):
             extension_bytes = use_obj
 
-        return extension_bytes 
-
+        return extension_bytes
 
     def from_extension_bytes(self, extension_bytes, out_type=dict):
         """
@@ -92,7 +90,7 @@ class ExtensionPackaging(object):
             return obj
 
         if out_type == str or out_type == dict:
-            # We want some string encoded data    
+            # We want some string encoded data
             obj = extension_bytes.decode(self.string_encoding)
             if obj is None:
                 # Could not decode
@@ -101,7 +99,7 @@ class ExtensionPackaging(object):
             if out_type == str:
                 # Wanted a string
                 return obj
-            
+
             # Try to detect the object encoding
             stripped = obj.strip()
             if stripped.startswith("{"):
