@@ -13,14 +13,18 @@ class StructureFilePersistence(SimpleFilePersistence):
     saves/restores a RulesAgent to a file.
     """
 
-    def __init__(self, serialization_format: SerializationFormat = None):
+    def __init__(self, serialization_format: SerializationFormat = None,
+                 append_file_extension: bool = True):
         """
         Constructor.
 
         :param serialization_format: A means of serializing a RulesAgent
                 by default this is None and a RulesAgentSerializationFormat is used
+        :param append_file_extension: When True, attempts to append the SerializationFormat
+                        file extension if it's not already on the file.
         """
         use_format = serialization_format
         if use_format is None:
             use_format = StructureSerializationFormat()
-        super(StructureFilePersistence, self).__init__(use_format)
+        super(StructureFilePersistence, self).__init__(use_format,
+                                                       append_file_extension=append_file_extension)

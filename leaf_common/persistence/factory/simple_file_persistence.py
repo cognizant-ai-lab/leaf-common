@@ -27,14 +27,18 @@ class SimpleFilePersistence(Persistence):
     saves/restores an object to a file using a SerializationFormat object.
     """
 
-    def __init__(self, serialization_format: SerializationFormat):
+    def __init__(self, serialization_format: SerializationFormat,
+                 append_file_extension: bool = True):
         """
         Constructor.
 
         :param serialization_format: A means of serializing an object by way of a
-                          SerializationFormat implementation
+                        SerializationFormat implementation
+        :param append_file_extension: When True, attempts to append the SerializationFormat
+                        file extension if it's not already on the file. 
         """
         self.serialization_format = serialization_format
+        self.append_file_extension = append_file_extension
 
     def persist(self, obj: object, file_reference: str = None) -> str:
         """
@@ -94,7 +98,7 @@ class SimpleFilePersistence(Persistence):
 
         # Add the file extension if necessary
         use_ref = file_reference
-        if not file_reference.endswith(extension):
+        if not file_reference.endswith(extension) and self.append_file_extension:
             use_ref = file_reference + extension
 
         return use_ref
