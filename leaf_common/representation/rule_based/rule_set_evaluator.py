@@ -23,6 +23,7 @@ class RuleSetEvaluator(ComponentEvaluator):
         action = self.choose_action(rule_set)
         return action
 
+    # pylint: disable=no-self-use
     def _revise_state_minmaxes(self, rule_set: RulesAgent, current_state):
         """
         Get second state value
@@ -38,6 +39,7 @@ class RuleSetEvaluator(ComponentEvaluator):
             if current_state[state] > rule_set.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
                 rule_set.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_state[state]
 
+    # pylint: disable=no-self-use
     def _set_action_in_state(self, rule_set: RulesAgent, action, state):
         """
         Sets the action in state
@@ -47,6 +49,7 @@ class RuleSetEvaluator(ComponentEvaluator):
         for act in rule_set.actions:
             state[ACTION_MARKER + act] = act == action
 
+    # pylint: disable=no-self-use
     def _get_action_in_state(self, rule_set: RulesAgent, state):
         """
         Extracts action from state

@@ -7,6 +7,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 
 from leaf_common.representation.rule_based.rules_agent import RulesAgent
+from leaf_common.representation.rule_based.rule_set_evaluator import RuleSetEvaluator
 from leaf_common.representation.rule_based.rules_agent_file_persistence import RulesAgentFilePersistence
 from leaf_common.representation.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
@@ -63,7 +64,8 @@ class TestRulesAgent(TestCase):
 
         self.assertEqual(num_rules, len(agent.rules))
 
-        result = agent.parse_rules()
+        evaluator = RuleSetEvaluator()
+        result = evaluator.parse_rules(agent)
         self.assertEqual(num_rules, len(result))
         self.assertTrue('action1' in result)
         self.assertTrue('action2' in result)
@@ -82,7 +84,8 @@ class TestRulesAgent(TestCase):
 
         self.assertEqual(num_rules, len(agent.rules))
 
-        result = agent.parse_rules()
+        evaluator = RuleSetEvaluator()
+        result = evaluator.parse_rules(agent)
         self.assertEqual(num_rules, len(result))
         self.assertTrue('action1' in result)
         self.assertTrue('action2' in result)
