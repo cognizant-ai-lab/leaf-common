@@ -43,8 +43,7 @@ class ComponentEvaluator():
     might have their own ComponentEvaluator implementation as well.
     '''
 
-
-    def evaluate(self, component: object, evaluation_data: object=None) -> object:
+    def evaluate(self, component: object, evaluation_data: object = None) -> object:
         '''
         Evaluate the given component on the given evaluation_data reference.
         This method is a Pure Function.
