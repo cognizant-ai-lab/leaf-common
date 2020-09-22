@@ -12,10 +12,17 @@ class RuleSetPrescriptor:
     Prescriptor for RulesAgents
     """
 
-    def __init__(self):
+    def __init__(self, rule_set: RulesAgent):
+        self.rule_set = rule_set
         self.last_action = RulesEvaluationConstants.NO_ACTION
 
-    def prescribe(self, rule_set: RulesAgent, context):
+    def get_actions(self):
+        return self.rule_set.actions
+
+    def get_uid(self):
+        return self.rule_set.uid
+
+    def prescribe(self, context):
         """
         Prescribe actions for a list of states
         :param context: list of states
@@ -23,13 +30,13 @@ class RuleSetPrescriptor:
         """
         context_vector = numpy.array(context).transpose()
         vector_size = context_vector.shape[0]
-        actions = numpy.zeros((vector_size, len(rule_set.actions)))
+        actions = numpy.zeros((vector_size, len(self.rule_set.actions)))
         for i in range(vector_size):
-            action = self.act(rule_set, context_vector[i, :], None, None)
+            action = self.act(self.rule_set, context_vector[i, :], None, None)
             actions[i, :] = action
         return actions
 
-    def act(self, rule_set, observations, _reward, _done):
+    def act(self, observations, _reward, _done):
         """
         Act based on the observations
         :param observations: the input state
@@ -39,12 +46,12 @@ class RuleSetPrescriptor:
         """
         del _reward, _done
 
-        for key in rule_set.states.keys():
-            rule_set.state[key] = observations[int(key)]
+        for key in self.rule_set.states.keys():
+            self.rule_set.state[key] = observations[int(key)]
 
         evaluator = RuleSetEvaluator()
-        self.last_action = evaluator.choose_action(rule_set)
+        self.last_action = evaluator.evaluate(self.rule_set)
 
-        rule_set.state[RulesEvaluationConstants.AGE_STATE_KEY] += 1
+        self.rule_set.state[RulesEvaluationConstants.AGE_STATE_KEY] += 1
         action = numpy.array(list(self.last_action.values()))
         return action
