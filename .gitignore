@@ -18,3 +18,5 @@ ascendautoseg/simulator/sandbox/*
 # Setup folder
 leaf_common.egg-info
 
+# Vim editor restore files
+*.swp
