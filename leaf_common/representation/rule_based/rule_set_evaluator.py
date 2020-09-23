@@ -4,6 +4,7 @@ import random
 
 from leaf_common.candidates.constants import ACTION_MARKER
 from leaf_common.evaluation.component_evaluator import ComponentEvaluator
+from leaf_common.representation.rule_based.rule_evaluator import RuleEvaluator
 from leaf_common.representation.rule_based.rules_agent import RulesAgent
 from leaf_common.representation.rule_based.rules_evaluation_constants import RulesEvaluationConstants
 
@@ -31,6 +32,10 @@ class RuleSetEvaluator(ComponentEvaluator):
         # was 'domain_states'
         self.observation_history = []
         self.observation_history_size = 0
+
+        # This evaluator itself is stateless, so its OK to just create one
+        # as an optimization.
+        self.rule_evaluator = RuleEvaluator()
 
         if rule_set is not None:
             self.reset(rule_set)
@@ -109,8 +114,14 @@ class RuleSetEvaluator(ComponentEvaluator):
         if not rule_set.rules:
             raise RuntimeError("Fatal: an empty rule set detected")
         anyone_voted = False
+
+        # Prepare the data going into the RuleEvaluator
+        rule_evaluation_data = {
+            RulesEvaluationConstants.OBSERVATION_HISTORY_KEY: self.observation_history,
+            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: rule_set.state_min_maxes
+        }
         for rule in rule_set.rules:
-            result = rule.parse(self.observation_history, rule_set.state_min_maxes)
+            result = self.rule_evaluator.evaluate(rule, rule_evaluation_data)
             if result[RulesEvaluationConstants.ACTION_KEY] != RulesEvaluationConstants.NO_ACTION:
                 if result[RulesEvaluationConstants.ACTION_KEY] in rule_set.actions.keys():
                     poll_dict[result[RulesEvaluationConstants.ACTION_KEY]] += 1

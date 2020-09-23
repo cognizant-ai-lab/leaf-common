@@ -7,8 +7,6 @@ from typing import List
 from typing import Tuple
 
 from leaf_common.representation.rule_based.condition import Condition
-from leaf_common.representation.rule_based.rules_evaluation_constants \
-    import RulesEvaluationConstants
 
 
 class Rule:
@@ -19,7 +17,12 @@ class Rule:
     def __init__(self, actions: Dict[str, str]):
 
         # State/Config needed for evaluation
+        # Note: Not actually used in evaluation at rule level
+        #       Probably just here to pass a long to condition evaluation
+        #       Perhaps better off coming from config
         self.actions = actions
+
+        # Evaluation Metrics used during reproduction
         self.times_applied = 0
 
         # Genetic Material
@@ -51,25 +54,3 @@ class Rule:
         if self.times_applied > 0:
             times_applied = "  <" + str(self.times_applied) + "> "
         return times_applied + condition_string + the_action
-
-    def parse(self, domain_states: List[Dict[str, float]], min_maxes: Dict[Tuple[str, str], float]) -> List[object]:
-        """
-        Parse a rule
-        :param domain_states: list of domain states
-        :param min_maxes: list of states min and max values
-        :return: A list containing an action indicator, and a lookback value or 0 for no lookback
-        """
-
-        for condition in self.conditions:
-            if not condition.parse(domain_states, min_maxes):
-                return [RulesEvaluationConstants.NO_ACTION, 0]
-        nb_states = len(domain_states) - 1
-
-        # If the lookback is greater than the number of states we have, we can't evaluate the condition so
-        # default to RulesEvaluationConstants.NO_ACTION
-        if nb_states < self.action_lookback:
-            return [RulesEvaluationConstants.NO_ACTION, 0]
-        self.times_applied += 1
-        if self.action_lookback == 0:
-            return [self.action, 0]
-        return [RulesEvaluationConstants.LOOK_BACK, self.action_lookback]
