@@ -15,6 +15,7 @@ class RulesAgent:
     def __init__(self, states, actions, initial_state, uid="rule_based"):
 
         # We might be able to leave uid to the service infrastructure
+        # for enclosing candidates
         self.uid = uid
 
         # Are these only used in evaluation?
