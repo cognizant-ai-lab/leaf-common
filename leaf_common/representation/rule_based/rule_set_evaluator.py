@@ -13,13 +13,16 @@ class RuleSetEvaluator(ComponentEvaluator):
     Rule-set evaluator class.
     """
 
-    def __init__(self):
+    def __init__(self, rule_set: RulesAgent = None):
+
         self.domain_states = []
         self.state_history_size = 0
 
+        if rule_set is not None:
+            self.reset(rule_set)
+
     def evaluate(self, component: RulesAgent, evaluation_data: object = None) -> object:
         rule_set = component
-        self.reset(rule_set)
         action = self.choose_action(rule_set)
         return action
 
