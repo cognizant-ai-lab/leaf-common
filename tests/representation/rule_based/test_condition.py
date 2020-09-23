@@ -21,7 +21,7 @@ class TestCondition(TestCase):
             RulesEvaluationConstants.MAX_KEY: 10
         }
         self.evaluation_data = {
-            RulesEvaluationConstants.STATE_MIN_MAX_KEY: self.min_max
+            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.min_max
         }
         self.evaluator = ConditionEvaluator()
 
