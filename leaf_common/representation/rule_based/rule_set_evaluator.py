@@ -15,7 +15,7 @@ class RuleSetEvaluator(ComponentEvaluator):
     This is a stateful evaluator in that calls to evaluate()
     keep some history as to the relevant evaluated_data/observations
     passed in so that time series offsets can be made.
-    This state history is kept here in the Evaluator so that 
+    This state history is kept here in the Evaluator so that
     data does not go back to the service.
 
     As such we recommend one instance of this Evaluator be retained per RulesAgent.
