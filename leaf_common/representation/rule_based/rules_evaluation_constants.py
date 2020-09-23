@@ -12,7 +12,6 @@ class RulesEvaluationConstants():
 
     # Rules stuff
     RULE_FILTER_FACTOR = 1
-    AGE_STATE_KEY = "age"
     MEM_FACTOR = 100  # max memory cells required
     TOTAL_KEY = "total"
 

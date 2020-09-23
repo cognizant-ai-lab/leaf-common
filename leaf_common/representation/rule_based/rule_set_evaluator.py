@@ -45,7 +45,6 @@ class RuleSetEvaluator(ComponentEvaluator):
         # 'current_observation' used to be RulesAgent.state, which was very confusing,
         # given that there is another member called 'states' which acts as a definition.
         current_observation = {}
-        current_observation[RulesEvaluationConstants.AGE_STATE_KEY] = 0
 
         for key in rule_set.states.keys():
             use_key = int(key)
@@ -53,7 +52,6 @@ class RuleSetEvaluator(ComponentEvaluator):
 
         action = self.choose_action(rule_set, current_observation)
 
-        current_observation[RulesEvaluationConstants.AGE_STATE_KEY] += 1
         rule_set.age_state += 1
 
         return action
