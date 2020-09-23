@@ -18,16 +18,12 @@ class RulesAgent:
         # for enclosing candidates
         self.uid = uid
 
-        # Are these only used in evaluation?
-        self.state = initial_state
-        self.state[RulesEvaluationConstants.AGE_STATE_KEY] = 0
-
         # These might be able to come from config as opposed to
         # being trucked around by each individual over the wire
         self.actions = actions
         self.states = states
 
-        # Metric used in reproduction
+        # Evaluation Metric used in reproduction
         self.times_applied = 0
 
         # The only thing keeping these state_min_maxes here as opposed to the
