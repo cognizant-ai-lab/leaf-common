@@ -54,6 +54,7 @@ class RuleSetEvaluator(ComponentEvaluator):
         action = self.choose_action(rule_set, current_observation)
 
         current_observation[RulesEvaluationConstants.AGE_STATE_KEY] += 1
+        rule_set.age_state += 1
 
         return action
 

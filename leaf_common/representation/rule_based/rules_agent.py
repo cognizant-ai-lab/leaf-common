@@ -23,8 +23,9 @@ class RulesAgent:
         self.actions = actions
         self.states = states
 
-        # Evaluation Metric used in reproduction
+        # Evaluation Metrics used in reproduction
         self.times_applied = 0
+        self.age_state = 0
 
         # The only thing keeping these state_min_maxes here as opposed to the
         # RuleSetEvaluator is that they are used in __str__() below. Otherwise
