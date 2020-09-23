@@ -19,6 +19,11 @@ class RuleSetEvaluator(ComponentEvaluator):
     data does not go back to the service.
 
     As such we recommend one instance of this Evaluator be retained per RulesAgent.
+
+    Also worth noting that invocation of the evaluate() method
+    can result in the following fields on RulesAgent being changed:
+        * times_applied
+        * state_min_maxes
     """
 
     def __init__(self, rule_set: RulesAgent = None):
