@@ -30,7 +30,6 @@ class TestRulesAgent(TestCase):
         agent = RulesAgent(states={'k1': 'value1'},
                            actions={'action1': 'action_value1'},
                            uid='test_rules_agent')
-                           #initial_state={'state1': 'value1'})
 
         with tempfile.NamedTemporaryFile('w') as saved_agent_file:
             persistence = RulesAgentFilePersistence()
@@ -104,7 +103,6 @@ class TestRulesAgent(TestCase):
         mock_rule_2.parse.return_value = rule2_action
         agent = RulesAgent(states={'k1': 'value1', 'k2': 'value2'},
                            actions={'action1': 'action_value1', 'action2': 'action_value2'})
-                           #initial_state={'state1': 'value1'})
         agent.rules.append(mock_rule_1)
         agent.rules.append(mock_rule_2)
         return agent, len(agent.rules)
