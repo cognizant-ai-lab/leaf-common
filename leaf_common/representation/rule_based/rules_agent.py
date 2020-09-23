@@ -12,7 +12,7 @@ class RulesAgent:
     # pylint: disable=too-many-instance-attributes
     # Nine is reasonable in this case.
 
-    def __init__(self, states, actions, initial_state, uid="rule_based"):
+    def __init__(self, states, actions, uid="rule_based"):
 
         # We might be able to leave uid to the service infrastructure
         # for enclosing candidates
@@ -42,6 +42,7 @@ class RulesAgent:
     def __str__(self):
         rules_str = ""
         for rule in self.rules:
+            # The only thing keeping state_min_maxes in here.
             rules_str = rules_str + rule.get_str(self.state_min_maxes) + "\n"
         times_applied = " <> "
         if self.times_applied > 0:
