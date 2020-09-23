@@ -5,6 +5,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 
 from leaf_common.representation.rule_based.rule import Rule
+from leaf_common.representation.rule_based.rule_evaluator import RuleEvaluator
 from leaf_common.representation.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
 
@@ -33,12 +34,19 @@ class TestRule(TestCase):
             }
         ]
 
+        self.evaluation_data = {
+            RulesEvaluationConstants.OBSERVATION_HISTORY_KEY: self.domain_states,
+            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.min_maxes
+        }
+
     def test_parse_conditions_true(self):
         """
         Verify rule parsing when conditions return True
         """
         rule = self._create_rule(True, True)
-        result = rule.parse(self.domain_states, self.min_maxes)
+
+        evaluator = RuleEvaluator()
+        result = evaluator.evaluate(rule, self.evaluation_data)
 
         self.assertEqual('1', result[0])
         self.assertEqual(0, result[1])
@@ -48,7 +56,9 @@ class TestRule(TestCase):
         Verify rule parsing when conditions return mixture of True and False
         """
         rule = self._create_rule(True, False)
-        result = rule.parse(self.domain_states, self.min_maxes)
+
+        evaluator = RuleEvaluator()
+        result = evaluator.evaluate(rule, self.evaluation_data)
 
         self.assertEqual(RulesEvaluationConstants.NO_ACTION, result[0])
         self.assertEqual(0, result[1])
