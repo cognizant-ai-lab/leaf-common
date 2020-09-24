@@ -24,7 +24,7 @@ class RuleSetEvaluator(ComponentEvaluator):
     Also worth noting that invocation of the evaluate() method
     can result in the following fields on RulesAgent being changed:
         * times_applied
-        * state_min_maxes
+    Also each Rule's times_applied and age_state can change
     """
 
     def __init__(self, rule_set: RulesAgent = None):
@@ -32,6 +32,12 @@ class RuleSetEvaluator(ComponentEvaluator):
         # was 'domain_states'
         self.observation_history = []
         self.observation_history_size = 0
+
+        self.state_min_maxes = {}
+        for state in rule_set.states.keys():
+            self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = 0
+            self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = 0
+            self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = 0
 
         # This evaluator itself is stateless, so its OK to just create one
         # as an optimization.
@@ -61,7 +67,6 @@ class RuleSetEvaluator(ComponentEvaluator):
 
         return action
 
-    # pylint: disable=no-self-use
     def _revise_state_minmaxes(self, rule_set: RulesAgent, current_observation):
         """
         Get second state value
@@ -69,13 +74,13 @@ class RuleSetEvaluator(ComponentEvaluator):
         :param current_observation: the current state
         """
         for state in rule_set.states.keys():
-            rule_set.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = \
-                rule_set.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] + \
+            self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = \
+                self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] + \
                 current_observation[state]
-            if current_observation[state] < rule_set.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY]:
-                rule_set.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = current_observation[state]
-            if current_observation[state] > rule_set.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
-                rule_set.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_observation[state]
+            if current_observation[state] < self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY]:
+                self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = current_observation[state]
+            if current_observation[state] > self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
+                self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_observation[state]
 
     # pylint: disable=no-self-use
     def _set_action_in_state(self, rule_set: RulesAgent, action, state):
@@ -118,7 +123,7 @@ class RuleSetEvaluator(ComponentEvaluator):
         # Prepare the data going into the RuleEvaluator
         rule_evaluation_data = {
             RulesEvaluationConstants.OBSERVATION_HISTORY_KEY: self.observation_history,
-            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: rule_set.state_min_maxes
+            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.state_min_maxes
         }
         for rule in rule_set.rules:
             result = self.rule_evaluator.evaluate(rule, rule_evaluation_data)

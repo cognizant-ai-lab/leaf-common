@@ -74,7 +74,7 @@ class TestRulesAgent(TestCase):
             {RulesEvaluationConstants.ACTION_KEY: 'action1'}
         ]
 
-        evaluator = RuleSetEvaluator()
+        evaluator = RuleSetEvaluator(agent)
         result = evaluator.parse_rules(agent)
 
         self.assertEqual(num_rules, len(result))
@@ -102,7 +102,7 @@ class TestRulesAgent(TestCase):
             {RulesEvaluationConstants.ACTION_KEY: 'action2'}
         ]
 
-        evaluator = RuleSetEvaluator()
+        evaluator = RuleSetEvaluator(agent)
         result = evaluator.parse_rules(agent)
 
         print("test result = ", str(result))
@@ -122,8 +122,8 @@ class TestRulesAgent(TestCase):
         mock_rule_2.parse.return_value = rule2_action
         agent = RulesAgent(states={'k1': 'value1', 'k2': 'value2'},
                            actions={
-                                'action1': 'action_value1',
-                                'action2': 'action_value2'
+                               'action1': 'action_value1',
+                               'action2': 'action_value2'
                            })
         agent.rules.append(mock_rule_1)
         agent.rules.append(mock_rule_2)
