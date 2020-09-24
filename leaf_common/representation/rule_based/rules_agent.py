@@ -12,16 +12,11 @@ class RulesAgent:
     # pylint: disable=too-many-instance-attributes
     # Nine is reasonable in this case.
 
-    def __init__(self, states, actions, uid="rule_based"):
+    def __init__(self, uid="rule_based"):
 
         # We might be able to leave uid to the service infrastructure
         # for enclosing candidates
         self.uid = uid
-
-        # These might be able to come from config as opposed to
-        # being trucked around by each individual over the wire
-        self.actions = actions
-        self.states = states
 
         # Evaluation Metrics used in reproduction
         self.times_applied = 0
@@ -32,7 +27,8 @@ class RulesAgent:
         self.rules = []
 
     # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
-    def get_str(self, state_min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
+    def get_str(self, states: Dict[str, str] = None,
+                state_min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
         """
         String representation for rule
         :param min_maxes: A dictionary of domain features minimum and maximum values
@@ -40,7 +36,7 @@ class RulesAgent:
         """
         rules_str = ""
         for rule in self.rules:
-            rules_str = rules_str + rule.get_str(state_min_maxes) + "\n"
+            rules_str = rules_str + rule.get_str(states, state_min_maxes) + "\n"
         times_applied = " <> "
         if self.times_applied > 0:
             times_applied = " <" + str(self.times_applied) + "> "

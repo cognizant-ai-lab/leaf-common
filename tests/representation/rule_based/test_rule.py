@@ -51,7 +51,7 @@ class TestRule(TestCase):
 
         evaluate_mock.side_effect = [True, True]
 
-        evaluator = RuleEvaluator()
+        evaluator = RuleEvaluator(None)
         result = evaluator.evaluate(rule, self.evaluation_data)
 
         self.assertEqual('1', result[0])
@@ -67,7 +67,7 @@ class TestRule(TestCase):
 
         evaluate_mock.side_effect = [True, False]
 
-        evaluator = RuleEvaluator()
+        evaluator = RuleEvaluator(None)
         result = evaluator.evaluate(rule, self.evaluation_data)
 
         self.assertEqual(RulesEvaluationConstants.NO_ACTION, result[0])
@@ -86,7 +86,7 @@ class TestRule(TestCase):
         mock_condition_2.action = 'action2'
         mock_condition_2.get_str.return_value = 'condition2_str'
 
-        rule = Rule(actions={'0': 'action1', '1': 'action2'})
+        rule = Rule()
         rule.action = '1'
         rule.action_lookback = 0
         rule.conditions.append(mock_condition_1)

@@ -20,6 +20,9 @@ class ConditionEvaluator(ComponentEvaluator):  # pylint: disable-msg=R0902
     on an instance of this class, and no side effects on any of the arguments.
     """
 
+    def __init__(self, states: Dict[str, str]):
+        self.states = states
+
     def evaluate(self, component: Condition,
                  evaluation_data: Dict[str, object] = None) -> bool:
 
@@ -69,7 +72,7 @@ class ConditionEvaluator(ComponentEvaluator):  # pylint: disable-msg=R0902
         :param min_maxes: list of states min and max values
         :return: the second state
         """
-        if condition.second_state_key in condition.states.keys():
+        if condition.second_state_key in self.states.keys():
             second_state_idx = nb_states - condition.second_state_lookback
             second_state = observation_history[second_state_idx][condition.second_state_key]
             second_state *= condition.second_state_coefficient

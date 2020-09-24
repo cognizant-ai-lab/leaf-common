@@ -24,14 +24,20 @@ class TestRulesAgent(TestCase):
         super(TestRulesAgent, self).__init__(*args, **kwargs)
         root_dir = os.path.dirname(os.path.abspath(__file__))
         self.fixtures_path = os.path.join(root_dir, '../..', 'fixtures')
+        self.states = {
+            'k1': 'value1',
+            'k2': 'value2'
+        }
+        self.actions = {
+            'action1': 'action_value1',
+            'action2': 'action_value2'
+        }
 
     def test_serialize_roundtrip(self):
         """
         Verify simple roundtrip with serializer
         """
-        agent = RulesAgent(states={'k1': 'value1'},
-                           actions={'action1': 'action_value1'},
-                           uid='test_rules_agent')
+        agent = RulesAgent(uid='test_rules_agent')
 
         with tempfile.NamedTemporaryFile('w') as saved_agent_file:
             persistence = RulesAgentFilePersistence()
@@ -74,7 +80,7 @@ class TestRulesAgent(TestCase):
             {RulesEvaluationConstants.ACTION_KEY: 'action1'}
         ]
 
-        evaluator = RuleSetEvaluator(agent)
+        evaluator = RuleSetEvaluator(self.states, self.actions)
         result = evaluator.parse_rules(agent)
 
         self.assertEqual(num_rules, len(result))
@@ -102,7 +108,7 @@ class TestRulesAgent(TestCase):
             {RulesEvaluationConstants.ACTION_KEY: 'action2'}
         ]
 
-        evaluator = RuleSetEvaluator(agent)
+        evaluator = RuleSetEvaluator(self.states, self.actions)
         result = evaluator.parse_rules(agent)
 
         print("test result = ", str(result))
@@ -120,11 +126,7 @@ class TestRulesAgent(TestCase):
         mock_rule_2.conditions = [MagicMock()]
         mock_rule_1.parse.return_value = rule1_action
         mock_rule_2.parse.return_value = rule2_action
-        agent = RulesAgent(states={'k1': 'value1', 'k2': 'value2'},
-                           actions={
-                               'action1': 'action_value1',
-                               'action2': 'action_value2'
-                           })
+        agent = RulesAgent()
         agent.rules.append(mock_rule_1)
         agent.rules.append(mock_rule_2)
         return agent, len(agent.rules)

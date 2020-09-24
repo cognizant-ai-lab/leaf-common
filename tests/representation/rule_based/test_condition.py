@@ -23,7 +23,10 @@ class TestCondition(TestCase):
         self.evaluation_data = {
             RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.min_max
         }
-        self.evaluator = ConditionEvaluator()
+
+        # We simulate two states, keys '0' and '1'
+        self.states = {'0': 'S_0', '1': 'S_1'}
+        self.evaluator = ConditionEvaluator(self.states)
 
     def test_greater_true(self):
         """
@@ -136,19 +139,16 @@ class TestCondition(TestCase):
         condition_string = condition.get_str()
         self.assertEqual('0.42*S_0 > 0.84*S_1', condition_string)
 
-    @staticmethod
-    def _create_condition(condition_type, lookback1=0, lookback2=0):
-        # We simulate two states, keys '0' and '1'
-        states = {'0': 'S_0', '1': 'S_1'}
+    def _create_condition(self, condition_type, lookback1=0, lookback2=0):
 
         # Set up canned random numbers to express: 0.42*S_0 <condition> 0.69*S_1
-        condition = Condition(states)
+        condition = Condition()
         condition.first_state_lookback = lookback1
-        condition.first_state_key = list(states)[0]
+        condition.first_state_key = list(self.states)[0]
         condition.first_state_coefficient = 0.42
         condition.operator = condition_type
         condition.second_state_lookback = lookback2
-        condition.second_state_key = list(states)[1]
+        condition.second_state_key = list(self.states)[1]
         condition.second_state_value = 0.32
         condition.second_state_coefficient = 0.84
         return condition
