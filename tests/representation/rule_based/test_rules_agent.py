@@ -5,6 +5,8 @@ import os
 import tempfile
 from unittest import TestCase
 from unittest.mock import MagicMock
+from unittest.mock import Mock
+from unittest.mock import patch
 
 from leaf_common.representation.rule_based.rules_agent import RulesAgent
 from leaf_common.representation.rule_based.rule_set_evaluator import RuleSetEvaluator
@@ -53,7 +55,9 @@ class TestRulesAgent(TestCase):
 
         self.assertIsNot(agent, reloaded_agent)
 
-    def test_parse_rules_agree(self):
+    @patch("leaf_common.representation.rule_based.rule_set_evaluator.RuleEvaluator.evaluate",
+           return_value=Mock())
+    def test_parse_rules_agree(self, evaluate_mock):
         """
         Verify correct parsing of rules
         """
@@ -65,28 +69,43 @@ class TestRulesAgent(TestCase):
 
         self.assertEqual(num_rules, len(agent.rules))
 
+        evaluate_mock.side_effect = [
+            {RulesEvaluationConstants.ACTION_KEY: 'action1'},
+            {RulesEvaluationConstants.ACTION_KEY: 'action1'}
+        ]
+
         evaluator = RuleSetEvaluator()
         result = evaluator.parse_rules(agent)
+
         self.assertEqual(num_rules, len(result))
         self.assertTrue('action1' in result)
         self.assertTrue('action2' in result)
         self.assertEqual(num_rules, result['action1'])
         self.assertEqual(0, result['action2'])
 
-    def test_parse_rules_disagree(self):
+    @patch("leaf_common.representation.rule_based.rule_set_evaluator.RuleEvaluator.evaluate",
+           return_value=Mock())
+    def test_parse_rules_disagree(self, evaluate_mock):
         """
         Verify correct parsing of rules
         """
 
         # Set it up so mock rules vote differently -- 1 for action1, 1 for action2
         agent, num_rules = self._create_rules_agent(
-            rule1_action={RulesEvaluationConstants.ACTION_KEY: 'action1'},
+            rule1_action={RulesEvaluationConstants.ACTION_KEY: 'action1'}, 
             rule2_action={RulesEvaluationConstants.ACTION_KEY: 'action2'})
 
         self.assertEqual(num_rules, len(agent.rules))
 
+        evaluate_mock.side_effect = [
+            {RulesEvaluationConstants.ACTION_KEY: 'action1'},
+            {RulesEvaluationConstants.ACTION_KEY: 'action2'}
+        ]
+
         evaluator = RuleSetEvaluator()
         result = evaluator.parse_rules(agent)
+
+        print("test result = ", str(result))
         self.assertEqual(num_rules, len(result))
         self.assertTrue('action1' in result)
         self.assertTrue('action2' in result)
@@ -102,7 +121,10 @@ class TestRulesAgent(TestCase):
         mock_rule_1.parse.return_value = rule1_action
         mock_rule_2.parse.return_value = rule2_action
         agent = RulesAgent(states={'k1': 'value1', 'k2': 'value2'},
-                           actions={'action1': 'action_value1', 'action2': 'action_value2'})
+                           actions={
+                                'action1': 'action_value1',
+                                'action2': 'action_value2'
+                           })
         agent.rules.append(mock_rule_1)
         agent.rules.append(mock_rule_2)
         return agent, len(agent.rules)

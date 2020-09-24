@@ -122,11 +122,12 @@ class RuleSetEvaluator(ComponentEvaluator):
         }
         for rule in rule_set.rules:
             result = self.rule_evaluator.evaluate(rule, rule_evaluation_data)
-            if result[RulesEvaluationConstants.ACTION_KEY] != RulesEvaluationConstants.NO_ACTION:
-                if result[RulesEvaluationConstants.ACTION_KEY] in rule_set.actions.keys():
-                    poll_dict[result[RulesEvaluationConstants.ACTION_KEY]] += 1
+            action = result[RulesEvaluationConstants.ACTION_KEY]
+            if action != RulesEvaluationConstants.NO_ACTION:
+                if action in rule_set.actions.keys():
+                    poll_dict[action] += 1
                     anyone_voted = True
-                if result[RulesEvaluationConstants.ACTION_KEY] == RulesEvaluationConstants.LOOK_BACK:
+                if action == RulesEvaluationConstants.LOOK_BACK:
                     lookback = result[RulesEvaluationConstants.LOOKBACK_KEY]
                     poll_dict[self._get_action_in_state(rule_set,
                                                         self.observation_history[nb_states - lookback])] += 1
