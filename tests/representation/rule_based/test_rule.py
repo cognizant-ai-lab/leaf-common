@@ -49,7 +49,7 @@ class TestRule(TestCase):
         """
         rule = self._create_rule(True, True)
 
-        evaluate_mock.side_effect = [ True, True ]
+        evaluate_mock.side_effect = [True, True]
 
         evaluator = RuleEvaluator()
         result = evaluator.evaluate(rule, self.evaluation_data)
@@ -65,7 +65,7 @@ class TestRule(TestCase):
         """
         rule = self._create_rule(True, False)
 
-        evaluate_mock.side_effect = [ True, False ]
+        evaluate_mock.side_effect = [True, False]
 
         evaluator = RuleEvaluator()
         result = evaluator.evaluate(rule, self.evaluation_data)
