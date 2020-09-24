@@ -1,5 +1,8 @@
 """ Base class for rule representation """
 
+from typing import Dict
+from typing import Tuple
+
 
 class RulesAgent:
     """
@@ -28,7 +31,13 @@ class RulesAgent:
         self.default_action = None
         self.rules = []
 
-    def get_str(self, state_min_maxes=None):
+    # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
+    def get_str(self, state_min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
+        """
+        String representation for rule
+        :param min_maxes: A dictionary of domain features minimum and maximum values
+        :return: RulesAgent.toString()
+        """
         rules_str = ""
         for rule in self.rules:
             rules_str = rules_str + rule.get_str(state_min_maxes) + "\n"
