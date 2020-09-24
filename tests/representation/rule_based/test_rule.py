@@ -3,6 +3,8 @@ Unit tests for Rules class
 """
 from unittest import TestCase
 from unittest.mock import MagicMock
+from unittest.mock import Mock
+from unittest.mock import patch
 
 from leaf_common.representation.rule_based.rule import Rule
 from leaf_common.representation.rule_based.rule_evaluator import RuleEvaluator
@@ -39,11 +41,15 @@ class TestRule(TestCase):
             RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.min_maxes
         }
 
-    def test_parse_conditions_true(self):
+    @patch("leaf_common.representation.rule_based.rule_evaluator.ConditionEvaluator.evaluate",
+           return_value=Mock())
+    def test_parse_conditions_true(self, evaluate_mock):
         """
         Verify rule parsing when conditions return True
         """
         rule = self._create_rule(True, True)
+
+        evaluate_mock.side_effect = [ True, True ]
 
         evaluator = RuleEvaluator()
         result = evaluator.evaluate(rule, self.evaluation_data)
@@ -51,11 +57,15 @@ class TestRule(TestCase):
         self.assertEqual('1', result[0])
         self.assertEqual(0, result[1])
 
-    def test_parse_conditions_false(self):
+    @patch("leaf_common.representation.rule_based.rule_evaluator.ConditionEvaluator.evaluate",
+           return_value=Mock())
+    def test_parse_conditions_false(self, evaluate_mock):
         """
         Verify rule parsing when conditions return mixture of True and False
         """
         rule = self._create_rule(True, False)
+
+        evaluate_mock.side_effect = [ True, False ]
 
         evaluator = RuleEvaluator()
         result = evaluator.evaluate(rule, self.evaluation_data)
