@@ -88,7 +88,6 @@ class RuleSetEvaluator(ComponentEvaluator):
             if current_observation[state] > self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
                 self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_observation[state]
 
-    # pylint: disable=no-self-use
     def _set_action_in_state(self, action, state):
         """
         Sets the action in state
@@ -98,7 +97,6 @@ class RuleSetEvaluator(ComponentEvaluator):
         for act in self.actions:
             state[ACTION_MARKER + act] = act == action
 
-    # pylint: disable=no-self-use
     def _get_action_in_state(self, state):
         """
         Extracts action from state

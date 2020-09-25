@@ -60,7 +60,6 @@ class ConditionEvaluator(ComponentEvaluator):  # pylint: disable-msg=R0902
         )
         return result
 
-    # pylint: disable=no-self-use
     def get_second_state_value(self, condition: Condition,
                                observation_history: List[Dict[str, float]],
                                nb_states: int,
