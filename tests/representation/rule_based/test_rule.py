@@ -6,10 +6,11 @@ from unittest.mock import MagicMock
 from unittest.mock import Mock
 from unittest.mock import patch
 
-from leaf_common.representation.rule_based.rule import Rule
-from leaf_common.representation.rule_based.rule_evaluator import RuleEvaluator
-from leaf_common.representation.rule_based.rules_evaluation_constants \
+from leaf_common.representation.rule_based.data.rule import Rule
+from leaf_common.representation.rule_based.data.rules_evaluation_constants \
     import RulesEvaluationConstants
+
+from leaf_common.representation.rule_based.evaluation.rule_evaluator import RuleEvaluator
 
 
 class TestRule(TestCase):

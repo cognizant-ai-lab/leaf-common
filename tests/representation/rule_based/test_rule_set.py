@@ -8,10 +8,12 @@ from unittest.mock import MagicMock
 from unittest.mock import Mock
 from unittest.mock import patch
 
-from leaf_common.representation.rule_based.rule_set import RuleSet
-from leaf_common.representation.rule_based.rule_set_evaluator import RuleSetEvaluator
-from leaf_common.representation.rule_based.rule_set_file_persistence import RuleSetFilePersistence
-from leaf_common.representation.rule_based.rules_evaluation_constants \
+from leaf_common.representation.rule_based.data.rule_set import RuleSet
+from leaf_common.representation.rule_based.evaluation.rule_set_evaluator \
+    import RuleSetEvaluator
+from leaf_common.representation.rule_based.persistence.rule_set_file_persistence \
+    import RuleSetFilePersistence
+from leaf_common.representation.rule_based.data.rules_evaluation_constants \
     import RulesEvaluationConstants
 
 

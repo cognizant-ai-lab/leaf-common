@@ -3,10 +3,12 @@ Unit tests for `Condition` class
 """
 from unittest import TestCase
 
-from leaf_common.representation.rule_based.condition import Condition
-from leaf_common.representation.rule_based.condition_evaluator import ConditionEvaluator
-from leaf_common.representation.rule_based.rules_evaluation_constants \
+from leaf_common.representation.rule_based.data.condition import Condition
+from leaf_common.representation.rule_based.data.rules_evaluation_constants \
     import RulesEvaluationConstants
+
+from leaf_common.representation.rule_based.evaluation.condition_evaluator \
+    import ConditionEvaluator
 
 
 class TestCondition(TestCase):
