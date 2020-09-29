@@ -43,11 +43,12 @@ class ComponentEvaluator():
     as well.
     """
 
-    def evaluate(self, component: object, evaluation_data: object = None) -> object:
+    def evaluate(self, component: object, evaluation_data: object) -> object:
         """
         Evaluate the given component on the given evaluation_data reference.
         This method is intended to be a Pure Function, with no stateful
         side-effects on the implementation or the arguments.
+
         Deviations from this expectation should be documented.
 
         :param component:
@@ -83,8 +84,9 @@ class ComponentEvaluator():
                     c) Feedback data for a specific Individual's transient,
                         state which is carried forward for evaluation.
 
-                The default value of evaluation_data is be None, indicating
-                that access to any evaluation data is up to the implementation.
+                It is entirely conceivable that the value of evaluation_data
+                can be None by convention of the caller, indicating that access
+                to any evaluation data is up to the implementation.
 
        :return: The results are an unspecified type. Typical implementation
                 contain the transient inference results of the evaluation,

@@ -23,7 +23,7 @@ class ConditionEvaluator(ComponentEvaluator):  # pylint: disable-msg=R0902
         self.states = states
 
     def evaluate(self, component: Condition,
-                 evaluation_data: Dict[str, object] = None) -> bool:
+                 evaluation_data: Dict[str, object]) -> bool:
 
         condition = component
 

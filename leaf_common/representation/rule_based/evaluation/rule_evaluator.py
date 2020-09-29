@@ -26,7 +26,7 @@ class RuleEvaluator(ComponentEvaluator):
         self.condition_evaluator = ConditionEvaluator(states)
 
     def evaluate(self, component: Rule,
-                 evaluation_data: Dict[str, object] = None) -> List[object]:
+                 evaluation_data: Dict[str, object]) -> List[object]:
         """
         :return: A list containing an action indicator, and a lookback value or 0 for no lookback
         """

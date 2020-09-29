@@ -73,7 +73,7 @@ class RuleSetEvaluator(ComponentEvaluator):
 
         self.reset()
 
-    def evaluate(self, component: RuleSet, evaluation_data: object = None) -> object:
+    def evaluate(self, component: RuleSet, evaluation_data: object) -> object:
         rule_set = component
 
         # Set up a state dictionary distilling only the information needed from
