@@ -2,7 +2,9 @@
 See class comment for details
 """
 
+from copy import deepcopy
 from typing import Dict
+from typing import Tuple
 
 import random
 
@@ -31,16 +33,34 @@ class RuleSetEvaluator(ComponentEvaluator):
     Also each Rule's times_applied and age_state can change
     """
 
-    def __init__(self, states: Dict[str, str], actions: Dict[str, str]):
+    def __init__(self, states: Dict[str, str], actions: Dict[str, str],
+                 min_maxes: Dict[Tuple[str, str], float] = None):
+        """
+        Constructor
+
+        :param states: XXX Need a good definition here
+        :param actions: XXX Need a good definition here
+        :param min_maxes: A dictionary of (state, "min"/"max") to a float value
+                    which pre-calibrates the normalization of the conditions.
+                    These values are copied and as evaluation proceeds, the
+                    internal copy gets updated with new values should the
+                    data encountered warrant it.  The default value is None,
+                    indicating that we don't know enough about the data to
+                    calibrate anything at the outset.
+        """
 
         self.states = states
         self.actions = actions
 
-        # was 'domain_states'
         self.observation_history = []
         self.observation_history_size = 0
 
-        self.state_min_maxes = {}
+        # Initialize the min/maxes
+        if self.state_min_maxes is not None:
+            self.state_min_maxes = deepcopy(min_maxes)
+        else:
+            self.state_min_maxes = {}
+
         for state in self.states.keys():
             self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = 0
             self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = 0
@@ -87,6 +107,16 @@ class RuleSetEvaluator(ComponentEvaluator):
                 self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = current_observation[state]
             if current_observation[state] > self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
                 self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_observation[state]
+
+    def get_state_min_maxes(self):
+        """
+        :return: the dictionary of min/max values encountered for each state.
+            This in and of itself can be considered data which is "learned"
+            by looking at the data set, but it is not evolved.  In some
+            situations, these min/maxes can be essential calibration data
+            when transfering a rule set into a predictive setting.
+        """
+        return self.state_min_maxes
 
     def _set_action_in_state(self, action, state):
         """
