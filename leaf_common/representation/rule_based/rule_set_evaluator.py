@@ -56,15 +56,15 @@ class RuleSetEvaluator(ComponentEvaluator):
         self.observation_history_size = 0
 
         # Initialize the min/maxes
-        if self.state_min_maxes is not None:
-            self.state_min_maxes = deepcopy(min_maxes)
+        if min_maxes is not None:
+            self._min_maxes = deepcopy(min_maxes)
         else:
-            self.state_min_maxes = {}
+            self._min_maxes = {}
 
         for state in self.states.keys():
-            self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = 0
-            self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = 0
-            self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = 0
+            self._min_maxes[state, RulesEvaluationConstants.MIN_KEY] = 0
+            self._min_maxes[state, RulesEvaluationConstants.MAX_KEY] = 0
+            self._min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = 0
 
         # This evaluator itself is stateless, so its OK to just create one
         # as an optimization.
@@ -100,13 +100,13 @@ class RuleSetEvaluator(ComponentEvaluator):
         :param current_observation: the current state
         """
         for state in self.states.keys():
-            self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = \
-                self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] + \
+            self._min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = \
+                self._min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] + \
                 current_observation[state]
-            if current_observation[state] < self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY]:
-                self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = current_observation[state]
-            if current_observation[state] > self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
-                self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_observation[state]
+            if current_observation[state] < self._min_maxes[state, RulesEvaluationConstants.MIN_KEY]:
+                self._min_maxes[state, RulesEvaluationConstants.MIN_KEY] = current_observation[state]
+            if current_observation[state] > self._min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
+                self._min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_observation[state]
 
     def get_min_maxes(self) -> Dict[Tuple[str, str], float]:
         """
@@ -116,7 +116,7 @@ class RuleSetEvaluator(ComponentEvaluator):
             situations, these min/maxes can be essential calibration data
             when transfering a rule set into a predictive setting.
         """
-        return self.state_min_maxes
+        return self._min_maxes
 
     def _set_action_in_state(self, action, state):
         """
@@ -157,7 +157,7 @@ class RuleSetEvaluator(ComponentEvaluator):
         # Prepare the data going into the RuleEvaluator
         rule_evaluation_data = {
             RulesEvaluationConstants.OBSERVATION_HISTORY_KEY: self.observation_history,
-            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.state_min_maxes
+            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self._min_maxes
         }
         for rule in rule_set.rules:
             result = self.rule_evaluator.evaluate(rule, rule_evaluation_data)
