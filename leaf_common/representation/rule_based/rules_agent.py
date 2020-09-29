@@ -12,11 +12,7 @@ class RulesAgent:
     # pylint: disable=too-many-instance-attributes
     # Nine is reasonable in this case.
 
-    def __init__(self, uid="rule_based"):
-
-        # We might be able to leave uid to the service infrastructure
-        # for enclosing candidates
-        self.uid = uid
+    def __init__(self):
 
         # Evaluation Metrics used in reproduction
         self.times_applied = 0
