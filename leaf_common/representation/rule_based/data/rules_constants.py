@@ -11,7 +11,6 @@ class RulesConstants():
     """
 
     # Rules stuff
-    RULE_FILTER_FACTOR = 1
     MEM_FACTOR = 100  # max memory cells required
     TOTAL_KEY = "total"
 
