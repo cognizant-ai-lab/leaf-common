@@ -4,8 +4,7 @@ Unit tests for `Condition` class
 from unittest import TestCase
 
 from leaf_common.representation.rule_based.data.condition import Condition
-from leaf_common.representation.rule_based.data.rules_evaluation_constants \
-    import RulesEvaluationConstants
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 
 from leaf_common.representation.rule_based.evaluation.condition_evaluator \
     import ConditionEvaluator
@@ -19,11 +18,11 @@ class TestCondition(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCondition, self).__init__(*args, **kwargs)
         self.min_max = {
-            RulesEvaluationConstants.MIN_KEY: 0,
-            RulesEvaluationConstants.MAX_KEY: 10
+            RulesConstants.MIN_KEY: 0,
+            RulesConstants.MAX_KEY: 10
         }
         self.evaluation_data = {
-            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.min_max
+            RulesConstants.STATE_MIN_MAXES_KEY: self.min_max
         }
 
         # We simulate two states, keys '0' and '1'
@@ -36,7 +35,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('>')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 3, '1': 1}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -48,7 +47,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('>')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 3, '1': 4}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -60,7 +59,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('<')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 1, '1': 2}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -72,7 +71,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('<')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 3, '1': 1}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -84,7 +83,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('<')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 3, '1': 1}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -96,7 +95,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('<')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 2, '1': 1}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -108,7 +107,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('<=')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 1, '1': 2}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -120,7 +119,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('<=')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 3, '1': 1}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 

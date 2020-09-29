@@ -7,8 +7,7 @@ from unittest.mock import Mock
 from unittest.mock import patch
 
 from leaf_common.representation.rule_based.data.rule import Rule
-from leaf_common.representation.rule_based.data.rules_evaluation_constants \
-    import RulesEvaluationConstants
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 
 from leaf_common.representation.rule_based.evaluation.rule_evaluator import RuleEvaluator
 
@@ -21,10 +20,10 @@ class TestRule(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestRule, self).__init__(*args, **kwargs)
         self.min_maxes = {
-            ('0', RulesEvaluationConstants.MIN_KEY): 0,
-            ('0', RulesEvaluationConstants.MAX_KEY): 10,
-            ('1', RulesEvaluationConstants.MIN_KEY): 10,
-            ('1', RulesEvaluationConstants.MAX_KEY): 20
+            ('0', RulesConstants.MIN_KEY): 0,
+            ('0', RulesConstants.MAX_KEY): 10,
+            ('1', RulesConstants.MIN_KEY): 10,
+            ('1', RulesConstants.MAX_KEY): 20
         }
         self.domain_states = [
             {
@@ -38,8 +37,8 @@ class TestRule(TestCase):
         ]
 
         self.evaluation_data = {
-            RulesEvaluationConstants.OBSERVATION_HISTORY_KEY: self.domain_states,
-            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.min_maxes
+            RulesConstants.OBSERVATION_HISTORY_KEY: self.domain_states,
+            RulesConstants.STATE_MIN_MAXES_KEY: self.min_maxes
         }
 
     @patch("leaf_common.representation.rule_based.evaluation.rule_evaluator.ConditionEvaluator.evaluate",
@@ -71,7 +70,7 @@ class TestRule(TestCase):
         evaluator = RuleEvaluator(None)
         result = evaluator.evaluate(rule, self.evaluation_data)
 
-        self.assertEqual(RulesEvaluationConstants.NO_ACTION, result[0])
+        self.assertEqual(RulesConstants.NO_ACTION, result[0])
         self.assertEqual(0, result[1])
 
     @staticmethod

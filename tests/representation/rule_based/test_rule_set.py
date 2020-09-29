@@ -13,8 +13,7 @@ from leaf_common.representation.rule_based.evaluation.rule_set_evaluator \
     import RuleSetEvaluator
 from leaf_common.representation.rule_based.persistence.rule_set_file_persistence \
     import RuleSetFilePersistence
-from leaf_common.representation.rule_based.data.rules_evaluation_constants \
-    import RulesEvaluationConstants
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 
 
 class TestRuleSet(TestCase):
@@ -72,14 +71,14 @@ class TestRuleSet(TestCase):
 
         # Set it up so mock rules agree on action1
         rule_set, num_rules = self._create_rules_rule_set(
-            rule1_action={RulesEvaluationConstants.ACTION_KEY: 'action1'},
-            rule2_action={RulesEvaluationConstants.ACTION_KEY: 'action1'})
+            rule1_action={RulesConstants.ACTION_KEY: 'action1'},
+            rule2_action={RulesConstants.ACTION_KEY: 'action1'})
 
         self.assertEqual(num_rules, len(rule_set.rules))
 
         evaluate_mock.side_effect = [
-            {RulesEvaluationConstants.ACTION_KEY: 'action1'},
-            {RulesEvaluationConstants.ACTION_KEY: 'action1'}
+            {RulesConstants.ACTION_KEY: 'action1'},
+            {RulesConstants.ACTION_KEY: 'action1'}
         ]
 
         evaluator = RuleSetEvaluator(self.states, self.actions)
@@ -100,14 +99,14 @@ class TestRuleSet(TestCase):
 
         # Set it up so mock rules vote differently -- 1 for action1, 1 for action2
         rule_set, num_rules = self._create_rules_rule_set(
-            rule1_action={RulesEvaluationConstants.ACTION_KEY: 'action1'},
-            rule2_action={RulesEvaluationConstants.ACTION_KEY: 'action2'})
+            rule1_action={RulesConstants.ACTION_KEY: 'action1'},
+            rule2_action={RulesConstants.ACTION_KEY: 'action2'})
 
         self.assertEqual(num_rules, len(rule_set.rules))
 
         evaluate_mock.side_effect = [
-            {RulesEvaluationConstants.ACTION_KEY: 'action1'},
-            {RulesEvaluationConstants.ACTION_KEY: 'action2'}
+            {RulesConstants.ACTION_KEY: 'action1'},
+            {RulesConstants.ACTION_KEY: 'action2'}
         ]
 
         evaluator = RuleSetEvaluator(self.states, self.actions)
