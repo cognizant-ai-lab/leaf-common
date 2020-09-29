@@ -41,7 +41,7 @@ class Rule:
         if self.action_lookback > 0:
             the_action = " -->  Action[" + str(self.action_lookback) + "]"
         else:
-            the_action = " -->  " + self.action
+            the_action = " -->  " + str(self.action)
         condition_string = ""
         for condition in self.conditions:
             condition_string = condition_string + "(" + condition.get_str(states, min_maxes) + ") "
