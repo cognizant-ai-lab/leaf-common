@@ -63,7 +63,7 @@ class TestRuleSet(TestCase):
 
         self.assertIsNot(rule_set, reloaded_rule_set)
 
-    @patch("leaf_common.representation.rule_based.rule_set_evaluator.RuleEvaluator.evaluate",
+    @patch("leaf_common.representation.rule_based.evaluation.rule_set_evaluator.RuleEvaluator.evaluate",
            return_value=Mock())
     def test_parse_rules_agree(self, evaluate_mock):
         """
@@ -91,7 +91,7 @@ class TestRuleSet(TestCase):
         self.assertEqual(num_rules, result['action1'])
         self.assertEqual(0, result['action2'])
 
-    @patch("leaf_common.representation.rule_based.rule_set_evaluator.RuleEvaluator.evaluate",
+    @patch("leaf_common.representation.rule_based.evaluation.rule_set_evaluator.RuleEvaluator.evaluate",
            return_value=Mock())
     def test_parse_rules_disagree(self, evaluate_mock):
         """

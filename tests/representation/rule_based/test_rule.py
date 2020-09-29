@@ -42,7 +42,7 @@ class TestRule(TestCase):
             RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.min_maxes
         }
 
-    @patch("leaf_common.representation.rule_based.rule_evaluator.ConditionEvaluator.evaluate",
+    @patch("leaf_common.representation.rule_based.evaluation.rule_evaluator.ConditionEvaluator.evaluate",
            return_value=Mock())
     def test_parse_conditions_true(self, evaluate_mock):
         """
@@ -58,7 +58,7 @@ class TestRule(TestCase):
         self.assertEqual('1', result[0])
         self.assertEqual(0, result[1])
 
-    @patch("leaf_common.representation.rule_based.rule_evaluator.ConditionEvaluator.evaluate",
+    @patch("leaf_common.representation.rule_based.evaluation.rule_evaluator.ConditionEvaluator.evaluate",
            return_value=Mock())
     def test_parse_conditions_false(self, evaluate_mock):
         """
