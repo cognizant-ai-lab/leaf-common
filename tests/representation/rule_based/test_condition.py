@@ -128,17 +128,17 @@ class TestCondition(TestCase):
 
     def test_to_string(self):
         """
-        Verify behavior of `get_str()` method
+        Verify behavior of `to_string()` method
         """
 
         # With lookbacks
         condition = self._create_condition('<=', 1, 2)
-        condition_string = condition.get_str(states=self.states)
+        condition_string = condition.to_string(states=self.states)
         self.assertEqual('0.42*S_0[1] <= 0.84*S_1[2]', condition_string)
 
         # Different operator, no lookbacks
         condition = self._create_condition('>')
-        condition_string = condition.get_str(states=self.states)
+        condition_string = condition.to_string(states=self.states)
         self.assertEqual('0.42*S_0 > 0.84*S_1', condition_string)
 
     def _create_condition(self, condition_type, lookback1=0, lookback2=0):

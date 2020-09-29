@@ -80,12 +80,12 @@ class TestRule(TestCase):
         mock_condition_1 = MagicMock()
         mock_condition_1.parse.return_value = first_condition_true
         mock_condition_1.action = 'action1'
-        mock_condition_1.get_str.return_value = 'condition1_str'
+        mock_condition_1.to_string.return_value = 'condition1_str'
 
         mock_condition_2 = MagicMock()
         mock_condition_2.parse.return_value = second_condition_true
         mock_condition_2.action = 'action2'
-        mock_condition_2.get_str.return_value = 'condition2_str'
+        mock_condition_2.to_string.return_value = 'condition2_str'
 
         rule = Rule()
         rule.action = '1'
