@@ -108,7 +108,7 @@ class RuleSetEvaluator(ComponentEvaluator):
             if current_observation[state] > self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
                 self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_observation[state]
 
-    def get_state_min_maxes(self):
+    def get_min_maxes(self) -> Dict[Tuple[str, str], float]:
         """
         :return: the dictionary of min/max values encountered for each state.
             This in and of itself can be considered data which is "learned"
