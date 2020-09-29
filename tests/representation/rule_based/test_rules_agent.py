@@ -37,7 +37,7 @@ class TestRulesAgent(TestCase):
         """
         Verify simple roundtrip with serializer
         """
-        agent = RulesAgent(uid='test_rules_agent')
+        agent = RulesAgent()
 
         with tempfile.NamedTemporaryFile('w') as saved_agent_file:
             persistence = RulesAgentFilePersistence()
