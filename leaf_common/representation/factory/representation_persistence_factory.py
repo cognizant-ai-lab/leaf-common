@@ -5,7 +5,8 @@ See class comment for details.
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.persistence.interface.persistence import Persistence
 
-from leaf_common.representation.rule_based.rule_set_file_persistence import RuleSetFilePersistence
+from leaf_common.representation.rule_based.persistence.rule_set_file_persistence \
+    import RuleSetFilePersistence
 from leaf_common.representation.structure.structure_file_persistence import StructureFilePersistence
 
 

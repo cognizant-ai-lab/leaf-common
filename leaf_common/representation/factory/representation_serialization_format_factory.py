@@ -5,7 +5,8 @@ See class comment for details.
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
 
-from leaf_common.representation.rule_based.rule_set_serialization_format import RuleSetSerializationFormat
+from leaf_common.representation.rule_based.serialization.rule_set_serialization_format \
+    import RuleSetSerializationFormat
 from leaf_common.representation.structure.structure_serialization_format import StructureSerializationFormat
 
 

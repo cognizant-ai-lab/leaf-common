@@ -10,9 +10,11 @@ import random
 
 from leaf_common.candidates.constants import ACTION_MARKER
 from leaf_common.evaluation.component_evaluator import ComponentEvaluator
-from leaf_common.representation.rule_based.rule_evaluator import RuleEvaluator
-from leaf_common.representation.rule_based.rules_set import RuleSet
-from leaf_common.representation.rule_based.rules_evaluation_constants import RulesEvaluationConstants
+from leaf_common.representation.rule_based.data.rules_set import RuleSet
+from leaf_common.representation.rule_based.data.rules_evaluation_constants \
+    import RulesEvaluationConstants
+from leaf_common.representation.rule_based.evaluation.rule_evaluator \
+    import RuleEvaluator
 
 
 class RuleSetEvaluator(ComponentEvaluator):

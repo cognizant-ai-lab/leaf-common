@@ -7,8 +7,8 @@ from typing import List
 from typing import Tuple
 
 from leaf_common.evaluation.component_evaluator import ComponentEvaluator
-from leaf_common.representation.rule_based.condition import Condition
-from leaf_common.representation.rule_based.rules_evaluation_constants \
+from leaf_common.representation.rule_based.data.condition import Condition
+from leaf_common.representation.rule_based.data.rules_evaluation_constants \
     import RulesEvaluationConstants
 
 

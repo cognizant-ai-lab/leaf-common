@@ -6,7 +6,7 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
-from leaf_common.representation.rule_based.condition import Condition
+from leaf_common.representation.rule_based.data.condition import Condition
 
 
 class Rule:

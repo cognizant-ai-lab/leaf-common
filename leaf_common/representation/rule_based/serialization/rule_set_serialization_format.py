@@ -9,7 +9,7 @@ import jsonpickle
 import jsonpickle.ext.numpy as jsonpickle_numpy
 
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
-from leaf_common.representation.rule_based.rule_set import RuleSet
+from leaf_common.representation.rule_based.data.rule_set import RuleSet
 
 
 class RuleSetSerializationFormat(SerializationFormat):

@@ -6,10 +6,11 @@ from typing import Dict
 from typing import List
 
 from leaf_common.evaluation.component_evaluator import ComponentEvaluator
-from leaf_common.representation.rule_based.rule import Rule
-from leaf_common.representation.rule_based.condition_evaluator import ConditionEvaluator
-from leaf_common.representation.rule_based.rules_evaluation_constants \
+from leaf_common.representation.rule_based.data.rule import Rule
+from leaf_common.representation.rule_based.data.rules_evaluation_constants \
     import RulesEvaluationConstants
+from leaf_common.representation.rule_based.evaluation.condition_evaluator \
+    import ConditionEvaluator
 
 
 class RuleEvaluator(ComponentEvaluator):

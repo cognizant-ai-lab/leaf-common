@@ -5,7 +5,7 @@ Base class for condition representation
 from typing import Dict
 from typing import Tuple
 
-from leaf_common.representation.rule_based.rules_evaluation_constants \
+from leaf_common.representation.rule_based.data.rules_evaluation_constants \
     import RulesEvaluationConstants
 
 
