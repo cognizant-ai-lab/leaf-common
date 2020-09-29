@@ -5,8 +5,7 @@ Base class for condition representation
 from typing import Dict
 from typing import Tuple
 
-from leaf_common.representation.rule_based.data.rules_evaluation_constants \
-    import RulesEvaluationConstants
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 
 
 class Condition:  # pylint: disable-msg=R0902
@@ -50,7 +49,7 @@ class Condition:  # pylint: disable-msg=R0902
             key1 = states[self.first_state_key]
         lookback1 = self.first_state_lookback
 
-        first_condition = f'{coeff1:.{RulesEvaluationConstants.DECIMAL_DIGITS}f}*{key1}'
+        first_condition = f'{coeff1:.{RulesConstants.DECIMAL_DIGITS}f}*{key1}'
         if lookback1 > 0:
             first_condition = f'{first_condition}[{lookback1}]'
 
@@ -59,16 +58,16 @@ class Condition:  # pylint: disable-msg=R0902
                 coeff2 = self.second_state_coefficient
                 key2 = states[self.second_state_key]
                 lookback2 = self.second_state_lookback
-                second_condition = f'{coeff2:.{RulesEvaluationConstants.DECIMAL_DIGITS}f}*{key2}'
+                second_condition = f'{coeff2:.{RulesConstants.DECIMAL_DIGITS}f}*{key2}'
                 if self.second_state_lookback > 0:
                     second_condition = f'{second_condition}[{lookback2}]'
         elif min_maxes:
-            min_value = min_maxes[self.first_state_key, RulesEvaluationConstants.MIN_KEY]
-            max_value = min_maxes[self.first_state_key, RulesEvaluationConstants.MAX_KEY]
+            min_value = min_maxes[self.first_state_key, RulesConstants.MIN_KEY]
+            max_value = min_maxes[self.first_state_key, RulesConstants.MAX_KEY]
             second_condition_val = (min_value + self.second_state_value * (max_value - min_value))
             second_condition = \
-                f'{second_condition_val:.{RulesEvaluationConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
+                f'{second_condition_val:.{RulesConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
         else:
-            second_condition = f'{self.second_state_value:.{RulesEvaluationConstants.DECIMAL_DIGITS}f}'
+            second_condition = f'{self.second_state_value:.{RulesConstants.DECIMAL_DIGITS}f}'
 
         return f'{first_condition} {self.operator} {second_condition}'
