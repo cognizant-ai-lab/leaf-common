@@ -25,13 +25,13 @@ class Rule:
         self.conditions: List[Condition] = []
 
     def __str__(self):
-        return self.get_str()
+        return self.to_string()
 
     def __repr__(self):
         return self.__str__()
 
     # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
-    def get_str(self, states: Dict[str, str] = None,
+    def to_string(self, states: Dict[str, str] = None,
                 min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
         """
         String representation for rule
@@ -44,7 +44,7 @@ class Rule:
             the_action = " -->  " + str(self.action)
         condition_string = ""
         for condition in self.conditions:
-            condition_string = condition_string + "(" + condition.get_str(states, min_maxes) + ") "
+            condition_string = condition_string + "(" + condition.to_string(states, min_maxes) + ") "
         times_applied = "   < > "
         if self.times_applied > 0:
             times_applied = "  <" + str(self.times_applied) + "> "

@@ -30,13 +30,13 @@ class Condition:  # pylint: disable-msg=R0902
         self.second_state_coefficient: float = None
 
     def __str__(self):
-        return self.get_str()
+        return self.to_string()
 
     def __repr__(self):
         return self.__str__()
 
     # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
-    def get_str(self, states: Dict[str, str] = None,
+    def to_string(self, states: Dict[str, str] = None,
                 min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
         """
         String representation for condition
