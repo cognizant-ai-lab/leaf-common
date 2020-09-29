@@ -10,15 +10,15 @@ from leaf_common.serialization.interface.serialization_format import Serializati
 class StructureFilePersistence(SimpleFilePersistence):
     """
     Implementation of the leaf-common Persistence interface which
-    saves/restores a RulesAgent to a file.
+    saves/restores an evaluated structure to a file.
     """
 
     def __init__(self, serialization_format: SerializationFormat = None):
         """
         Constructor.
 
-        :param serialization_format: A means of serializing a RulesAgent
-                by default this is None and a RulesAgentSerializationFormat is used
+        :param serialization_format: A means of serializing an evolved structure
+                by default this is None and a StructureSerializationFormat is used
         """
         use_format = serialization_format
         if use_format is None:

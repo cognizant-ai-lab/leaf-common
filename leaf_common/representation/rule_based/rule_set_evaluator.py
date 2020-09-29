@@ -11,7 +11,7 @@ import random
 from leaf_common.candidates.constants import ACTION_MARKER
 from leaf_common.evaluation.component_evaluator import ComponentEvaluator
 from leaf_common.representation.rule_based.rule_evaluator import RuleEvaluator
-from leaf_common.representation.rule_based.rules_agent import RulesAgent
+from leaf_common.representation.rule_based.rules_set import RuleSet
 from leaf_common.representation.rule_based.rules_evaluation_constants import RulesEvaluationConstants
 
 
@@ -25,10 +25,10 @@ class RuleSetEvaluator(ComponentEvaluator):
     This state history is kept here in the Evaluator so that
     data does not go back to the service.
 
-    As such we recommend one instance of this Evaluator be retained per RulesAgent.
+    As such we recommend one instance of this Evaluator be retained per RuleSet.
 
     Also worth noting that invocation of the evaluate() method
-    can result in the following fields on RulesAgent being changed:
+    can result in the following fields on RuleSet being changed:
         * times_applied
     Also each Rule's times_applied and age_state can change
     """
@@ -72,14 +72,14 @@ class RuleSetEvaluator(ComponentEvaluator):
 
         self.reset()
 
-    def evaluate(self, component: RulesAgent, evaluation_data: object = None) -> object:
+    def evaluate(self, component: RuleSet, evaluation_data: object = None) -> object:
         rule_set = component
 
         # Set up a state dictionary distilling only the information needed from
         # observation/evaluation_data coming in. This will ultimately get stored
         # in the observation_history member so looking backwards in time is supported.
         #
-        # 'current_observation' used to be RulesAgent.state, which was very confusing,
+        # 'current_observation' used to be RuleSet.state, which was very confusing,
         # given that there is another member called 'states' which acts as a definition.
         current_observation = {}
 
@@ -138,12 +138,12 @@ class RuleSetEvaluator(ComponentEvaluator):
                 return action
         return RulesEvaluationConstants.NO_ACTION
 
-    def parse_rules(self, rule_set: RulesAgent):
+    def parse_rules(self, rule_set: RuleSet):
         """
         Parse rules
         Used by tests and choose_action()
 
-        :param rule_set: The RulesAgent to evaluate
+        :param rule_set: The RuleSet to evaluate
         :return: the chosen action
         """
         poll_dict = dict.fromkeys(self._actions.keys(), 0)
@@ -175,7 +175,7 @@ class RuleSetEvaluator(ComponentEvaluator):
             poll_dict[rule_set.default_action] += 1
         return poll_dict
 
-    def choose_action(self, rule_set: RulesAgent, current_observation: dict):
+    def choose_action(self, rule_set: RuleSet, current_observation: dict):
         """
         Choose an action
         :return: the chosen action

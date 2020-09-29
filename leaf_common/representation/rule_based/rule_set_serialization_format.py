@@ -9,12 +9,12 @@ import jsonpickle
 import jsonpickle.ext.numpy as jsonpickle_numpy
 
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
-from leaf_common.representation.rule_based.rules_agent import RulesAgent
+from leaf_common.representation.rule_based.rule_set import RuleSet
 
 
-class RulesAgentSerializationFormat(SerializationFormat):
+class RuleSetSerializationFormat(SerializationFormat):
     """
-    Class for serialization policy for RulesAgents.
+    Class for serialization policy for RuleSets.
     """
 
     # Use a class variable to tell us whether or not we need to
@@ -38,7 +38,7 @@ class RulesAgentSerializationFormat(SerializationFormat):
         """
         return ".rules"
 
-    def from_object(self, obj: RulesAgent) -> TextIO:
+    def from_object(self, obj: RuleSet) -> TextIO:
         """
         :param obj: The object to serialize
         :return: an open file-like object for streaming the serialized
@@ -49,7 +49,7 @@ class RulesAgentSerializationFormat(SerializationFormat):
         fileobj = StringIO(json_string)
         return fileobj
 
-    def to_object(self, fileobj: TextIO) -> RulesAgent:
+    def to_object(self, fileobj: TextIO) -> RuleSet:
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open

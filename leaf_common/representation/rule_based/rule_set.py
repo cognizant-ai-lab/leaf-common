@@ -4,7 +4,7 @@ from typing import Dict
 from typing import Tuple
 
 
-class RulesAgent:
+class RuleSet:
     """
     Evolving Rule-based actor class.
     """
@@ -28,7 +28,7 @@ class RulesAgent:
         """
         String representation for rule
         :param min_maxes: A dictionary of domain features minimum and maximum values
-        :return: RulesAgent.toString()
+        :return: RuleSet.toString()
         """
         rules_str = ""
         for rule in self.rules:
