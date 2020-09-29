@@ -32,7 +32,7 @@ class Rule:
 
     # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
     def to_string(self, states: Dict[str, str] = None,
-                min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
+                  min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
         """
         String representation for rule
         :param min_maxes: A dictionary of domain features minimum and maximum values
