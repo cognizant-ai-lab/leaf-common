@@ -111,7 +111,8 @@ steps:
           condition:
             all:
               # This is idiomatic Codefresh for detecting if ${{CF_RELEASE_TAG}} has a value.
-              deploy_tagged_builds_only: 'includes("${{CF_RELEASE_TAG}}","{{CF_RELEASE_TAG}}") == false'
+              # hack to true for testing purpose. put back to false for production
+              deploy_tagged_builds_only: 'includes("${{CF_RELEASE_TAG}}","{{CF_RELEASE_TAG}}") == true'
 
     end_clean:
         title: Clean up CodeFresh volume
