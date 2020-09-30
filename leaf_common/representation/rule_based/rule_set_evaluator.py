@@ -4,6 +4,7 @@ import random
 
 from leaf_common.candidates.constants import ACTION_MARKER
 from leaf_common.evaluation.component_evaluator import ComponentEvaluator
+from leaf_common.representation.rule_based.rule_evaluator import RuleEvaluator
 from leaf_common.representation.rule_based.rules_agent import RulesAgent
 from leaf_common.representation.rule_based.rules_evaluation_constants import RulesEvaluationConstants
 
@@ -23,7 +24,7 @@ class RuleSetEvaluator(ComponentEvaluator):
     Also worth noting that invocation of the evaluate() method
     can result in the following fields on RulesAgent being changed:
         * times_applied
-        * state_min_maxes
+    Also each Rule's times_applied and age_state can change
     """
 
     def __init__(self, rule_set: RulesAgent = None):
@@ -31,6 +32,16 @@ class RuleSetEvaluator(ComponentEvaluator):
         # was 'domain_states'
         self.observation_history = []
         self.observation_history_size = 0
+
+        self.state_min_maxes = {}
+        for state in rule_set.states.keys():
+            self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = 0
+            self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = 0
+            self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = 0
+
+        # This evaluator itself is stateless, so its OK to just create one
+        # as an optimization.
+        self.rule_evaluator = RuleEvaluator()
 
         if rule_set is not None:
             self.reset(rule_set)
@@ -56,7 +67,6 @@ class RuleSetEvaluator(ComponentEvaluator):
 
         return action
 
-    # pylint: disable=no-self-use
     def _revise_state_minmaxes(self, rule_set: RulesAgent, current_observation):
         """
         Get second state value
@@ -64,13 +74,13 @@ class RuleSetEvaluator(ComponentEvaluator):
         :param current_observation: the current state
         """
         for state in rule_set.states.keys():
-            rule_set.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = \
-                rule_set.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] + \
+            self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = \
+                self.state_min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] + \
                 current_observation[state]
-            if current_observation[state] < rule_set.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY]:
-                rule_set.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = current_observation[state]
-            if current_observation[state] > rule_set.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
-                rule_set.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_observation[state]
+            if current_observation[state] < self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY]:
+                self.state_min_maxes[state, RulesEvaluationConstants.MIN_KEY] = current_observation[state]
+            if current_observation[state] > self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
+                self.state_min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_observation[state]
 
     # pylint: disable=no-self-use
     def _set_action_in_state(self, rule_set: RulesAgent, action, state):
@@ -109,13 +119,20 @@ class RuleSetEvaluator(ComponentEvaluator):
         if not rule_set.rules:
             raise RuntimeError("Fatal: an empty rule set detected")
         anyone_voted = False
+
+        # Prepare the data going into the RuleEvaluator
+        rule_evaluation_data = {
+            RulesEvaluationConstants.OBSERVATION_HISTORY_KEY: self.observation_history,
+            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.state_min_maxes
+        }
         for rule in rule_set.rules:
-            result = rule.parse(self.observation_history, rule_set.state_min_maxes)
-            if result[RulesEvaluationConstants.ACTION_KEY] != RulesEvaluationConstants.NO_ACTION:
-                if result[RulesEvaluationConstants.ACTION_KEY] in rule_set.actions.keys():
-                    poll_dict[result[RulesEvaluationConstants.ACTION_KEY]] += 1
+            result = self.rule_evaluator.evaluate(rule, rule_evaluation_data)
+            action = result[RulesEvaluationConstants.ACTION_KEY]
+            if action != RulesEvaluationConstants.NO_ACTION:
+                if action in rule_set.actions.keys():
+                    poll_dict[action] += 1
                     anyone_voted = True
-                if result[RulesEvaluationConstants.ACTION_KEY] == RulesEvaluationConstants.LOOK_BACK:
+                if action == RulesEvaluationConstants.LOOK_BACK:
                     lookback = result[RulesEvaluationConstants.LOOKBACK_KEY]
                     poll_dict[self._get_action_in_state(rule_set,
                                                         self.observation_history[nb_states - lookback])] += 1

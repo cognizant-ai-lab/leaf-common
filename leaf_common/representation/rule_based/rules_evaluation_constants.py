@@ -49,3 +49,7 @@ class RulesEvaluationConstants():
     LESS_THAN_EQUAL = "<="
     GREATER_THAN = ">"
     GREATER_THAN_EQUAL = ">="
+
+    # Evaluation Data dictionary keys
+    OBSERVATION_HISTORY_KEY = "observation_history"
+    STATE_MIN_MAXES_KEY = "min_maxes"

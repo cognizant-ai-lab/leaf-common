@@ -3,8 +3,11 @@ Unit tests for Rules class
 """
 from unittest import TestCase
 from unittest.mock import MagicMock
+from unittest.mock import Mock
+from unittest.mock import patch
 
 from leaf_common.representation.rule_based.rule import Rule
+from leaf_common.representation.rule_based.rule_evaluator import RuleEvaluator
 from leaf_common.representation.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
 
@@ -33,22 +36,39 @@ class TestRule(TestCase):
             }
         ]
 
-    def test_parse_conditions_true(self):
+        self.evaluation_data = {
+            RulesEvaluationConstants.OBSERVATION_HISTORY_KEY: self.domain_states,
+            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.min_maxes
+        }
+
+    @patch("leaf_common.representation.rule_based.rule_evaluator.ConditionEvaluator.evaluate",
+           return_value=Mock())
+    def test_parse_conditions_true(self, evaluate_mock):
         """
         Verify rule parsing when conditions return True
         """
         rule = self._create_rule(True, True)
-        result = rule.parse(self.domain_states, self.min_maxes)
+
+        evaluate_mock.side_effect = [True, True]
+
+        evaluator = RuleEvaluator()
+        result = evaluator.evaluate(rule, self.evaluation_data)
 
         self.assertEqual('1', result[0])
         self.assertEqual(0, result[1])
 
-    def test_parse_conditions_false(self):
+    @patch("leaf_common.representation.rule_based.rule_evaluator.ConditionEvaluator.evaluate",
+           return_value=Mock())
+    def test_parse_conditions_false(self, evaluate_mock):
         """
         Verify rule parsing when conditions return mixture of True and False
         """
         rule = self._create_rule(True, False)
-        result = rule.parse(self.domain_states, self.min_maxes)
+
+        evaluate_mock.side_effect = [True, False]
+
+        evaluator = RuleEvaluator()
+        result = evaluator.evaluate(rule, self.evaluation_data)
 
         self.assertEqual(RulesEvaluationConstants.NO_ACTION, result[0])
         self.assertEqual(0, result[1])

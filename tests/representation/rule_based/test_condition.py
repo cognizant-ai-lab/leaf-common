@@ -4,6 +4,7 @@ Unit tests for `Condition` class
 from unittest import TestCase
 
 from leaf_common.representation.rule_based.condition import Condition
+from leaf_common.representation.rule_based.condition_evaluator import ConditionEvaluator
 from leaf_common.representation.rule_based.rules_evaluation_constants \
     import RulesEvaluationConstants
 
@@ -19,13 +20,21 @@ class TestCondition(TestCase):
             RulesEvaluationConstants.MIN_KEY: 0,
             RulesEvaluationConstants.MAX_KEY: 10
         }
+        self.evaluation_data = {
+            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.min_max
+        }
+        self.evaluator = ConditionEvaluator()
 
     def test_greater_true(self):
         """
         Make sure '>' works when evaluation is true
         """
         condition = self._create_condition('>')
-        result = condition.parse([{'0': 3, '1': 1}], self.min_max)
+
+        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+            [{'0': 3, '1': 1}]
+        result = self.evaluator.evaluate(condition, self.evaluation_data)
+
         self.assertTrue(result)
 
     def test_greater_false(self):
@@ -33,7 +42,11 @@ class TestCondition(TestCase):
         Make sure '>' works when evaluation is false
         """
         condition = self._create_condition('>')
-        result = condition.parse([{'0': 3, '1': 4}], self.min_max)
+
+        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+            [{'0': 3, '1': 4}]
+        result = self.evaluator.evaluate(condition, self.evaluation_data)
+
         self.assertFalse(result)
 
     def test_less_true(self):
@@ -41,7 +54,11 @@ class TestCondition(TestCase):
         Make sure '<' works when evaluation is true
         """
         condition = self._create_condition('<')
-        result = condition.parse([{'0': 1, '1': 2}], self.min_max)
+
+        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+            [{'0': 1, '1': 2}]
+        result = self.evaluator.evaluate(condition, self.evaluation_data)
+
         self.assertTrue(result)
 
     def test_less_false(self):
@@ -49,7 +66,11 @@ class TestCondition(TestCase):
         Make sure '<' works when evaluation is false
         """
         condition = self._create_condition('<')
-        result = condition.parse([{'0': 3, '1': 1}], self.min_max)
+
+        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+            [{'0': 3, '1': 1}]
+        result = self.evaluator.evaluate(condition, self.evaluation_data)
+
         self.assertFalse(result)
 
     def test_ge_true(self):
@@ -57,7 +78,11 @@ class TestCondition(TestCase):
         Make sure '>=' works when evaluation is true
         """
         condition = self._create_condition('<')
-        result = condition.parse([{'0': 3, '1': 1}], self.min_max)
+
+        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+            [{'0': 3, '1': 1}]
+        result = self.evaluator.evaluate(condition, self.evaluation_data)
+
         self.assertFalse(result)
 
     def test_ge_equality(self):
@@ -65,7 +90,11 @@ class TestCondition(TestCase):
         Make sure '>=' works when evaluation is true and values are equal (edge case)
         """
         condition = self._create_condition('<')
-        result = condition.parse([{'0': 2, '1': 1}], self.min_max)
+
+        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+            [{'0': 2, '1': 1}]
+        result = self.evaluator.evaluate(condition, self.evaluation_data)
+
         self.assertFalse(result)
 
     def test_le_true(self):
@@ -73,7 +102,11 @@ class TestCondition(TestCase):
         Make sure '<=' works when evaluation is true
         """
         condition = self._create_condition('<=')
-        result = condition.parse([{'0': 1, '1': 2}], self.min_max)
+
+        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+            [{'0': 1, '1': 2}]
+        result = self.evaluator.evaluate(condition, self.evaluation_data)
+
         self.assertTrue(result)
 
     def test_le_false(self):
@@ -81,7 +114,11 @@ class TestCondition(TestCase):
         Make sure '<=' works when evaluation is false
         """
         condition = self._create_condition('<=')
-        result = condition.parse([{'0': 3, '1': 1}], self.min_max)
+
+        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+            [{'0': 3, '1': 1}]
+        result = self.evaluator.evaluate(condition, self.evaluation_data)
+
         self.assertFalse(result)
 
     def test_to_string(self):
