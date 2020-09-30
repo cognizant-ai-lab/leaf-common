@@ -17,10 +17,7 @@ class Condition:  # pylint: disable-msg=R0902
     An operator is randomly chosen from the `OPERATORS` list.
     """
 
-    def __init__(self, states: Dict[str, str]):
-
-        # State/Config needed for evaluation
-        self.states = states
+    def __init__(self):
 
         # Genetic Material fields
         self.first_state_lookback: int = None
@@ -39,7 +36,8 @@ class Condition:  # pylint: disable-msg=R0902
         return self.__str__()
 
     # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
-    def get_str(self, min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
+    def get_str(self, states: Dict[str, str] = None,
+                min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
         """
         String representation for condition
         :param min_maxes: A dictionary of domain features minimum and maximum values
@@ -47,20 +45,23 @@ class Condition:  # pylint: disable-msg=R0902
         """
 
         coeff1 = self.first_state_coefficient
-        key1 = self.states[self.first_state_key]
+        key1 = self.first_state_key
+        if states is not None:
+            key1 = states[self.first_state_key]
         lookback1 = self.first_state_lookback
 
         first_condition = f'{coeff1:.{RulesEvaluationConstants.DECIMAL_DIGITS}f}*{key1}'
         if lookback1 > 0:
             first_condition = f'{first_condition}[{lookback1}]'
 
-        if self.second_state_key in self.states:
-            coeff2 = self.second_state_coefficient
-            key2 = self.states[self.second_state_key]
-            lookback2 = self.second_state_lookback
-            second_condition = f'{coeff2:.{RulesEvaluationConstants.DECIMAL_DIGITS}f}*{key2}'
-            if self.second_state_lookback > 0:
-                second_condition = f'{second_condition}[{lookback2}]'
+        if states is not None:
+            if self.second_state_key in states:
+                coeff2 = self.second_state_coefficient
+                key2 = states[self.second_state_key]
+                lookback2 = self.second_state_lookback
+                second_condition = f'{coeff2:.{RulesEvaluationConstants.DECIMAL_DIGITS}f}*{key2}'
+                if self.second_state_lookback > 0:
+                    second_condition = f'{second_condition}[{lookback2}]'
         elif min_maxes:
             min_value = min_maxes[self.first_state_key, RulesEvaluationConstants.MIN_KEY]
             max_value = min_maxes[self.first_state_key, RulesEvaluationConstants.MAX_KEY]

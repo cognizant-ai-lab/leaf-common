@@ -20,10 +20,10 @@ class RuleEvaluator(ComponentEvaluator):
         * times_applied
     """
 
-    def __init__(self):
+    def __init__(self, states: Dict[str, str]):
         # The ConditionEvaluator itself is stateless, so it's OK to just create
         # one here as an optimization
-        self.condition_evaluator = ConditionEvaluator()
+        self.condition_evaluator = ConditionEvaluator(states)
 
     def evaluate(self, component: Rule,
                  evaluation_data: Dict[str, object] = None) -> List[object]:
