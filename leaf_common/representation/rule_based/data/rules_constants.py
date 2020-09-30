@@ -5,13 +5,12 @@ See class comment
 import math
 
 
-class RulesEvaluationConstants():
+class RulesConstants():
     """
-    Constants for various aspects of Rules evaluation
+    Constants for various aspects of the Rule-based representation
     """
 
     # Rules stuff
-    RULE_FILTER_FACTOR = 1
     MEM_FACTOR = 100  # max memory cells required
     TOTAL_KEY = "total"
 

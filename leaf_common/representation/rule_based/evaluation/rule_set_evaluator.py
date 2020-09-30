@@ -10,9 +10,10 @@ import random
 
 from leaf_common.candidates.constants import ACTION_MARKER
 from leaf_common.evaluation.component_evaluator import ComponentEvaluator
-from leaf_common.representation.rule_based.rule_evaluator import RuleEvaluator
-from leaf_common.representation.rule_based.rules_agent import RulesAgent
-from leaf_common.representation.rule_based.rules_evaluation_constants import RulesEvaluationConstants
+from leaf_common.representation.rule_based.data.rule_set import RuleSet
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
+from leaf_common.representation.rule_based.evaluation.rule_evaluator \
+    import RuleEvaluator
 
 
 class RuleSetEvaluator(ComponentEvaluator):
@@ -25,10 +26,10 @@ class RuleSetEvaluator(ComponentEvaluator):
     This state history is kept here in the Evaluator so that
     data does not go back to the service.
 
-    As such we recommend one instance of this Evaluator be retained per RulesAgent.
+    As such we recommend one instance of this Evaluator be retained per RuleSet.
 
     Also worth noting that invocation of the evaluate() method
-    can result in the following fields on RulesAgent being changed:
+    can result in the following fields on RuleSet being changed:
         * times_applied
     Also each Rule's times_applied and age_state can change
     """
@@ -62,9 +63,9 @@ class RuleSetEvaluator(ComponentEvaluator):
             self._min_maxes = {}
 
         for state in self._states.keys():
-            self._min_maxes[state, RulesEvaluationConstants.MIN_KEY] = 0
-            self._min_maxes[state, RulesEvaluationConstants.MAX_KEY] = 0
-            self._min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = 0
+            self._min_maxes[state, RulesConstants.MIN_KEY] = 0
+            self._min_maxes[state, RulesConstants.MAX_KEY] = 0
+            self._min_maxes[state, RulesConstants.TOTAL_KEY] = 0
 
         # This evaluator itself is stateless, so its OK to just create one
         # as an optimization.
@@ -72,14 +73,14 @@ class RuleSetEvaluator(ComponentEvaluator):
 
         self.reset()
 
-    def evaluate(self, component: RulesAgent, evaluation_data: object = None) -> object:
+    def evaluate(self, component: RuleSet, evaluation_data: object) -> object:
         rule_set = component
 
         # Set up a state dictionary distilling only the information needed from
         # observation/evaluation_data coming in. This will ultimately get stored
         # in the observation_history member so looking backwards in time is supported.
         #
-        # 'current_observation' used to be RulesAgent.state, which was very confusing,
+        # 'current_observation' used to be RuleSet.state, which was very confusing,
         # given that there is another member called 'states' which acts as a definition.
         current_observation = {}
 
@@ -100,13 +101,13 @@ class RuleSetEvaluator(ComponentEvaluator):
         :param current_observation: the current state
         """
         for state in self._states.keys():
-            self._min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] = \
-                self._min_maxes[state, RulesEvaluationConstants.TOTAL_KEY] + \
+            self._min_maxes[state, RulesConstants.TOTAL_KEY] = \
+                self._min_maxes[state, RulesConstants.TOTAL_KEY] + \
                 current_observation[state]
-            if current_observation[state] < self._min_maxes[state, RulesEvaluationConstants.MIN_KEY]:
-                self._min_maxes[state, RulesEvaluationConstants.MIN_KEY] = current_observation[state]
-            if current_observation[state] > self._min_maxes[state, RulesEvaluationConstants.MAX_KEY]:
-                self._min_maxes[state, RulesEvaluationConstants.MAX_KEY] = current_observation[state]
+            if current_observation[state] < self._min_maxes[state, RulesConstants.MIN_KEY]:
+                self._min_maxes[state, RulesConstants.MIN_KEY] = current_observation[state]
+            if current_observation[state] > self._min_maxes[state, RulesConstants.MAX_KEY]:
+                self._min_maxes[state, RulesConstants.MAX_KEY] = current_observation[state]
 
     def get_min_maxes(self) -> Dict[Tuple[str, str], float]:
         """
@@ -136,14 +137,14 @@ class RuleSetEvaluator(ComponentEvaluator):
         for action in self._actions:
             if state[ACTION_MARKER + action]:
                 return action
-        return RulesEvaluationConstants.NO_ACTION
+        return RulesConstants.NO_ACTION
 
-    def parse_rules(self, rule_set: RulesAgent):
+    def parse_rules(self, rule_set: RuleSet):
         """
         Parse rules
         Used by tests and choose_action()
 
-        :param rule_set: The RulesAgent to evaluate
+        :param rule_set: The RuleSet to evaluate
         :return: the chosen action
         """
         poll_dict = dict.fromkeys(self._actions.keys(), 0)
@@ -156,18 +157,18 @@ class RuleSetEvaluator(ComponentEvaluator):
 
         # Prepare the data going into the RuleEvaluator
         rule_evaluation_data = {
-            RulesEvaluationConstants.OBSERVATION_HISTORY_KEY: self._observation_history,
-            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self._min_maxes
+            RulesConstants.OBSERVATION_HISTORY_KEY: self._observation_history,
+            RulesConstants.STATE_MIN_MAXES_KEY: self._min_maxes
         }
         for rule in rule_set.rules:
             result = self._rule_evaluator.evaluate(rule, rule_evaluation_data)
-            action = result[RulesEvaluationConstants.ACTION_KEY]
-            if action != RulesEvaluationConstants.NO_ACTION:
+            action = result[RulesConstants.ACTION_KEY]
+            if action != RulesConstants.NO_ACTION:
                 if action in self._actions.keys():
                     poll_dict[action] += 1
                     anyone_voted = True
-                if action == RulesEvaluationConstants.LOOK_BACK:
-                    lookback = result[RulesEvaluationConstants.LOOKBACK_KEY]
+                if action == RulesConstants.LOOK_BACK:
+                    lookback = result[RulesConstants.LOOKBACK_KEY]
                     poll_dict[self._get_action_in_state(self._observation_history[nb_states - lookback])] += 1
                     anyone_voted = True
         if not anyone_voted:
@@ -175,7 +176,7 @@ class RuleSetEvaluator(ComponentEvaluator):
             poll_dict[rule_set.default_action] += 1
         return poll_dict
 
-    def choose_action(self, rule_set: RulesAgent, current_observation: dict):
+    def choose_action(self, rule_set: RuleSet, current_observation: dict):
         """
         Choose an action
         :return: the chosen action
@@ -185,7 +186,7 @@ class RuleSetEvaluator(ComponentEvaluator):
             index_to_delete = 1
             del self._observation_history[index_to_delete]
         action_to_perform = self.parse_rules(rule_set)
-        if action_to_perform == RulesEvaluationConstants.NO_ACTION:
+        if action_to_perform == RulesConstants.NO_ACTION:
             random_action = random.choice(list(self._actions.keys()))
             action_to_perform = random_action
         self._set_action_in_state(action_to_perform,
@@ -199,4 +200,4 @@ class RuleSetEvaluator(ComponentEvaluator):
         self._observation_history = []
 
         # It'd be nice if this MEM_FACTOR came from configuration
-        self._observation_history_size = RulesEvaluationConstants.MEM_FACTOR * len(self._actions)
+        self._observation_history_size = RulesConstants.MEM_FACTOR * len(self._actions)

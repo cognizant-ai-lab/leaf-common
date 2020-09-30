@@ -4,7 +4,7 @@ from typing import Dict
 from typing import Tuple
 
 
-class RulesAgent:
+class RuleSet:
     """
     Evolving Rule-based actor class.
     """
@@ -23,16 +23,16 @@ class RulesAgent:
         self.rules = []
 
     # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
-    def get_str(self, states: Dict[str, str] = None,
-                state_min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
+    def to_string(self, states: Dict[str, str] = None,
+                  state_min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
         """
         String representation for rule
         :param min_maxes: A dictionary of domain features minimum and maximum values
-        :return: RulesAgent.toString()
+        :return: RuleSet.toString()
         """
         rules_str = ""
         for rule in self.rules:
-            rules_str = rules_str + rule.get_str(states, state_min_maxes) + "\n"
+            rules_str = rules_str + rule.to_string(states, state_min_maxes) + "\n"
         times_applied = " <> "
         if self.times_applied > 0:
             times_applied = " <" + str(self.times_applied) + "> "
@@ -40,7 +40,7 @@ class RulesAgent:
         return rules_str
 
     def __str__(self):
-        return self.get_str()
+        return self.to_string()
 
     def __repr__(self):
         # For now, just use __str__ for __repr__ output, even though they would generally be for different uses

@@ -3,10 +3,11 @@ Unit tests for `Condition` class
 """
 from unittest import TestCase
 
-from leaf_common.representation.rule_based.condition import Condition
-from leaf_common.representation.rule_based.condition_evaluator import ConditionEvaluator
-from leaf_common.representation.rule_based.rules_evaluation_constants \
-    import RulesEvaluationConstants
+from leaf_common.representation.rule_based.data.condition import Condition
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
+
+from leaf_common.representation.rule_based.evaluation.condition_evaluator \
+    import ConditionEvaluator
 
 
 class TestCondition(TestCase):
@@ -17,11 +18,11 @@ class TestCondition(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCondition, self).__init__(*args, **kwargs)
         self.min_max = {
-            RulesEvaluationConstants.MIN_KEY: 0,
-            RulesEvaluationConstants.MAX_KEY: 10
+            RulesConstants.MIN_KEY: 0,
+            RulesConstants.MAX_KEY: 10
         }
         self.evaluation_data = {
-            RulesEvaluationConstants.STATE_MIN_MAXES_KEY: self.min_max
+            RulesConstants.STATE_MIN_MAXES_KEY: self.min_max
         }
 
         # We simulate two states, keys '0' and '1'
@@ -34,7 +35,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('>')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 3, '1': 1}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -46,7 +47,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('>')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 3, '1': 4}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -58,7 +59,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('<')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 1, '1': 2}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -70,7 +71,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('<')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 3, '1': 1}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -82,7 +83,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('<')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 3, '1': 1}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -94,7 +95,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('<')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 2, '1': 1}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -106,7 +107,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('<=')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 1, '1': 2}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -118,7 +119,7 @@ class TestCondition(TestCase):
         """
         condition = self._create_condition('<=')
 
-        self.evaluation_data[RulesEvaluationConstants.OBSERVATION_HISTORY_KEY] = \
+        self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 3, '1': 1}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
 
@@ -126,17 +127,17 @@ class TestCondition(TestCase):
 
     def test_to_string(self):
         """
-        Verify behavior of `get_str()` method
+        Verify behavior of `to_string()` method
         """
 
         # With lookbacks
         condition = self._create_condition('<=', 1, 2)
-        condition_string = condition.get_str(states=self.states)
+        condition_string = condition.to_string(states=self.states)
         self.assertEqual('0.42*S_0[1] <= 0.84*S_1[2]', condition_string)
 
         # Different operator, no lookbacks
         condition = self._create_condition('>')
-        condition_string = condition.get_str(states=self.states)
+        condition_string = condition.to_string(states=self.states)
         self.assertEqual('0.42*S_0 > 0.84*S_1', condition_string)
 
     def _create_condition(self, condition_type, lookback1=0, lookback2=0):

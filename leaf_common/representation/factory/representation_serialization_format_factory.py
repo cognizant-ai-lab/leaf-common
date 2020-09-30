@@ -5,7 +5,8 @@ See class comment for details.
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
 
-from leaf_common.representation.rule_based.rules_agent_serialization_format import RulesAgentSerializationFormat
+from leaf_common.representation.rule_based.serialization.rule_set_serialization_format \
+    import RuleSetSerializationFormat
 from leaf_common.representation.structure.structure_serialization_format import StructureSerializationFormat
 
 
@@ -26,7 +27,7 @@ class RepresentationSerializationFormatFactory():
 
         # Do some simple registrations
         self.register(RepresentationType.Structure, StructureSerializationFormat())
-        self.register(RepresentationType.RuleBased, RulesAgentSerializationFormat())
+        self.register(RepresentationType.RuleBased, RuleSetSerializationFormat())
 
     def create_from_representation_type(self, rep_type: RepresentationType) -> SerializationFormat:
         """
