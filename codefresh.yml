@@ -95,6 +95,8 @@ steps:
         type: "freestyle"
         image: python:3.6-buster
         working_directory: ${{CF_REPO_NAME}}
+        # provide PYPI_INDEX_URL as a pipeline variable in codefresh ui. For example, currently
+        # PYPI_INDEX_URL=https://sentient.jfrog.io/artifactory/api/pypi/sentient-pip-local
         commands:
           - python setup.py -q bdist_wheel
           - pip install twine
@@ -107,8 +109,7 @@ steps:
           condition:
             all:
               # This is idiomatic Codefresh for detecting if ${{CF_RELEASE_TAG}} has a value.
-              # hack to true for testing purpose. put back to false for production
-              deploy_tagged_builds_only: 'includes("${{CF_RELEASE_TAG}}","{{CF_RELEASE_TAG}}") == true'
+              deploy_tagged_builds_only: 'includes("${{CF_RELEASE_TAG}}","{{CF_RELEASE_TAG}}") == false'
 
     end_clean:
         title: Clean up CodeFresh volume
