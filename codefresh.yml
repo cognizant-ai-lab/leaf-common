@@ -96,16 +96,12 @@ steps:
         image: python:3.6-buster
         working_directory: ${{CF_REPO_NAME}}
         commands:
-          - export PORT=80
-          - export PIP_NAME=sentient.jfrog.io/artifactory/api/pypi/sentient-pip-local
-          - export INDEX_URL=https://$PIP_NAME:$PORT
           - python setup.py -q bdist_wheel
           - pip install twine
           - python -m twine upload 
                        --password $ARTIFACTORY_PASSWORD 
                        --username $ARTIFACTORY_LOGIN 
-                       --repository-url $INDEX_URL
-                       --verbose 
+                       --repository-url $PYPI_INDEX_URL
                        dist/*
         when:
           condition:
