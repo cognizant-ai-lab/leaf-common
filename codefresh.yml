@@ -104,7 +104,8 @@ steps:
           - python -m twine upload 
                        --password $ARTIFACTORY_PASSWORD 
                        --username $ARTIFACTORY_LOGIN 
-                       --repository-url $INDEX_URL 
+                       --repository-url $INDEX_URL
+                       --verbose 
                        dist/*
         when:
           condition:
