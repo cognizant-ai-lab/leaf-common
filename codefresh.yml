@@ -99,7 +99,6 @@ steps:
           - export PORT=80
           - export PIP_NAME=sentient.jfrog.io/artifactory/api/pypi/sentient-pip-local/simple
           - export INDEX_URL=https://$PIP_NAME:$PORT
-          #- cd '${{CF_REPO_NAME}}'
           - python setup.py -q bdist_wheel
           - pip install twine
           - python -m twine upload 
