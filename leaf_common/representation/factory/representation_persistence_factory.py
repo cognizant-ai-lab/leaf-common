@@ -5,7 +5,8 @@ See class comment for details.
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.persistence.interface.persistence import Persistence
 
-from leaf_common.representation.rule_based.rules_agent_file_persistence import RulesAgentFilePersistence
+from leaf_common.representation.rule_based.persistence.rule_set_file_persistence \
+    import RuleSetFilePersistence
 from leaf_common.representation.structure.structure_file_persistence import StructureFilePersistence
 
 
@@ -26,7 +27,7 @@ class RepresentationPersistenceFactory():
 
         # Do some simple registrations
         self.register(RepresentationType.Structure, StructureFilePersistence())
-        self.register(RepresentationType.RuleBased, RulesAgentFilePersistence())
+        self.register(RepresentationType.RuleBased, RuleSetFilePersistence())
 
     def create_from_representation_type(self, rep_type: RepresentationType) -> Persistence:
         """

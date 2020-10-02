@@ -5,14 +5,12 @@ See class comment
 import math
 
 
-class RulesEvaluationConstants():
+class RulesConstants():
     """
-    Constants for various aspects of Rules evaluation
+    Constants for various aspects of the Rule-based representation
     """
 
     # Rules stuff
-    RULE_FILTER_FACTOR = 1
-    AGE_STATE_KEY = "age"
     MEM_FACTOR = 100  # max memory cells required
     TOTAL_KEY = "total"
 
@@ -50,3 +48,7 @@ class RulesEvaluationConstants():
     LESS_THAN_EQUAL = "<="
     GREATER_THAN = ">"
     GREATER_THAN_EQUAL = ">="
+
+    # Evaluation Data dictionary keys
+    OBSERVATION_HISTORY_KEY = "observation_history"
+    STATE_MIN_MAXES_KEY = "min_maxes"
