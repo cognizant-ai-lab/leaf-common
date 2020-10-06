@@ -43,25 +43,20 @@ class Condition:  # pylint: disable-msg=R0902
         :return: condition.toString()
         """
 
-        coeff1 = self.first_state_coefficient
-        key1 = self.first_state_key
-        if states is not None:
-            key1 = states[self.first_state_key]
-        lookback1 = self.first_state_lookback
+        # Prepare 1st condition string
+        first_condition = self._condition_part_to_string(self.first_state_coefficient,
+                                                         self.first_state_key,
+                                                         self.first_state_lookback,
+                                                         states)
 
-        first_condition = f'{coeff1:.{RulesConstants.DECIMAL_DIGITS}f}*{key1}'
-        if lookback1 > 0:
-            first_condition = f'{first_condition}[{lookback1}]'
-
-        if states is not None:
-            if self.second_state_key in states:
-                coeff2 = self.second_state_coefficient
-                key2 = states[self.second_state_key]
-                lookback2 = self.second_state_lookback
-                second_condition = f'{coeff2:.{RulesConstants.DECIMAL_DIGITS}f}*{key2}'
-                if self.second_state_lookback > 0:
-                    second_condition = f'{second_condition}[{lookback2}]'
+        # Prepare 2nd condition string
+        if states is not None and self.second_state_key in states:
+            second_condition = self._condition_part_to_string(self.second_state_coefficient,
+                                                              self.second_state_key,
+                                                              self.second_state_lookback,
+                                                              states)
         elif min_maxes:
+            # Per evaluation code, min/max is based on the first_state_key
             min_value = min_maxes[self.first_state_key, RulesConstants.MIN_KEY]
             max_value = min_maxes[self.first_state_key, RulesConstants.MAX_KEY]
             second_condition_val = (min_value + self.second_state_value * (max_value - min_value))
@@ -71,3 +66,21 @@ class Condition:  # pylint: disable-msg=R0902
             second_condition = f'{self.second_state_value:.{RulesConstants.DECIMAL_DIGITS}f}'
 
         return f'{first_condition} {self.operator} {second_condition}'
+
+    def _condition_part_to_string(self, coeff: float, key: str, lookback: int,
+                                  states: Dict[str, str]) -> str:
+        """
+        Given features of a side of a condition inequality,
+        return a string that describes the side, at least in a default capacity.
+        (right side -- 2nd condition is not fully realized here in case of min/maxes)
+        """
+
+        use_key = key
+        if states is not None and key in states:
+            use_key = states[key]
+
+        condition_part = f'{coeff:.{RulesConstants.DECIMAL_DIGITS}f}*{use_key}'
+        if lookback > 0:
+            condition_part = f'{condition_part}[{lookback}]'
+
+        return condition_part
