@@ -50,11 +50,13 @@ class Condition:  # pylint: disable-msg=R0902
                                                          states)
 
         # Prepare 2nd condition string
-        if states is not None and self.second_state_key in states:
+        # Note: None or empty dictionaries both evaluate to false
+        if states and self.second_state_key in states:
             second_condition = self._condition_part_to_string(self.second_state_coefficient,
                                                               self.second_state_key,
                                                               self.second_state_lookback,
                                                               states)
+        # Note: None or empty dictionaries both evaluate to false
         elif min_maxes:
             # Per evaluation code, min/max is based on the first_state_key
             min_value = min_maxes[self.first_state_key, RulesConstants.MIN_KEY]
