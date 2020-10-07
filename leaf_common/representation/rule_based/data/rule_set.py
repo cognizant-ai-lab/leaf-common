@@ -53,7 +53,7 @@ class RuleSet:
         times_applied = " <> "
         if self.times_applied > 0:
             times_applied = " <" + str(self.times_applied) + "> "
-        rules_str = rules_str + times_applied + "Default Action: " + self.default_action + "\n"
+        rules_str = rules_str + times_applied + "Default Action: " + str(self.default_action) + "\n"
         return rules_str
 
     def __str__(self):
