@@ -35,10 +35,9 @@ class RuleSet:
         self.rules = []
 
         # Initialize the min/maxes
+        self.min_maxes = {}
         if min_maxes is not None:
             self.min_maxes = deepcopy(min_maxes)
-        else:
-            self.min_maxes = {}
 
     # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
     def to_string(self, states: Dict[str, str] = None) -> str:      # noqa: E252
