@@ -96,7 +96,7 @@ class RuleSetEvaluator(ComponentEvaluator):
                 current_observation[state]
             if current_observation[state] < rule_set.min_maxes[state, RulesConstants.MIN_KEY]:
                 rule_set.min_maxes[state, RulesConstants.MIN_KEY] = current_observation[state]
-            if current_observation[state] > self.min_maxes[state, RulesConstants.MAX_KEY]:
+            if current_observation[state] > rule_set.min_maxes[state, RulesConstants.MAX_KEY]:
                 rule_set.min_maxes[state, RulesConstants.MAX_KEY] = current_observation[state]
 
     def _set_action_in_state(self, action, state):
