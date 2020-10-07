@@ -2,9 +2,7 @@
 See class comment for details
 """
 
-from copy import deepcopy
 from typing import Dict
-from typing import Tuple
 
 import random
 
@@ -34,20 +32,12 @@ class RuleSetEvaluator(ComponentEvaluator):
     Also each Rule's times_applied and age_state can change
     """
 
-    def __init__(self, states: Dict[str, str], actions: Dict[str, str],
-                 min_maxes: Dict[Tuple[str, str], float] = None):
+    def __init__(self, states: Dict[str, str], actions: Dict[str, str]):
         """
         Constructor
 
         :param states: XXX Need a good definition here
         :param actions: XXX Need a good definition here
-        :param min_maxes: A dictionary of (state, "min"/"max") to a float value
-                    which pre-calibrates the normalization of the conditions.
-                    These values are copied and as evaluation proceeds, the
-                    internal copy gets updated with new values should the
-                    data encountered warrant it.  The default value is None,
-                    indicating that we don't know enough about the data to
-                    calibrate anything at the outset.
         """
 
         self._states = states
@@ -56,24 +46,13 @@ class RuleSetEvaluator(ComponentEvaluator):
         self._observation_history = []
         self._observation_history_size = 0
 
-        # Initialize the min/maxes
-        if min_maxes is not None:
-            self._min_maxes = deepcopy(min_maxes)
-        else:
-            self._min_maxes = {}
-
-        for state in self._states.keys():
-            self._min_maxes[state, RulesConstants.MIN_KEY] = 0
-            self._min_maxes[state, RulesConstants.MAX_KEY] = 0
-            self._min_maxes[state, RulesConstants.TOTAL_KEY] = 0
-
         # This evaluator itself is stateless, so its OK to just create one
         # as an optimization.
         self._rule_evaluator = RuleEvaluator(self._states)
 
         self.reset()
 
-    def evaluate(self, component: RuleSet, evaluation_data: object) -> object:
+    def evaluate(self, component: RuleSet, evaluation_data: Dict[str, str]) -> object:
         rule_set = component
 
         # Set up a state dictionary distilling only the information needed from
@@ -94,30 +73,31 @@ class RuleSetEvaluator(ComponentEvaluator):
 
         return action
 
-    def _revise_state_minmaxes(self, current_observation):
+    def _revise_state_minmaxes(self, rule_set: RuleSet,
+                               current_observation: Dict[str, str]) -> None:
         """
         Get second state value
         Keep track of min and max for all states
         :param current_observation: the current state
         """
-        for state in self._states.keys():
-            self._min_maxes[state, RulesConstants.TOTAL_KEY] = \
-                self._min_maxes[state, RulesConstants.TOTAL_KEY] + \
-                current_observation[state]
-            if current_observation[state] < self._min_maxes[state, RulesConstants.MIN_KEY]:
-                self._min_maxes[state, RulesConstants.MIN_KEY] = current_observation[state]
-            if current_observation[state] > self._min_maxes[state, RulesConstants.MAX_KEY]:
-                self._min_maxes[state, RulesConstants.MAX_KEY] = current_observation[state]
 
-    def get_min_maxes(self) -> Dict[Tuple[str, str], float]:
-        """
-        :return: the dictionary of min/max values encountered for each state.
-            This in and of itself can be considered data which is "learned"
-            by looking at the data set, but it is not evolved.  In some
-            situations, these min/maxes can be essential calibration data
-            when transfering a rule set into a predictive setting.
-        """
-        return self._min_maxes
+        # Initialize the RuleSet's min/maxes if there is nothing in there.
+        # Empty dictionaries evaluate to False, as does None.
+        if not rule_set.min_maxes:
+            rule_set.min_maxes = {}
+            for state in self._states.keys():
+                rule_set.min_maxes[state, RulesConstants.MIN_KEY] = 0
+                rule_set.min_maxes[state, RulesConstants.MAX_KEY] = 0
+                rule_set.min_maxes[state, RulesConstants.TOTAL_KEY] = 0
+
+        for state in self._states.keys():
+            rule_set.min_maxes[state, RulesConstants.TOTAL_KEY] = \
+                rule_set.min_maxes[state, RulesConstants.TOTAL_KEY] + \
+                current_observation[state]
+            if current_observation[state] < rule_set.min_maxes[state, RulesConstants.MIN_KEY]:
+                rule_set.min_maxes[state, RulesConstants.MIN_KEY] = current_observation[state]
+            if current_observation[state] > self.min_maxes[state, RulesConstants.MAX_KEY]:
+                rule_set.min_maxes[state, RulesConstants.MAX_KEY] = current_observation[state]
 
     def _set_action_in_state(self, action, state):
         """
@@ -150,7 +130,7 @@ class RuleSetEvaluator(ComponentEvaluator):
         poll_dict = dict.fromkeys(self._actions.keys(), 0)
         nb_states = len(self._observation_history) - 1
         if self._observation_history:
-            self._revise_state_minmaxes(self._observation_history[nb_states])
+            self._revise_state_minmaxes(rule_set, self._observation_history[nb_states])
         if not rule_set.rules:
             raise RuntimeError("Fatal: an empty rule set detected")
         anyone_voted = False
@@ -158,7 +138,7 @@ class RuleSetEvaluator(ComponentEvaluator):
         # Prepare the data going into the RuleEvaluator
         rule_evaluation_data = {
             RulesConstants.OBSERVATION_HISTORY_KEY: self._observation_history,
-            RulesConstants.STATE_MIN_MAXES_KEY: self._min_maxes
+            RulesConstants.STATE_MIN_MAXES_KEY: rule_set.min_maxes
         }
         for rule in rule_set.rules:
             result = self._rule_evaluator.evaluate(rule, rule_evaluation_data)
@@ -176,7 +156,7 @@ class RuleSetEvaluator(ComponentEvaluator):
             poll_dict[rule_set.default_action] += 1
         return poll_dict
 
-    def choose_action(self, rule_set: RuleSet, current_observation: dict):
+    def choose_action(self, rule_set: RuleSet, current_observation: Dict[str, str]):
         """
         Choose an action
         :return: the chosen action
@@ -193,7 +173,7 @@ class RuleSetEvaluator(ComponentEvaluator):
                                   self._observation_history[len(self._observation_history) - 1])
         return action_to_perform
 
-    def reset(self):
+    def reset(self) -> None:
         """
         Reset state per actions config
         """

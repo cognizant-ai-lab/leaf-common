@@ -1,5 +1,6 @@
 """ Base class for rule representation """
 
+from copy import deepcopy
 from typing import Dict
 from typing import Tuple
 
