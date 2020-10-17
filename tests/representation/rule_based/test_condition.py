@@ -110,7 +110,17 @@ class TestCondition(TestCase):
         self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 1, '1': 2}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
+        self.assertTrue(result)
 
+        # Make it false with exponent
+        condition.second_state_exponent = 2
+        condition.second_state_coefficient = 0.1
+        result = self.evaluator.evaluate(condition, self.evaluation_data)
+        self.assertFalse(result)
+
+        # Make it true with exponent
+        condition.second_state_coefficient = 0.12
+        result = self.evaluator.evaluate(condition, self.evaluation_data)
         self.assertTrue(result)
 
     def test_le_false(self):
@@ -122,8 +132,18 @@ class TestCondition(TestCase):
         self.evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY] = \
             [{'0': 3, '1': 1}]
         result = self.evaluator.evaluate(condition, self.evaluation_data)
-
         self.assertFalse(result)
+
+        # Make it false with exponent
+        condition.first_state_exponent = 3
+        condition.first_state_coefficient = 0.1
+        result = self.evaluator.evaluate(condition, self.evaluation_data)
+        self.assertFalse(result)
+
+        # Make it true with exponent
+        condition.first_state_coefficient = 0.03
+        result = self.evaluator.evaluate(condition, self.evaluation_data)
+        self.assertTrue(result)
 
     def test_to_string(self):
         """
@@ -135,10 +155,20 @@ class TestCondition(TestCase):
         condition_string = condition.to_string(states=self.states)
         self.assertEqual('0.42*S_0[1] <= 0.84*S_1[2]', condition_string)
 
+        # With exponent on the left side
+        condition.first_state_exponent = 2
+        condition_string = condition.to_string(states=self.states)
+        self.assertEqual('0.42*S_0[1]^2 <= 0.84*S_1[2]', condition_string)
+
         # Different operator, no lookbacks
         condition = self._create_condition('>')
         condition_string = condition.to_string(states=self.states)
         self.assertEqual('0.42*S_0 > 0.84*S_1', condition_string)
+
+        # With exponent on the right side
+        condition.second_state_exponent = 3
+        condition_string = condition.to_string(states=self.states)
+        self.assertEqual('0.42*S_0 > 0.84*S_1^3', condition_string)
 
     def _create_condition(self, condition_type, lookback1=0, lookback2=0):
 
@@ -147,9 +177,11 @@ class TestCondition(TestCase):
         condition.first_state_lookback = lookback1
         condition.first_state_key = list(self.states)[0]
         condition.first_state_coefficient = 0.42
+        condition.first_state_exponent = 1
         condition.operator = condition_type
         condition.second_state_lookback = lookback2
         condition.second_state_key = list(self.states)[1]
         condition.second_state_value = 0.32
         condition.second_state_coefficient = 0.84
+        condition.second_state_exponent = 1
         return condition
