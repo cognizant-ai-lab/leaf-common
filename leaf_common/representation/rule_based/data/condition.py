@@ -22,11 +22,13 @@ class Condition:  # pylint: disable-msg=R0902
         self.first_state_lookback: int = None
         self.first_state_key: str = None
         self.first_state_coefficient: float = None
+        self.first_state_exponent = None
         self.operator: str = None
         self.second_state_lookback: int = None
         self.second_state_key: str = None
         self.second_state_value: float = None
         self.second_state_coefficient: float = None
+        self.second_state_exponent = None
 
     def __str__(self):
         return self.to_string()
@@ -47,6 +49,7 @@ class Condition:  # pylint: disable-msg=R0902
         first_condition = self._condition_part_to_string(self.first_state_coefficient,
                                                          self.first_state_key,
                                                          self.first_state_lookback,
+                                                         self.first_state_exponent,
                                                          states)
 
         # Prepare 2nd condition string
@@ -55,6 +58,7 @@ class Condition:  # pylint: disable-msg=R0902
             second_condition = self._condition_part_to_string(self.second_state_coefficient,
                                                               self.second_state_key,
                                                               self.second_state_lookback,
+                                                              self.second_state_exponent,
                                                               states)
         # Note: None or empty dictionaries both evaluate to false
         elif min_maxes:
@@ -70,7 +74,7 @@ class Condition:  # pylint: disable-msg=R0902
         return f'{first_condition} {self.operator} {second_condition}'
 
     # pylint: disable=no-self-use
-    def _condition_part_to_string(self, coeff: float, key: str, lookback: int,
+    def _condition_part_to_string(self, coeff: float, key: str, lookback: int, exponent: int,
                                   states: Dict[str, str]) -> str:
         """
         Given features of a side of a condition inequality,
@@ -85,5 +89,7 @@ class Condition:  # pylint: disable-msg=R0902
         condition_part = f'{coeff:.{RulesConstants.DECIMAL_DIGITS}f}*{use_key}'
         if lookback > 0:
             condition_part = f'{condition_part}[{lookback}]'
+        if exponent > 1:
+            condition_part = f'{condition_part}^{exponent}'
 
         return condition_part

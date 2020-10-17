@@ -49,7 +49,7 @@ class ConditionEvaluator(ComponentEvaluator):  # pylint: disable-msg=R0902
 
         domain_state_idx = nb_states - condition.first_state_lookback
         domain_state_value = observation_history[domain_state_idx][condition.first_state_key]
-        operand_1 = domain_state_value * condition.first_state_coefficient
+        operand_1 = condition.first_state_coefficient * (domain_state_value ** condition.first_state_exponent)
         operand_2 = self.get_second_state_value(condition, observation_history, nb_states, min_maxes)
         result = (
             (condition.operator == RulesConstants.GREATER_THAN_EQUAL and operand_1 >= operand_2) or
@@ -73,6 +73,7 @@ class ConditionEvaluator(ComponentEvaluator):  # pylint: disable-msg=R0902
         if condition.second_state_key in self.states.keys():
             second_state_idx = nb_states - condition.second_state_lookback
             second_state = observation_history[second_state_idx][condition.second_state_key]
+            second_state = second_state ** condition.second_state_exponent
             second_state *= condition.second_state_coefficient
         else:
             the_min = min_maxes[condition.first_state_key, RulesConstants.MIN_KEY]
