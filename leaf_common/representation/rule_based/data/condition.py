@@ -74,7 +74,8 @@ class Condition:  # pylint: disable-msg=R0902
 
         return f'{first_condition} {self.operator} {second_condition}'
 
-    # pylint: disable=too-many-argument,no-self-use
+    # pylint: disable=too-many-argument
+    # pylint: disable=no-self-use
     def _condition_part_to_string(self, coeff: float, key: str, lookback: int, exponent: int,
                                   states: Dict[str, str]) -> str:
         """
