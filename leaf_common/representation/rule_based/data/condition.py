@@ -41,6 +41,7 @@ class Condition:  # pylint: disable-msg=R0902
                   min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
         """
         String representation for condition
+        :param states: A dictionary of domain features
         :param min_maxes: A dictionary of domain features minimum and maximum values
         :return: condition.toString()
         """
@@ -81,7 +82,7 @@ class Condition:  # pylint: disable-msg=R0902
         return a string that describes the side, at least in a default capacity.
         (right side -- 2nd condition is not fully realized here in case of min/maxes)
         """
-
+        del self
         use_key = key
         if states is not None and key in states:
             use_key = states[key]
