@@ -22,7 +22,7 @@ class TestRuleSet(TestCase):
     """
 
     def __init__(self, *args, **kwargs):
-        super(TestRuleSet, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         root_dir = os.path.dirname(os.path.abspath(__file__))
         self.fixtures_path = os.path.join(root_dir, '../..', 'fixtures')
         self.states = {

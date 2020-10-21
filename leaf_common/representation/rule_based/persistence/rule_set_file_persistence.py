@@ -25,4 +25,4 @@ class RuleSetFilePersistence(SimpleFilePersistence):
         use_format = serialization_format
         if use_format is None:
             use_format = RuleSetSerializationFormat()
-        super(RuleSetFilePersistence, self).__init__(use_format)
+        super().__init__(use_format)

@@ -16,7 +16,7 @@ class TestCondition(TestCase):
     """
 
     def __init__(self, *args, **kwargs):
-        super(TestCondition, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.min_max = {
             RulesConstants.MIN_KEY: 0,
             RulesConstants.MAX_KEY: 10
