@@ -35,6 +35,7 @@ steps:
             - cd '${{CF_REPO_NAME}}'
             - git status
             - pip --no-cache-dir install -r requirements.txt
+            - pip --no-cache-dir install -r requirements-build.txt
             - pip -V
             - export PYTHONPATH=$PWD
 
