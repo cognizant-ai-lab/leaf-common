@@ -18,7 +18,7 @@ class TestRule(TestCase):
     """
 
     def __init__(self, *args, **kwargs):
-        super(TestRule, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.min_maxes = {
             ('0', RulesConstants.MIN_KEY): 0,
             ('0', RulesConstants.MAX_KEY): 10,

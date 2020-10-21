@@ -31,6 +31,7 @@ class TestRepresentationType(TestCase):
             try:
                 leaf_representation = RepresentationType[representation_type_as_string]
             except KeyError:
+                # pylint: disable=raise-missing-from
                 raise ValueError('Invalid representation type: "{}"'.format(representation_type_as_string))
         return leaf_representation
 

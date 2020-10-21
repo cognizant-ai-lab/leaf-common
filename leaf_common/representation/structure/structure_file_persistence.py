@@ -23,4 +23,4 @@ class StructureFilePersistence(SimpleFilePersistence):
         use_format = serialization_format
         if use_format is None:
             use_format = StructureSerializationFormat()
-        super(StructureFilePersistence, self).__init__(use_format)
+        super().__init__(use_format)
