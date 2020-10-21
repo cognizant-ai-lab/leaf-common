@@ -7,7 +7,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-LIBRARY_VERSION = "1.1.14"
+LIBRARY_VERSION = "1.1.15"
 
 CURRENT_PYTHON = sys.version_info[:2]
 REQUIRED_PYTHON = (3, 6)
@@ -34,8 +34,8 @@ setup(
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
     packages=find_packages('.', exclude=['tests']),
     install_requires=[
-        "jsonpickle==1.3",
-        "numpy==1.16.4"
+        "jsonpickle",
+        "numpy"
     ],
     description='LEAF team common code library',
     long_description=_read('README.md'),
