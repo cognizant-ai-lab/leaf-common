@@ -45,6 +45,22 @@ class RepresentationPersistenceFactory():
 
         return persistence
 
+    def representation_type_from_filename(self, filename: str) -> RepresentationType:
+        """
+        Given a filename, return its register()-ed RepresentationType
+
+        :param filename: A string filename whose file extension is used as a key for look up
+        :return: A RepresentationType corresponding to the filename
+        """
+
+        persistence = self.create_from_filename(filename)
+
+        for representation_type, value in self._type_map.items():
+
+            if value == persistence:
+                return representation_type
+        return None
+
     def create_from_filename(self, filename: str) -> Persistence:
         """
         Given a filename, return its register()-ed Persistence
