@@ -13,6 +13,8 @@
 See class comment for details.
 """
 
+from typing import Dict
+
 from leaf_common.session.extension_packaging import ExtensionPackaging
 from leaf_common.session.response_candidate_dictionary_converter \
     import ResponseCandidateDictionaryConverter
@@ -27,22 +29,30 @@ class PopulationResponseDictionaryConverter(DictionaryConverter):
     buffers transmission to/from an idiomatic python dictionary form.
     """
 
-    def __init__(self, population_response_class, candidate_class,
-                 string_encoding='UTF-8'):
+    def __init__(self, population_response_class: ClassVar,
+                 candidate_class: ClassVar = None,
+                 candidate_converter: DictionaryConverter = None,
+                 string_encoding: str = 'UTF-8'):
         """
         Constructor
 
         :param population_response_class: The grpc class for the
             PopulationResponse
         :param candidate_class: The grpc class for the Candidate
+                    Can be None if a candidate_converter is passed in.
+        :param candidate_converter: A DictionaryConverter that knows how
+                    to convert between
         :param string_encoding: The string encoding to use when encoding/
             decoding strings.
         """
         self.population_response_class = population_response_class
-        self.candidate_class = candidate_class
+        self.candidate_converter = candidate_converter
+        if candidate_converter is None:
+            self.candidate_converter = ResponseCandidateDictionaryConverter(
+                                                        candidate_class)
         self.extension_packaging = ExtensionPackaging(string_encoding)
 
-    def from_dict(self, obj_dict):
+    def from_dict(self, obj_dict: Dict[str, object]) -> object:
         """
         Convert a Population Response in python idiomatic dictionary form
         into a gRPC PopulationRequest structure suitable for transmission
@@ -90,13 +100,12 @@ class PopulationResponseDictionaryConverter(DictionaryConverter):
             self.extension_packaging.to_extension_bytes(evaluation_stats)
         population_response.evaluation_stats = evaluation_stats_bytes
 
-        candidate_converter = self.create_candidate_converter()
         population = None
         dict_population = use_response_dict.get('population', None)
         if dict_population is not None and isinstance(dict_population, list):
             population = []
             for candidate_dict in dict_population:
-                candidate = candidate_converter.from_dict(candidate_dict)
+                candidate = self.candidate_converter.from_dict(candidate_dict)
                 population.append(candidate)
 
         if population is not None and len(population) > 0:
@@ -108,7 +117,7 @@ class PopulationResponseDictionaryConverter(DictionaryConverter):
 
         return population_response
 
-    def to_dict(self, obj):
+    def to_dict(self, obj: object) -> Dict[str, object]:
         """
         Convert a Population Response to its python idiomatic dictionary form
 
@@ -125,10 +134,9 @@ class PopulationResponseDictionaryConverter(DictionaryConverter):
                            self.population_response_class):
             return None
 
-        candidate_converter = self.create_candidate_converter()
         population = []
         for candidate in population_response.population:
-            candidate_dict = candidate_converter.to_dict(candidate)
+            candidate_dict = self.candidate_converter.to_dict(candidate)
             population.append(candidate_dict)
 
         evaluation_stats = \
@@ -153,12 +161,3 @@ class PopulationResponseDictionaryConverter(DictionaryConverter):
         }
 
         return obj
-
-    def create_candidate_converter(self):
-        """
-        Creates a ResponseCandidateDictionaryConverter appropriate
-        for the implementation.
-        """
-        candidate_converter = ResponseCandidateDictionaryConverter(
-                                        self.candidate_class)
-        return candidate_converter

@@ -12,6 +12,8 @@
 """
 See class comment for details.
 """
+from typing import ClassVar
+from typing import Dict
 
 from leaf_common.serialization.interface.dictionary_converter \
     import DictionaryConverter
@@ -24,7 +26,8 @@ class ResponseCandidateDictionaryConverter(DictionaryConverter):
     back and forth to dictionaries.
     """
 
-    def __init__(self, candidate_class, string_encoding='UTF-8'):
+    def __init__(self, candidate_class: ClassVar,
+                 string_encoding: str = 'UTF-8'):
         """
         Constructor
         :param string_encoding: The string encoding to use when encoding/
@@ -33,7 +36,7 @@ class ResponseCandidateDictionaryConverter(DictionaryConverter):
         self.extension_packaging = ExtensionPackaging(string_encoding)
         self.candidate_class = candidate_class
 
-    def to_dict(self, obj):
+    def to_dict(self, obj: object) -> Dict[str, object]:
         """
         :param obj: The object to be converted into a dictionary
         :return: A data-only dictionary that represents all the data for
@@ -59,7 +62,7 @@ class ResponseCandidateDictionaryConverter(DictionaryConverter):
         }
         return candidate_dict
 
-    def from_dict(self, obj_dict):
+    def from_dict(self, obj_dict: Dict[str, object]) -> object:
         """
         :param obj_dict: The data-only dictionary to be converted into an object
         :return: An object instance created from the given dictionary.

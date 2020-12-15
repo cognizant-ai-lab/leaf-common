@@ -12,6 +12,7 @@
 """
 See class comment for details.
 """
+from typing import Dict
 
 
 class DictionaryConverter():
@@ -19,7 +20,7 @@ class DictionaryConverter():
     Interface for converting objects back and forth to dictionaries.
     """
 
-    def to_dict(self, obj):
+    def to_dict(self, obj: object) -> Dict[str, object]:
         """
         :param obj: The object to be converted into a dictionary
         :return: A data-only dictionary that represents all the data for
@@ -31,7 +32,7 @@ class DictionaryConverter():
         """
         raise NotImplementedError
 
-    def from_dict(self, obj_dict):
+    def from_dict(self, obj_dict: Dict[str, object]) -> object:
         """
         :param obj_dict: The data-only dictionary to be converted into an object
         :return: An object instance created from the given dictionary.
