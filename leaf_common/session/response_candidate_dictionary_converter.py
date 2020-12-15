@@ -83,5 +83,10 @@ class ResponseCandidateDictionaryConverter(DictionaryConverter):
         return candidate
 
     def new_candidate(self):
+        """
+        Creates a new candidate structure per the candidate class
+        pass in via the constructor
+        :return: A new Candidate instance
+        """
         candidate = self.candidate_class()
         return candidate
