@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 from leaf_common.session.extension_packaging import ExtensionPackaging
 from leaf_common.session.response_candidate_dictionary_converter \
@@ -101,7 +104,6 @@ class PopulationResponseDictionaryConverter(DictionaryConverter):
             # repeated field.
             # See: https://developers.google.com/protocol-buffers/docs/
             #               reference/python-generated?csw=1#fields
-            # pylint: disable=protobuf-undefined-attribute
             population_response.population.extend(population)
 
         return population_response
