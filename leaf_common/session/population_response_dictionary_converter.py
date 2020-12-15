@@ -39,7 +39,6 @@ class PopulationResponseDictionaryConverter(DictionaryConverter):
         self.candidate_class = candidate_class
         self.extension_packaging = ExtensionPackaging(string_encoding)
 
-
     def from_dict(self, obj_dict):
         """
         Convert a Population Response in python idiomatic dictionary form
@@ -51,7 +50,6 @@ class PopulationResponseDictionaryConverter(DictionaryConverter):
             fields of the response_dictionary
         """
         return self.from_dict_with_checkpoint(obj_dict, default_checkpoint=None)
-
 
     def from_dict_with_checkpoint(self, obj_dict, default_checkpoint=None):
         """
@@ -67,8 +65,8 @@ class PopulationResponseDictionaryConverter(DictionaryConverter):
         """
         use_response_dict = obj_dict
         if obj_dict is None or \
-            not isinstance(obj_dict, dict) or \
-            len(obj_dict.keys()) == 0:
+                not isinstance(obj_dict, dict) or \
+                len(obj_dict.keys()) == 0:
 
             if default_checkpoint is None:
                 return None
@@ -103,11 +101,10 @@ class PopulationResponseDictionaryConverter(DictionaryConverter):
             # repeated field.
             # See: https://developers.google.com/protocol-buffers/docs/
             #               reference/python-generated?csw=1#fields
-            #pylint: disable=protobuf-undefined-attribute
+            # pylint: disable=protobuf-undefined-attribute
             population_response.population.extend(population)
 
         return population_response
-
 
     def to_dict(self, obj):
         """
@@ -138,23 +135,22 @@ class PopulationResponseDictionaryConverter(DictionaryConverter):
 
         # Check for an empty PopulationResponse message
         if evaluation_stats is None and \
-            len(population) == 0 and \
-            population_response.generation_count == 0 and \
-            len(population_response.checkpoint_id) == 0:
+                len(population) == 0 and \
+                population_response.generation_count == 0 and \
+                len(population_response.checkpoint_id) == 0:
             return None
 
         if len(population) == 0:
             population = None
 
-        obj = { \
+        obj = {
             "population": population,
             "generation_count": population_response.generation_count,
             "checkpoint_id": population_response.checkpoint_id,
-            "evaluation_stats": evaluation_stats \
+            "evaluation_stats": evaluation_stats
         }
 
         return obj
-
 
     def create_candidate_converter(self):
         """

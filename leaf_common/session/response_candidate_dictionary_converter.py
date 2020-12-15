@@ -49,13 +49,12 @@ class ResponseCandidateDictionaryConverter(DictionaryConverter):
         identity = self.extension_packaging.from_extension_bytes(
                                 candidate.identity)
         candidate_dict = {
-            "id" : candidate.id,
-            "interpretation" : interpretation,
-            "metrics" : metrics,
-            "identity" : identity
+            "id": candidate.id,
+            "interpretation": interpretation,
+            "metrics": metrics,
+            "identity": identity
         }
         return candidate_dict
-
 
     def from_dict(self, obj_dict):
         """
@@ -79,7 +78,6 @@ class ResponseCandidateDictionaryConverter(DictionaryConverter):
             self.extension_packaging.to_extension_bytes(
                         candidate_dict.get('identity', None))
         return candidate
-
 
     def new_candidate(self):
         candidate = self.candidate_class()
