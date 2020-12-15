@@ -30,7 +30,6 @@ class ReferencePruner():
         """
         raise NotImplementedError
 
-
     def graft(self, obj, graft_reference=None):
         """
         :param obj: The object to be grafted onto.
