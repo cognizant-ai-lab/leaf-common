@@ -13,6 +13,7 @@
 See class comment for details.
 """
 
+from typing import ClassVar
 from typing import Dict
 
 from leaf_common.session.extension_packaging import ExtensionPackaging
