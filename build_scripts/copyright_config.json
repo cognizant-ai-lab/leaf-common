@@ -1,15 +1,6 @@
 {
     "source_available_copyright": [
-        "client_containers",
-        "domain",
-        "experimenthost",
-        "framework",
-        "full_training",
-        "integration_test",
-        "kerasconfig",
-        "servicecommon",
-        "build_scripts",
-        "tests",
-        "setup"
+        "leaf_common",
+        "tests"
     ]
 }
