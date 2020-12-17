@@ -2,8 +2,8 @@ leaf-common SDK Software
 Copyright (C) 2020 Cognizant Digital Business, Evolutionary AI. All Rights Reserved.
 
 This product contains software developed by the
-Cognizant Evolutionary AI organization, and contains patent
-pending material.
+Cognizant Evolutionary AI organization, and contains
+trade secrets of Cognizant.
 
 This product allows for a dual use license, suitable in the first case
 for academic use as detailed in the Academic Public License available
