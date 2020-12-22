@@ -15,7 +15,7 @@ Unit tests for ExtensionPackaging class
 
 from unittest import TestCase
 
-from leaf_common.grpc_utils.extension_packaging import ExtensionPackaging
+from leaf_common.session.extension_packaging import ExtensionPackaging
 
 
 class TestExtensionPackaging(TestCase):
