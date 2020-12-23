@@ -34,7 +34,6 @@ class ExtensionPackaging():
         _b = sys.version_info[0] < 3 and (lambda x: x) or (lambda x: x.encode('latin1'))
         self.none_bytes = _b("")
 
-
     def to_extension_bytes(self, obj):
         """
         Converts an object to extension bytes suitable for protocol buffers
@@ -71,7 +70,6 @@ class ExtensionPackaging():
             extension_bytes = use_obj
 
         return extension_bytes
-
 
     def from_extension_bytes(self, extension_bytes, out_type=dict):
         """
