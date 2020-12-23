@@ -16,10 +16,4 @@
 # all the other transient dependencies.
 #
 # Any dependencies added here must also be listed in setup.py.
-
-# Math libraries
-numpy
-
-# Serialization
-jsonpickle
-
+# ... But theoretically leaf-common should not depend on anything.
