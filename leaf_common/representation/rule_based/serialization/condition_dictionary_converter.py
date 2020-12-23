@@ -40,7 +40,7 @@ class ConditionDictionaryConverter(DictionaryConverter):
             "first_state_lookback": int(obj.first_state_lookback),
             "first_state_key": str(obj.first_state_key),
             "first_state_coefficient": float(obj.first_state_coefficient),
-            "first_state_exponent": obj.first_state_exponent,       # XXX No type in data class
+            "first_state_exponent": obj.first_state_exponent,       # DEF: No type in data class
 
             "operator": str(obj.operator),
 
@@ -48,7 +48,7 @@ class ConditionDictionaryConverter(DictionaryConverter):
             "second_state_key": str(obj.second_state_key),
             "second_state_value": float(obj.second_state_value),
             "second_state_coefficient": float(obj.second_state_coefficient),
-            "second_state_exponent": obj.second_state_exponent      # XXX No type in data class
+            "second_state_exponent": obj.second_state_exponent      # DEF: No type in data class
         }
 
         return obj_dict

@@ -13,6 +13,8 @@
 See class comment for details.
 """
 
+import json
+
 from io import StringIO
 from typing import TextIO
 
@@ -31,7 +33,7 @@ class RuleSetSerializationFormat(SerializationFormat):
     # do the registration of the numpy handlers
     registered = False
 
-    def __init__(self, index: int = 4, sort_keys: bool = True):
+    def __init__(self, indent: int = 4, sort_keys: bool = True):
         """
         Constructor
 
