@@ -97,18 +97,26 @@ class RuleSetEvaluator(ComponentEvaluator):
         if not rule_set.min_maxes:
             rule_set.min_maxes = {}
             for state in self._states.keys():
-                rule_set.min_maxes[state, RulesConstants.MIN_KEY] = 0
-                rule_set.min_maxes[state, RulesConstants.MAX_KEY] = 0
-                rule_set.min_maxes[state, RulesConstants.TOTAL_KEY] = 0
+                state_dict = {
+                    RulesConstants.MIN_KEY: 0,
+                    RulesConstants.MAX_KEY: 0,
+                    RulesConstants.TOTAL_KEY: 0
+                }
+                rule_set.min_maxes[state] = state_dict
 
+        empty_dict = {}
         for state in self._states.keys():
-            rule_set.min_maxes[state, RulesConstants.TOTAL_KEY] = \
-                rule_set.min_maxes[state, RulesConstants.TOTAL_KEY] + \
-                current_observation[state]
-            if current_observation[state] < rule_set.min_maxes[state, RulesConstants.MIN_KEY]:
-                rule_set.min_maxes[state, RulesConstants.MIN_KEY] = current_observation[state]
-            if current_observation[state] > rule_set.min_maxes[state, RulesConstants.MAX_KEY]:
-                rule_set.min_maxes[state, RulesConstants.MAX_KEY] = current_observation[state]
+            state_dict = rule_set.min_maxes.get(state, empty_dict)
+            state_dict[RulesConstants.TOTAL_KEY] = \
+                state_dict[RulesConstants.TOTAL_KEY] + current_observation[state]
+
+            state_min = state_dict.get(RulesConstants.MIN_KEY, 0)
+            if current_observation[state] < state_min:
+                state_dict[RulesConstants.MIN_KEY] = current_observation[state]
+
+            state_max = state_dict.get(RulesConstants.MAX_KEY, 0)
+            if current_observation[state] > state_max:
+                state_dict[RulesConstants.MAX_KEY] = current_observation[state]
 
     def _set_action_in_state(self, action, state):
         """

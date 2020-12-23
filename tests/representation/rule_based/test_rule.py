@@ -31,10 +31,14 @@ class TestRule(TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.min_maxes = {
-            ('0', RulesConstants.MIN_KEY): 0,
-            ('0', RulesConstants.MAX_KEY): 10,
-            ('1', RulesConstants.MIN_KEY): 10,
-            ('1', RulesConstants.MAX_KEY): 20
+            '0': {
+                RulesConstants.MIN_KEY: 0,
+                RulesConstants.MAX_KEY: 10
+            },
+            '1': {
+                RulesConstants.MIN_KEY: 10,
+                RulesConstants.MAX_KEY: 20
+            }
         }
         self.domain_states = [
             {

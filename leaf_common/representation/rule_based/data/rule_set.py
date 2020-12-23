@@ -13,7 +13,6 @@
 
 from copy import deepcopy
 from typing import Dict
-from typing import Tuple
 
 
 class RuleSet:
@@ -24,12 +23,17 @@ class RuleSet:
     # pylint: disable=too-many-instance-attributes
     # Nine is reasonable in this case.
 
-    def __init__(self, min_maxes: Dict[Tuple[str, str], float] = None):
+    def __init__(self, min_maxes: Dict[str, Dict[str, float]] = None):
         """
         Constructor
 
-        :param min_maxes: A dictionary of (state, "min"/"max") to a float value
-                    which pre-calibrates the normalization of the conditions.
+        :param min_maxes: A dictionary of dictionaries, where the
+                    outer dictionary keys are states whose values are
+                    the inner dictionaries. Each inner dictionary has
+                    at least two keys: "min" and "max" and each key has
+                    float values which pre-calibrate the normalization
+                    of the conditions.
+
                     These values are copied and as evaluation proceeds, the
                     internal copy gets updated with new values should the
                     data encountered warrant it.  The default value is None,

@@ -15,7 +15,6 @@ Base class for rule representation
 
 from typing import Dict
 from typing import List
-from typing import Tuple
 
 from leaf_common.representation.rule_based.data.condition import Condition
 
@@ -43,7 +42,7 @@ class Rule:
 
     # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
     def to_string(self, states: Dict[str, str] = None,
-                  min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
+                  min_maxes: Dict[str, Dict[str, float]] = None) -> str:  # noqa: E252
         """
         String representation for rule
         :param min_maxes: A dictionary of domain features minimum and maximum values

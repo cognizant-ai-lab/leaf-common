@@ -14,7 +14,6 @@ Base class for condition representation
 """
 
 from typing import Dict
-from typing import Tuple
 
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 
@@ -49,7 +48,7 @@ class Condition:  # pylint: disable-msg=R0902
 
     # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
     def to_string(self, states: Dict[str, str] = None,
-                  min_maxes: Dict[Tuple[str, str], float] = None) -> str:  # noqa: E252
+                  min_maxes: Dict[str, Dict[str, float]] = None) -> str:  # noqa: E252
         """
         String representation for condition
         :param states: A dictionary of domain features
@@ -75,8 +74,10 @@ class Condition:  # pylint: disable-msg=R0902
         # Note: None or empty dictionaries both evaluate to false
         elif min_maxes:
             # Per evaluation code, min/max is based on the first_state_key
-            min_value = min_maxes[self.first_state_key, RulesConstants.MIN_KEY]
-            max_value = min_maxes[self.first_state_key, RulesConstants.MAX_KEY]
+            empty_dict = {}
+            state_dict = min_maxes.get(self.first_state_key, empty_dict)
+            min_value = state_dict.get(RulesConstants.MIN_KEY)
+            max_value = state_dict.get(RulesConstants.MAX_KEY)
             second_condition_val = (min_value + self.second_state_value * (max_value - min_value))
             second_condition = \
                 f'{second_condition_val:.{RulesConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
