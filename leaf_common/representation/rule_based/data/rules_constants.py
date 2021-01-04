@@ -26,15 +26,17 @@ class RulesConstants():
     TOTAL_KEY = "total"
 
     # Rule stuff
-    RULE_ELEMENTS = ["condition", "action", "action_lookback"]
+    RULE_ELEMENTS = ["condition", "action", "action_coef", "action_lookback"]
     LOOK_BACK = "lb"
     NO_ACTION = -1
 
     # pylint: disable=fixme
     # XXX If these are used as a keys, they would be better off as a strings
     #       Think: More intelligible in JSON.
+    ACTION_COUNT = 0
     ACTION_KEY = 0
-    LOOKBACK_KEY = 1
+    ACTION_COEF_KEY = 1
+    LOOKBACK_KEY = 2
 
     # Condition stuff
     CONDITION_ELEMENTS = [

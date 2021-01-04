@@ -138,7 +138,9 @@ class RuleSetEvaluator(ComponentEvaluator):
         :param rule_set: The RuleSet to evaluate
         :return: the chosen action
         """
-        poll_dict = dict.fromkeys(self._actions.keys(), 0)
+        poll_dict = {}
+        for key in self._actions.keys():
+            poll_dict[key] = [0, 0.0]
         nb_states = len(self._observation_history) - 1
         if self._observation_history:
             self._revise_state_minmaxes(rule_set, self._observation_history[nb_states])
@@ -156,15 +158,22 @@ class RuleSetEvaluator(ComponentEvaluator):
             action = result[RulesConstants.ACTION_KEY]
             if action != RulesConstants.NO_ACTION:
                 if action in self._actions.keys():
-                    poll_dict[action] += 1
+                    poll_dict[action][RulesConstants.ACTION_KEY] += 1
+                    poll_dict[action][RulesConstants.ACTION_COEF_KEY] += result[RulesConstants.ACTION_COEF_KEY]
                     anyone_voted = True
                 if action == RulesConstants.LOOK_BACK:
                     lookback = result[RulesConstants.LOOKBACK_KEY]
-                    poll_dict[self._get_action_in_state(self._observation_history[nb_states - lookback])] += 1
+                    prev_actions = self._get_action_in_state(self._observation_history[nb_states - lookback])
+                    for prev_action in prev_actions:
+                        prev_action_poll = prev_action[RulesConstants.ACTION_COUNT]
+                        poll_dict[prev_action][RulesConstants.ACTION_COUNT] += prev_action_poll
+                        poll_dict[prev_action][RulesConstants.ACTION_COEF_KEY] += \
+                            prev_action[RulesConstants.ACTION_COEF_KEY]
                     anyone_voted = True
         if not anyone_voted:
             rule_set.times_applied += 1
-            poll_dict[rule_set.default_action] += 1
+            poll_dict[rule_set.default_action][RulesConstants.ACTION_KEY] = 1
+            poll_dict[rule_set.default_action][RulesConstants.ACTION_COEF_KEY] = rule_set.default_action_coefficient
         return poll_dict
 
     def choose_action(self, rule_set: RuleSet, current_observation: Dict[str, str]):
@@ -177,9 +186,6 @@ class RuleSetEvaluator(ComponentEvaluator):
             index_to_delete = 1
             del self._observation_history[index_to_delete]
         action_to_perform = self.parse_rules(rule_set)
-        if action_to_perform == RulesConstants.NO_ACTION:
-            random_action = random.choice(list(self._actions.keys()))
-            action_to_perform = random_action
         self._set_action_in_state(action_to_perform,
                                   self._observation_history[len(self._observation_history) - 1])
         return action_to_perform
