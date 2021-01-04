@@ -1,0 +1,78 @@
+
+# Copyright (C) 2019-2020 Cognizant Digital Business, Evolutionary AI.
+# All Rights Reserved.
+# Issued under the Academic Public License.
+#
+# You can be released from the terms, and requirements of the Academic Public
+# License by purchasing a commercial license.
+# Purchase of a commercial license is mandatory for any use of the
+# leaf-common SDK Software in commercial settings.
+#
+# END COPYRIGHT
+"""
+See class comment for details.
+"""
+from typing import Dict
+
+from leaf_common.representation.rule_based.data.rule_set import RuleSet
+from leaf_common.representation.rule_based.serialization.rule_dictionary_converter \
+    import RuleDictionaryConverter
+from leaf_common.serialization.interface.dictionary_converter import DictionaryConverter
+
+
+class RuleSetDictionaryConverter(DictionaryConverter):
+    """
+    DictionaryConverter implementation for RuleSet objects.
+    """
+
+    def to_dict(self, obj: RuleSet) -> Dict[str, object]:
+        """
+        :param obj: The object to be converted into a dictionary
+        :return: A data-only dictionary that represents all the data for
+                the given object, either in primitives
+                (booleans, ints, floats, strings), arrays, or dictionaries.
+                If obj is None, then the returned dictionary should also be
+                None.  If obj is not the correct type, it is also reasonable
+                to return None.
+        """
+        if obj is None:
+            return None
+
+        obj_dict = {
+            "age_state": obj.age_state,
+            "default_action": obj.default_action,
+            "min_maxes": obj.min_maxes,
+            "rules": [],
+            "times_applied": obj.times_applied
+        }
+
+        rule_converter = RuleDictionaryConverter()
+        for rule in obj.rules:
+            rule_dict = rule_converter.to_dict(rule)
+            obj_dict["rules"].append(rule_dict)
+
+        return obj_dict
+
+    def from_dict(self, obj_dict: Dict[str, object]) -> RuleSet:
+        """
+        :param obj_dict: The data-only dictionary to be converted into an object
+        :return: An object instance created from the given dictionary.
+                If obj_dict is None, the returned object should also be None.
+                If obj_dict is not the correct type, it is also reasonable
+                to return None.
+        """
+        min_maxes = obj_dict.get("min_maxes", None)
+        obj = RuleSet(min_maxes=min_maxes)
+
+        obj.age_state = obj_dict.get("age_state", 0)
+        obj.default_action = obj_dict.get("default_action", None)
+        obj.times_applied = obj_dict.get("times_applied", 0)
+
+        rule_converter = RuleDictionaryConverter()
+        empty_list = []
+        rule_dicts = obj_dict.get("rules", empty_list)
+        for rule_dict in rule_dicts:
+            rule = rule_converter.from_dict(rule_dict)
+            obj.rules.append(rule)
+
+        return obj
