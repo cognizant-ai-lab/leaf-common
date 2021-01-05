@@ -41,7 +41,7 @@ class RuleSetDictionaryConverter(DictionaryConverter):
         obj_dict = {
             "age_state": obj.age_state,
             "default_action": obj.default_action,
-            "default_action_coefficient":obj.default_action_coefficient,
+            "default_action_coefficient": obj.default_action_coefficient,
             "min_maxes": obj.min_maxes,
             "rules": [],
             "times_applied": obj.times_applied
