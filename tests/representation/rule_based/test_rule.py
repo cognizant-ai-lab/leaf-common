@@ -69,8 +69,8 @@ class TestRule(TestCase):
         evaluator = RuleEvaluator(None)
         result = evaluator.evaluate(rule, self.evaluation_data)
 
-        self.assertEqual('1', result[0])
-        self.assertEqual(0, result[1])
+        self.assertEqual('1', result[RulesConstants.ACTION_KEY])
+        self.assertEqual(0, result[RulesConstants.LOOKBACK_KEY])
 
     @patch("leaf_common.representation.rule_based.evaluation.rule_evaluator.ConditionEvaluator.evaluate",
            return_value=Mock())
@@ -85,8 +85,8 @@ class TestRule(TestCase):
         evaluator = RuleEvaluator(None)
         result = evaluator.evaluate(rule, self.evaluation_data)
 
-        self.assertEqual(RulesConstants.NO_ACTION, result[0])
-        self.assertEqual(0, result[1])
+        self.assertEqual(RulesConstants.NO_ACTION, result[RulesConstants.ACTION_KEY])
+        self.assertEqual(0, result[RulesConstants.LOOKBACK_KEY])
 
     @staticmethod
     def _create_rule(first_condition_true, second_condition_true):

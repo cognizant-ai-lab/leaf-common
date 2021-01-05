@@ -22,10 +22,6 @@ from leaf_common.representation.rule_based.data.rules_constants import RulesCons
 from leaf_common.representation.rule_based.evaluation.rule_evaluator \
     import RuleEvaluator
 
-ACTION_INDEX = 0
-ACTION_COEFFICIENT_INDEX = 1
-LOOK_BACK_INDEX = 2
-
 
 class RuleSetEvaluator(ComponentEvaluator):
     """
@@ -166,14 +162,15 @@ class RuleSetEvaluator(ComponentEvaluator):
         }
         for rule in rule_set.rules:
             result = self._rule_evaluator.evaluate(rule, rule_evaluation_data)
-            action = result[ACTION_INDEX]
+            action = result[RulesConstants.ACTION_KEY]
             if action != RulesConstants.NO_ACTION:
                 if action in self._actions.keys():
                     poll_dict[action][RulesConstants.ACTION_COUNT_KEY] += 1
-                    poll_dict[action][RulesConstants.ACTION_COEFFICIENT_KEY] += result[ACTION_COEFFICIENT_INDEX]
+                    poll_dict[action][RulesConstants.ACTION_COEFFICIENT_KEY] += \
+                        result[RulesConstants.ACTION_COEFFICIENT_KEY]
                     anyone_voted = True
-                if action == RulesConstants.LOOK_BACK:
-                    lookback = result[LOOK_BACK_INDEX]
+                if action == RulesConstants.LOOKBACK_ACTION:
+                    lookback = result[RulesConstants.LOOKBACK_KEY]
                     prev_actions = self._get_action_in_state(self._observation_history[nb_states - lookback])
                     for prev_action in prev_actions:
                         prev_action_poll = prev_action[RulesConstants.ACTION_COUNT_KEY]

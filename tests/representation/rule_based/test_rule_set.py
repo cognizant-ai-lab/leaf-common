@@ -88,8 +88,8 @@ class TestRuleSet(TestCase):
         self.assertEqual(num_rules, len(rule_set.rules))
 
         evaluate_mock.side_effect = [
-            {RulesConstants.ACTION_KEY: 'action1'},
-            {RulesConstants.ACTION_KEY: 'action1'}
+            {RulesConstants.ACTION_KEY: 'action1', RulesConstants.ACTION_COEFFICIENT_KEY: 0.5},
+            {RulesConstants.ACTION_KEY: 'action1', RulesConstants.ACTION_COEFFICIENT_KEY: 0.9}
         ]
 
         evaluator = RuleSetEvaluator(self.states, self.actions)
@@ -98,8 +98,10 @@ class TestRuleSet(TestCase):
         self.assertEqual(num_rules, len(result))
         self.assertTrue('action1' in result)
         self.assertTrue('action2' in result)
-        self.assertEqual(num_rules, result['action1'])
-        self.assertEqual(0, result['action2'])
+        self.assertEqual(num_rules, result['action1'].get(RulesConstants.ACTION_COUNT_KEY))
+        self.assertEqual(0, result['action2'].get(RulesConstants.ACTION_COUNT_KEY))
+        self.assertEqual(1.4, result['action1'].get(RulesConstants.ACTION_COEFFICIENT_KEY))
+        self.assertEqual(0.0, result['action2'].get(RulesConstants.ACTION_COEFFICIENT_KEY))
 
     @patch("leaf_common.representation.rule_based.evaluation.rule_set_evaluator.RuleEvaluator.evaluate",
            return_value=Mock())
@@ -116,8 +118,8 @@ class TestRuleSet(TestCase):
         self.assertEqual(num_rules, len(rule_set.rules))
 
         evaluate_mock.side_effect = [
-            {RulesConstants.ACTION_KEY: 'action1'},
-            {RulesConstants.ACTION_KEY: 'action2'}
+            {RulesConstants.ACTION_KEY: 'action1', RulesConstants.ACTION_COEFFICIENT_KEY: 0.5},
+            {RulesConstants.ACTION_KEY: 'action2', RulesConstants.ACTION_COEFFICIENT_KEY: 0.1}
         ]
 
         evaluator = RuleSetEvaluator(self.states, self.actions)
@@ -127,8 +129,10 @@ class TestRuleSet(TestCase):
         self.assertEqual(num_rules, len(result))
         self.assertTrue('action1' in result)
         self.assertTrue('action2' in result)
-        self.assertEqual(1, result['action1'])
-        self.assertEqual(1, result['action2'])
+        self.assertEqual(1, result['action1'].get(RulesConstants.ACTION_COUNT_KEY))
+        self.assertEqual(1, result['action2'].get(RulesConstants.ACTION_COUNT_KEY))
+        self.assertEqual(0.5, result['action1'].get(RulesConstants.ACTION_COEFFICIENT_KEY))
+        self.assertEqual(0.1, result['action2'].get(RulesConstants.ACTION_COEFFICIENT_KEY))
 
     @staticmethod
     def _create_rules_rule_set(rule1_action, rule2_action):

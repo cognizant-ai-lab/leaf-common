@@ -33,7 +33,7 @@ class RulesConstants():
 
     # Rule stuff
     RULE_ELEMENTS = [CONDITION_KEY, ACTION_KEY, ACTION_COEFFICIENT_KEY, LOOKBACK_KEY]
-    LOOK_BACK = "lb"
+    LOOKBACK_ACTION = "lb"
     NO_ACTION = -1
 
     # pylint: disable=fixme

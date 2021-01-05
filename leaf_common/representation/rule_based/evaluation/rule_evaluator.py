@@ -37,7 +37,7 @@ class RuleEvaluator(ComponentEvaluator):
         self.condition_evaluator = ConditionEvaluator(states)
 
     def evaluate(self, component: Rule,
-                 evaluation_data: Dict[str, object]) -> List[object]:
+                 evaluation_data: Dict[str, object]) -> Dict[str, object]:
         """
         :return: A list containing an action indicator, an action coefficient,
                     and a lookback value or 0 for no lookback
@@ -48,7 +48,9 @@ class RuleEvaluator(ComponentEvaluator):
         for condition in rule.conditions:
             condition_result = self.condition_evaluator.evaluate(condition, evaluation_data)
             if not condition_result:
-                return [RulesConstants.NO_ACTION, rule.action_coefficient, 0]
+                return {RulesConstants.ACTION_KEY: RulesConstants.NO_ACTION,
+                        RulesConstants.ACTION_COEFFICIENT_KEY: rule.action_coefficient,
+                        RulesConstants.LOOKBACK_KEY: 0}
 
         observation_history = evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY]
         nb_states = len(observation_history) - 1
@@ -56,10 +58,16 @@ class RuleEvaluator(ComponentEvaluator):
         # If the lookback is greater than the number of states we have, we can't evaluate the condition so
         # default to RulesConstants.NO_ACTION
         if nb_states < rule.action_lookback:
-            return [RulesConstants.NO_ACTION, rule.action_coefficient, 0]
+            return {RulesConstants.ACTION_KEY: RulesConstants.NO_ACTION,
+                    RulesConstants.ACTION_COEFFICIENT_KEY: rule.action_coefficient,
+                    RulesConstants.LOOKBACK_KEY: 0}
 
         rule.times_applied += 1
         if rule.action_lookback == 0:
-            return [rule.action, rule.action_coefficient, 0]
+            return {RulesConstants.ACTION_KEY: rule.action,
+                    RulesConstants.ACTION_COEFFICIENT_KEY: rule.action_coefficient,
+                    RulesConstants.LOOKBACK_KEY: 0}
 
-        return [RulesConstants.LOOK_BACK, rule.action_coefficient, rule.action_lookback]
+        return {RulesConstants.ACTION_KEY: RulesConstants.LOOKBACK_ACTION,
+                RulesConstants.ACTION_COEFFICIENT_KEY: rule.action_coefficient,
+                RulesConstants.LOOKBACK_KEY: rule.action_lookback}
