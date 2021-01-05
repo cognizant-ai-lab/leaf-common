@@ -15,6 +15,7 @@ Base class for rule representation
 
 from typing import Dict
 from typing import List
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 
 from leaf_common.representation.rule_based.data.condition import Condition
 
@@ -32,6 +33,7 @@ class Rule:
         # Genetic Material
         self.action = None
         self.action_lookback = None
+        self.action_coefficient: float = None
         self.conditions: List[Condition] = []
 
     def __str__(self):
@@ -42,19 +44,27 @@ class Rule:
 
     # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
     def to_string(self, states: Dict[str, str] = None,
-                  min_maxes: Dict[str, Dict[str, float]] = None) -> str:  # noqa: E252
+                  min_maxes: Dict[str, Dict[str, float]] = None,
+                  actions: Dict[str, str] = None) -> str:  # noqa: E252
         """
         String representation for rule
+        :param states: An optional dictionary of state definitions seen during evaluation.
+        :param actions: An optional dictionary of action definitions seen during evaluation.
         :param min_maxes: A dictionary of domain features minimum and maximum values
         :return: rule.toString()
         """
+        action_name = str(self.action)
+        if actions is not None and self.action in actions:
+            action_name = actions[self.action]
+        coefficient_part = f'{self.action_coefficient:.{RulesConstants.DECIMAL_DIGITS}f}*'
         if self.action_lookback > 0:
             the_action = " -->  Action[" + str(self.action_lookback) + "]"
         else:
-            the_action = " -->  " + str(self.action)
+            the_action = " -->  " + coefficient_part + action_name
         condition_string = ""
         for condition in self.conditions:
-            condition_string = condition_string + "(" + condition.to_string(states, min_maxes) + ") "
+            condition_string = condition_string + "(" + \
+                               condition.to_string(states=states, min_maxes=min_maxes) + ") "
         times_applied = "   < > "
         if self.times_applied > 0:
             times_applied = "  <" + str(self.times_applied) + "> "

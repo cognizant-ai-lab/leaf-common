@@ -40,6 +40,7 @@ class RuleDictionaryConverter(DictionaryConverter):
 
         obj_dict = {
             "action": obj.action,
+            "action_coefficient": obj.action_coefficient,
             "action_lookback": obj.action_lookback,
             "conditions": [],
             "times_applied": obj.times_applied
@@ -63,6 +64,7 @@ class RuleDictionaryConverter(DictionaryConverter):
         obj = Rule()
 
         obj.action = obj_dict.get("action", None)
+        obj.action_coefficient = obj_dict.get("action_coefficient", None)
         obj.action_lookback = obj_dict.get("action_lookback", None)
         obj.times_applied = obj_dict.get("times_applied", 0)
 

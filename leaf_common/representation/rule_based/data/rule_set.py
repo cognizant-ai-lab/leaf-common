@@ -14,6 +14,8 @@
 from copy import deepcopy
 from typing import Dict
 
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
+
 
 class RuleSet:
     """
@@ -47,6 +49,7 @@ class RuleSet:
 
         # Honest-to-goodness Genetic Material
         self.default_action = None
+        self.default_action_coefficient: float = None
         self.rules = []
 
         # Initialize the min/maxes
@@ -55,20 +58,25 @@ class RuleSet:
             self.min_maxes = deepcopy(min_maxes)
 
     # see https://github.com/PyCQA/pycodestyle/issues/753 for why next line needs noqa
-    def to_string(self, states: Dict[str, str] = None) -> str:      # noqa: E252
+    def to_string(self, states: Dict[str, str] = None, actions: Dict[str, str] = None) -> str:      # noqa: E252
         """
         String representation for rule
 
         :param states: An optional dictionary of state definitions seen during evaluation.
+        :param actions: An optional dictionary of action definitions seen during evaluation.
         :return: RuleSet.toString()
         """
+        action_name = str(self.default_action)
+        if actions is not None and self.default_action in actions:
+            action_name = actions[self.default_action]
         rules_str = ""
         for rule in self.rules:
-            rules_str = rules_str + rule.to_string(states, self.min_maxes) + "\n"
+            rules_str = rules_str + rule.to_string(states=states, actions=actions, min_maxes=self.min_maxes) + "\n"
         times_applied = " <> "
         if self.times_applied > 0:
             times_applied = " <" + str(self.times_applied) + "> "
-        rules_str = rules_str + times_applied + "Default Action: " + str(self.default_action) + "\n"
+        coefficient_part = f'{self.default_action_coefficient:.{RulesConstants.DECIMAL_DIGITS}f}*'
+        rules_str = rules_str + times_applied + "Default Action: " + coefficient_part + action_name + "\n"
         return rules_str
 
     def __str__(self):
