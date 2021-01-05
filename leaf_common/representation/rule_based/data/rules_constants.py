@@ -25,18 +25,20 @@ class RulesConstants():
     MEM_FACTOR = 100  # max memory cells required
     TOTAL_KEY = "total"
 
+    CONDITION_KEY = "condition"
+    ACTION_KEY = "action"
+    ACTION_COUNT_KEY = "action_count"
+    ACTION_COEFFICIENT_KEY = "action_coefficient"
+    LOOKBACK_KEY = "action_lookback"
+
     # Rule stuff
-    RULE_ELEMENTS = ["condition", "action", "action_coef", "action_lookback"]
+    RULE_ELEMENTS = [CONDITION_KEY, ACTION_KEY, ACTION_COEFFICIENT_KEY, LOOKBACK_KEY]
     LOOK_BACK = "lb"
     NO_ACTION = -1
 
     # pylint: disable=fixme
     # XXX If these are used as a keys, they would be better off as a strings
     #       Think: More intelligible in JSON.
-    ACTION_COUNT = 0
-    ACTION_KEY = 0
-    ACTION_COEF_KEY = 1
-    LOOKBACK_KEY = 2
 
     # Condition stuff
     CONDITION_ELEMENTS = [

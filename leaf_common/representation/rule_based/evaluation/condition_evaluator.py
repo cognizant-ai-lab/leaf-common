@@ -15,7 +15,6 @@ Base class for condition representation
 
 from typing import Dict
 from typing import List
-from typing import Tuple
 
 from leaf_common.evaluation.component_evaluator import ComponentEvaluator
 from leaf_common.representation.rule_based.data.condition import Condition
@@ -39,13 +38,13 @@ class ConditionEvaluator(ComponentEvaluator):  # pylint: disable-msg=R0902
         condition = component
 
         observation_history = evaluation_data[RulesConstants.OBSERVATION_HISTORY_KEY]
-        min_maxes = evaluation_data[RulesConstants.STATE_MIN_MAXES_KEY]
+        min_maxes = evaluation_data.get(RulesConstants.STATE_MIN_MAXES_KEY)
 
         result = self.parse(condition, observation_history, min_maxes)
         return result
 
     def parse(self, condition: Condition, observation_history: List[Dict[str, float]],
-              min_maxes: Dict[Tuple[str, str], float]) -> bool:
+              min_maxes: Dict[str, Dict[str, float]]) -> bool:
         """
         Parse a condition
         :param observation_history: list of domain states
@@ -73,7 +72,7 @@ class ConditionEvaluator(ComponentEvaluator):  # pylint: disable-msg=R0902
     def get_second_state_value(self, condition: Condition,
                                observation_history: List[Dict[str, float]],
                                nb_states: int,
-                               min_maxes: Dict[Tuple[str, str], float]) -> float:
+                               min_maxes: Dict[str, Dict[str, float]]) -> float:
         """
         Get second state value
         :param observation_history: list of domain states
@@ -87,8 +86,10 @@ class ConditionEvaluator(ComponentEvaluator):  # pylint: disable-msg=R0902
             second_state = second_state ** condition.second_state_exponent
             second_state *= condition.second_state_coefficient
         else:
-            the_min = min_maxes[condition.first_state_key, RulesConstants.MIN_KEY]
-            the_max = min_maxes[condition.first_state_key, RulesConstants.MAX_KEY]
+            empty_dict = {}
+            state_dict = min_maxes.get(condition.first_state_key, empty_dict)
+            the_min = state_dict.get(RulesConstants.MIN_KEY)
+            the_max = state_dict.get(RulesConstants.MAX_KEY)
             the_range = the_max - the_min
             second_state = the_min + the_range * condition.second_state_value
 

@@ -13,14 +13,15 @@
 See class comment for details.
 """
 
+import json
+
 from io import StringIO
 from typing import TextIO
 
-import jsonpickle
-import jsonpickle.ext.numpy as jsonpickle_numpy
-
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
+from leaf_common.representation.rule_based.serialization.rule_set_dictionary_converter \
+    import RuleSetDictionaryConverter
 
 
 class RuleSetSerializationFormat(SerializationFormat):
@@ -32,15 +33,15 @@ class RuleSetSerializationFormat(SerializationFormat):
     # do the registration of the numpy handlers
     registered = False
 
-    def __init__(self):
+    def __init__(self, indent: int = 4, sort_keys: bool = True):
         """
-        Constructor.
+        Constructor
 
-        Doesn't do much except do the registration of the jsonpickle business.
+        :param indent: indentation of serialization. Default is 4
+        :param sort_keys: should dict keys be sorted for serialization. Default is True
         """
-        if not self.registered:
-            self.registered = True
-            jsonpickle_numpy.register_handlers()
+        self.indent = indent
+        self.sort_keys = sort_keys
 
     def get_file_extension(self) -> str:
         """
@@ -56,7 +57,10 @@ class RuleSetSerializationFormat(SerializationFormat):
                 bytes.  Any file cursors should be set to the beginning
                 of the data (ala seek to the beginning).
         """
-        json_string = jsonpickle.encode(obj, keys=True)
+        converter = RuleSetDictionaryConverter()
+        obj_dict = converter.to_dict(obj)
+
+        json_string = json.dumps(obj_dict, indent=self.indent, sort_keys=self.sort_keys)
         fileobj = StringIO(json_string)
         return fileobj
 
@@ -73,5 +77,8 @@ class RuleSetSerializationFormat(SerializationFormat):
         :return: the deserialized object
         """
         json_string = fileobj.getvalue()
-        obj = jsonpickle.decode(json_string, keys=True)
+        obj_dict = json.loads(json_string)
+
+        converter = RuleSetDictionaryConverter()
+        obj = converter.from_dict(obj_dict)
         return obj

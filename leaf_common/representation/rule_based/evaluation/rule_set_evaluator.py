@@ -15,14 +15,16 @@ See class comment for details
 
 from typing import Dict
 
-import random
-
 from leaf_common.candidates.constants import ACTION_MARKER
 from leaf_common.evaluation.component_evaluator import ComponentEvaluator
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 from leaf_common.representation.rule_based.evaluation.rule_evaluator \
     import RuleEvaluator
+
+ACTION_INDEX = 0
+ACTION_COEFFICIENT_INDEX = 1
+LOOK_BACK_INDEX = 2
 
 
 class RuleSetEvaluator(ComponentEvaluator):
@@ -97,18 +99,27 @@ class RuleSetEvaluator(ComponentEvaluator):
         if not rule_set.min_maxes:
             rule_set.min_maxes = {}
             for state in self._states.keys():
-                rule_set.min_maxes[state, RulesConstants.MIN_KEY] = 0
-                rule_set.min_maxes[state, RulesConstants.MAX_KEY] = 0
-                rule_set.min_maxes[state, RulesConstants.TOTAL_KEY] = 0
+                state_dict = {
+                    RulesConstants.MIN_KEY: 0.0,
+                    RulesConstants.MAX_KEY: 0.0,
+                    RulesConstants.TOTAL_KEY: 0.0
+                }
+                rule_set.min_maxes[state] = state_dict
 
+        empty_dict = {}
         for state in self._states.keys():
-            rule_set.min_maxes[state, RulesConstants.TOTAL_KEY] = \
-                rule_set.min_maxes[state, RulesConstants.TOTAL_KEY] + \
-                current_observation[state]
-            if current_observation[state] < rule_set.min_maxes[state, RulesConstants.MIN_KEY]:
-                rule_set.min_maxes[state, RulesConstants.MIN_KEY] = current_observation[state]
-            if current_observation[state] > rule_set.min_maxes[state, RulesConstants.MAX_KEY]:
-                rule_set.min_maxes[state, RulesConstants.MAX_KEY] = current_observation[state]
+
+            state_dict = rule_set.min_maxes.get(state, empty_dict)
+            state_dict[RulesConstants.TOTAL_KEY] = \
+                state_dict[RulesConstants.TOTAL_KEY] + float(current_observation[state])
+
+            state_min = state_dict.get(RulesConstants.MIN_KEY, 0.0)
+            if current_observation[state] < state_min:
+                state_dict[RulesConstants.MIN_KEY] = float(current_observation[state])
+
+            state_max = state_dict.get(RulesConstants.MAX_KEY, 0.0)
+            if current_observation[state] > state_max:
+                state_dict[RulesConstants.MAX_KEY] = float(current_observation[state])
 
     def _set_action_in_state(self, action, state):
         """
@@ -140,7 +151,7 @@ class RuleSetEvaluator(ComponentEvaluator):
         """
         poll_dict = {}
         for key in self._actions.keys():
-            poll_dict[key] = [0, 0.0]
+            poll_dict[key] = {RulesConstants.ACTION_COUNT_KEY: 0, RulesConstants.ACTION_COEFFICIENT_KEY: 0.0}
         nb_states = len(self._observation_history) - 1
         if self._observation_history:
             self._revise_state_minmaxes(rule_set, self._observation_history[nb_states])
@@ -155,25 +166,26 @@ class RuleSetEvaluator(ComponentEvaluator):
         }
         for rule in rule_set.rules:
             result = self._rule_evaluator.evaluate(rule, rule_evaluation_data)
-            action = result[RulesConstants.ACTION_KEY]
+            action = result[ACTION_INDEX]
             if action != RulesConstants.NO_ACTION:
                 if action in self._actions.keys():
-                    poll_dict[action][RulesConstants.ACTION_KEY] += 1
-                    poll_dict[action][RulesConstants.ACTION_COEF_KEY] += result[RulesConstants.ACTION_COEF_KEY]
+                    poll_dict[action][RulesConstants.ACTION_COUNT_KEY] += 1
+                    poll_dict[action][RulesConstants.ACTION_COEFFICIENT_KEY] += result[ACTION_COEFFICIENT_INDEX]
                     anyone_voted = True
                 if action == RulesConstants.LOOK_BACK:
-                    lookback = result[RulesConstants.LOOKBACK_KEY]
+                    lookback = result[LOOK_BACK_INDEX]
                     prev_actions = self._get_action_in_state(self._observation_history[nb_states - lookback])
                     for prev_action in prev_actions:
-                        prev_action_poll = prev_action[RulesConstants.ACTION_COUNT]
-                        poll_dict[prev_action][RulesConstants.ACTION_COUNT] += prev_action_poll
-                        poll_dict[prev_action][RulesConstants.ACTION_COEF_KEY] += \
-                            prev_action[RulesConstants.ACTION_COEF_KEY]
+                        prev_action_poll = prev_action[RulesConstants.ACTION_COUNT_KEY]
+                        poll_dict[prev_action][RulesConstants.ACTION_COUNT_KEY] += prev_action_poll
+                        poll_dict[prev_action][RulesConstants.ACTION_COEFFICIENT_KEY] += \
+                            prev_action[RulesConstants.ACTION_COEFFICIENT_KEY]
                     anyone_voted = True
         if not anyone_voted:
             rule_set.times_applied += 1
-            poll_dict[rule_set.default_action][RulesConstants.ACTION_KEY] = 1
-            poll_dict[rule_set.default_action][RulesConstants.ACTION_COEF_KEY] = rule_set.default_action_coefficient
+            poll_dict[rule_set.default_action][RulesConstants.ACTION_COUNT_KEY] = 1
+            poll_dict[rule_set.default_action][RulesConstants.ACTION_COEFFICIENT_KEY] = \
+                rule_set.default_action_coefficient
         return poll_dict
 
     def choose_action(self, rule_set: RuleSet, current_observation: Dict[str, str]):
