@@ -14,7 +14,6 @@ Base class for rule representation
 """
 
 from typing import Dict
-from typing import List
 
 from leaf_common.evaluation.component_evaluator import ComponentEvaluator
 from leaf_common.representation.rule_based.data.rule import Rule
