@@ -14,6 +14,7 @@ See class comment for details.
 """
 from typing import Dict
 
+from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
 from leaf_common.representation.rule_based.serialization.rule_dictionary_converter \
     import RuleDictionaryConverter
@@ -39,6 +40,11 @@ class RuleSetDictionaryConverter(DictionaryConverter):
             return None
 
         obj_dict = {
+            # This key allows for self-identifying representations
+            # when a common serialization format (like JSON) is shared
+            # between multiple representations.
+            "representation_type": str(RepresentationType.RuleBased),
+
             "age_state": obj.age_state,
             "default_action": obj.default_action,
             "default_action_coefficient": obj.default_action_coefficient,
