@@ -41,38 +41,11 @@ class RepresentationPersistenceFactory(RepresentationFileExtensionProviderFactor
         self.register(RepresentationType.Structure, StructureFilePersistence())
         self.register(RepresentationType.RuleBased, RuleSetFilePersistence())
 
-    def create_from_representation_type(self, rep_type: RepresentationType) -> Persistence:
-        """
-        Given a RepresentationType, return its register()-ed Persistence
-        implementation.
-
-        :param rep_type: A RepresentationType to look up
-        :return: A Persistence implementation corresponding to the rep_type
-        """
-        return super().create_from_representation_type(rep_type)
-
-    def lookup_from_filename(self, filename: str) -> List[Persistence]:
-        """
-        Given a filename, return a list of potential register()-ed Persistence
-        implementations.
-
-        Note that this implementation does not actually open the file
-        to examine any self-identifying aspects of the contents, and as
-        a single file type (like JSON) has the potential to contain a
-        number of different possibilities, this method returns a list
-        if it finds anything.
-
-        :param filename: A string filename whose file extension is used as a key for look up
-        :return: A list of potential Persistence implementations corresponding to the filename
-                 or None if no Persistence implementations are found for the filename
-        """
-        return super().lookup_from_filename(filename)
-
-    def register(self, rep_type: RepresentationType, persistence: Persistence):
+    def register(self, rep_type: RepresentationType, file_extension_provider: Persistence):
         """
         Register a Persistence implementation for a RepresentationType
 
         :param rep_type: A RepresentationType to use as a key
-        :param persistence: A Persistence implementation to use as a value
+        :param file_extension_provider: A Persistence implementation to use as a value
         """
-        super().register(rep_type, persistence)
+        super().register(rep_type, file_extension_provider)
