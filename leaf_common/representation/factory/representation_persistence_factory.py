@@ -12,8 +12,6 @@
 """
 See class comment for details.
 """
-from typing import List
-
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.persistence.interface.persistence import Persistence
 

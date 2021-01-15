@@ -12,8 +12,6 @@
 """
 See class comment for details.
 """
-from typing import List
-
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
 
