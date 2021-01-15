@@ -45,7 +45,6 @@ class RepresentationFileExtensionProviderFactory():
         # extension strings and its values are lists of FileExtensionProvider implementations
         self._extension_map = {}
 
-
     def create_from_representation_type(self, rep_type: RepresentationType) -> FileExtensionProvider:
         """
         Given a RepresentationType, return its register()-ed FileExtensionProvider
@@ -147,9 +146,9 @@ class RepresentationFileExtensionProviderFactory():
             provider_extensions = [provider_extensions]
 
         for provider_extension in provider_extensions:
-            extension_list = self._extension_map.get(extension, None)
+            extension_list = self._extension_map.get(provider_extension, None)
             if extension_list is None:
                 extension_list = []
-                self._extension_map[extension] = extension_list
+                self._extension_map[provider_extension] = extension_list
 
-            extension_list.append(provider_extension)
+            extension_list.append(file_extension_provider)
