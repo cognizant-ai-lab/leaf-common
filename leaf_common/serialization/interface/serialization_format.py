@@ -49,9 +49,14 @@ class SerializationFormat(Serializer, Deserializer, FileExtensionProvider):
         """
         raise NotImplementedError
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".".
+
+                While the parent interface allows for returning
+                lists, a SerializationFormat implementation should
+                only ever have a single file extension associated
+                with it.
         """
         raise NotImplementedError

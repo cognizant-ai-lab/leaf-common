@@ -68,6 +68,12 @@ class RuleSetDictionaryConverter(DictionaryConverter):
                 If obj_dict is not the correct type, it is also reasonable
                 to return None.
         """
+        representation_type = obj_dict.get("representation_type", None)
+        if representation_type is not RepresentationType.RuleBased:
+            raise ValueError("Expected representation_type {0} got {1}".format(
+                                    RepresentationType.RuleBased,
+                                    representation_type))
+
         min_maxes = obj_dict.get("min_maxes", None)
         obj = RuleSet(min_maxes=min_maxes)
 

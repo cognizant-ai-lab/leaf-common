@@ -12,16 +12,19 @@
 """
 See class comment for details.
 """
+from typing import List
 
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.persistence.interface.persistence import Persistence
 
+from leaf_common.representation.factory.representation_file_extension_provider_factory \
+    import RepresentationFileExtensionProviderFactory
 from leaf_common.representation.rule_based.persistence.rule_set_file_persistence \
     import RuleSetFilePersistence
 from leaf_common.representation.structure.structure_file_persistence import StructureFilePersistence
 
 
-class RepresentationPersistenceFactory():
+class RepresentationPersistenceFactory(RepresentationFileExtensionProviderFactory):
     """
     Factory class which returns a leaf-common Persistence class
     for the RepresentationType
@@ -32,9 +35,7 @@ class RepresentationPersistenceFactory():
         Constructor.
         """
 
-        # Initialize the map
-        self._type_map = {}
-        self._extension_map = {}
+        super().__init__()
 
         # Do some simple registrations
         self.register(RepresentationType.Structure, StructureFilePersistence())
@@ -48,59 +49,24 @@ class RepresentationPersistenceFactory():
         :param rep_type: A RepresentationType to look up
         :return: A Persistence implementation corresponding to the rep_type
         """
+        return super().create_from_representation_type(rep_type)
 
-        persistence = self._type_map.get(rep_type, None)
-
-        if persistence is None:
-            raise ValueError(f"Unknown representation_type: {rep_type}")
-
-        return persistence
-
-    def representation_type_from_filename(self, filename: str) -> RepresentationType:
+    def lookup_from_filename(self, filename: str) -> List[Persistence]:
         """
-        Given a filename, return its register()-ed RepresentationType
+        Given a filename, return a list of potential register()-ed Persistence
+        implementations.
+
+        Note that this implementation does not actually open the file
+        to examine any self-identifying aspects of the contents, and as
+        a single file type (like JSON) has the potential to contain a
+        number of different possibilities, this method returns a list
+        if it finds anything.
 
         :param filename: A string filename whose file extension is used as a key for look up
-        :return: A RepresentationType corresponding to the filename
+        :return: A list of potential Persistence implementations corresponding to the filename
+                 or None if no Persistence implementations are found for the filename
         """
-
-        persistence = self.create_from_filename(filename)
-
-        for representation_type, value in self._type_map.items():
-
-            if value == persistence:
-                return representation_type
-        return None
-
-    def create_from_filename(self, filename: str) -> Persistence:
-        """
-        Given a filename, return its register()-ed Persistence
-        implementation.
-
-        :param filename: A string filename whose file extension is used as a key for look up
-        :return: A Persistence implementation corresponding to the filename
-        """
-
-        persistence = None
-        found_key = None
-
-        for key, value in self._extension_map.items():
-
-            use_key = filename is not None and filename.endswith(key)
-            if use_key:
-                # Use the longest match of the file extension keys
-                # Assume this means more specific
-                if found_key is not None and len(key) < len(found_key):
-                    use_key = False
-
-            if use_key:
-                found_key = key
-                persistence = value
-
-        if persistence is None:
-            raise ValueError(f"Unknown file extension in file name: {filename}")
-
-        return persistence
+        return super().lookup_from_filename(filename)
 
     def register(self, rep_type: RepresentationType, persistence: Persistence):
         """
@@ -109,7 +75,4 @@ class RepresentationPersistenceFactory():
         :param rep_type: A RepresentationType to use as a key
         :param persistence: A Persistence implementation to use as a value
         """
-        self._type_map[rep_type] = persistence
-
-        extension = persistence.get_file_extension()
-        self._extension_map[extension] = persistence
+        super().register(rep_type, persistence)
