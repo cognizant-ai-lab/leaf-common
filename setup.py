@@ -7,7 +7,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-LIBRARY_VERSION = "1.1.22"
+LIBRARY_VERSION = "1.1.23"
 
 CURRENT_PYTHON = sys.version_info[:2]
 REQUIRED_PYTHON = (3, 6)
@@ -37,6 +37,6 @@ setup(
     ],
     description='LEAF team common code library',
     long_description=_read('README.md'),
-    author='Darren Sargent',
+    author='Dan Fink',
     url='https://github.com/leaf-ai/leaf-common/'
 )
