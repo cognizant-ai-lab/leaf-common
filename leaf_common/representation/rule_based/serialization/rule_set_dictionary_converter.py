@@ -43,7 +43,7 @@ class RuleSetDictionaryConverter(DictionaryConverter):
             # This key allows for self-identifying representations
             # when a common serialization format (like JSON) is shared
             # between multiple representations.
-            "representation_type": str(RepresentationType.RuleBased),
+            "representation_type": RepresentationType.RuleBased.value,
 
             "age_state": obj.age_state,
             "default_action": obj.default_action,
@@ -69,9 +69,9 @@ class RuleSetDictionaryConverter(DictionaryConverter):
                 to return None.
         """
         representation_type = obj_dict.get("representation_type", None)
-        if representation_type is not RepresentationType.RuleBased:
+        if representation_type != RepresentationType.RuleBased.value:
             raise ValueError("Expected representation_type {0} got {1}".format(
-                                    RepresentationType.RuleBased,
+                                    RepresentationType.RuleBased.value,
                                     representation_type))
 
         min_maxes = obj_dict.get("min_maxes", None)
