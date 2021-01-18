@@ -44,9 +44,9 @@ class SelfIdentifyingRestorer(Restorer):
         if file_reference is None:
             return None
 
-        rep_type_list = self._persistence_factory.representation_types_from_filename(filename)
+        rep_type_list = self._persistence_factory.representation_types_from_filename(file_reference)
         if rep_type_list is None:
-            raise ValueError("Could not find representation type for {0}".format(filename))
+            raise ValueError("Could not find representation type for {0}".format(file_reference))
 
         # For any given file extension (like JSON), there could be multiple
         # representation types that could live in there.  Here we need to attempt
@@ -56,14 +56,14 @@ class SelfIdentifyingRestorer(Restorer):
         rep_type = None
         restored_object = None
         for test_rep_type in rep_type_list:
-            peristence = self._persistence_factory.create_from_representation_type(test_rep_type)
+            persistence = self._persistence_factory.create_from_representation_type(test_rep_type)
             try:
-                restored_object = persistence.restore(filename)
+                restored_object = persistence.restore(file_reference)
                 if restored_object is not None:
                     # We found the RepresentationType that worked
                     rep_type = test_rep_type
                     break
-            except:
+            except:         # noqa: E722
                 # Swallow any exception in case the next representation type
                 # works.
                 pass
@@ -71,7 +71,7 @@ class SelfIdentifyingRestorer(Restorer):
         if restored_object is None:
             self._last_restored_representation_type = None
             raise ValueError("Could not open file {0} using any RepresentationType in {1}".format(
-                             filename, rep_type_list))
+                             file_reference, rep_type_list))
 
         self._last_restored_representation_type = rep_type
         return restored_object
