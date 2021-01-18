@@ -63,6 +63,8 @@ class SelfIdentifyingRestorer(Restorer):
                     # We found the RepresentationType that worked
                     rep_type = test_rep_type
                     break
+
+            # pylint: disable=bare-except
             except:         # noqa: E722
                 # Swallow any exception in case the next representation type
                 # works.
