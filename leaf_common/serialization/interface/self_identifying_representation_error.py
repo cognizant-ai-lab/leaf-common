@@ -9,6 +9,9 @@
 #
 # END COPYRIGHT
 
+from leaf_common.candidates.representation_types import RepresentationType
+
+
 class SelfIdentifyingRepresentationError(ValueError):
     """
     Specific exception to raise when attempting to deserialize a stream
@@ -27,5 +30,5 @@ class SelfIdentifyingRepresentationError(ValueError):
                                     expected_representation_type.value)
             if found_representation_type is not None:
                 use_message = "{0} found {1}".format(use_message,
-                                     found_representation_type.value)
+                                                     found_representation_type.value)
         self.super(use_message)
