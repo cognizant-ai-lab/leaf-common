@@ -83,6 +83,6 @@ class SelfIdentifyingRestorer(Restorer):
     def get_last_restored_representation_type(self) -> RepresentationType:
         """
         :return: The last RepresentationType restored by this instance.
-                Can return None if no successful restore() hasyet happened.
+                Can return None if no successful restore() has yet happened.
         """
         return self._last_restored_representation_type
