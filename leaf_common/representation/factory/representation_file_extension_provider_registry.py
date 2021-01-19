@@ -19,14 +19,14 @@ from leaf_common.serialization.interface.file_extension_provider \
     import FileExtensionProvider
 
 
-class RepresentationFileExtensionProviderFactory():
+class RepresentationFileExtensionProviderRegistry():
     """
-    Factory class which returns a leaf-common FileExtensionProvider class
-    for the RepresentationType.
+    Registry class which returns a leaf-common FileExtensionProvider class
+    for given RepresentationType(s).
 
     This is not to be used directly, but instead is an abstract basis
-    For RepresentationPersistenceFactory and
-    RepresentationSerializationFormatFactory.
+    For RepresentationPersistenceRegistry and
+    RepresentationSerializationFormatRegistry.
     """
 
     def __init__(self):
@@ -45,7 +45,7 @@ class RepresentationFileExtensionProviderFactory():
         # extension strings and its values are lists of FileExtensionProvider implementations
         self._extension_map = {}
 
-    def create_from_representation_type(self, rep_type: RepresentationType) -> FileExtensionProvider:
+    def get_for_representation_type(self, rep_type: RepresentationType) -> FileExtensionProvider:
         """
         Given a RepresentationType, return its register()-ed FileExtensionProvider
         implementation.

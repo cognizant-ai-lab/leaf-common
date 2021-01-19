@@ -15,16 +15,16 @@ See class comment for details.
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.serialization.interface.serialization_format import SerializationFormat
 
-from leaf_common.representation.factory.representation_file_extension_provider_factory \
-    import RepresentationFileExtensionProviderFactory
+from leaf_common.representation.structure.structure_serialization_format import StructureSerializationFormat
+from leaf_common.representation.registry.representation_file_extension_provider_registry \
+    import RepresentationFileExtensionProviderRegistry
 from leaf_common.representation.rule_based.serialization.rule_set_serialization_format \
     import RuleSetSerializationFormat
-from leaf_common.representation.structure.structure_serialization_format import StructureSerializationFormat
 
 
-class RepresentationSerializationFormatFactory(RepresentationFileExtensionProviderFactory):
+class RepresentationSerializationFormatRegistry(RepresentationFileExtensionProviderRegistry):
     """
-    Factory class which returns a leaf-common SerializationFormat class
+    Registry class which returns a leaf-common SerializationFormat class
     for the RepresentationType
     """
 

@@ -15,25 +15,25 @@ See class comment for details.
 
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.persistence.interface.restorer import Restorer
-from leaf_common.representation.factory.representation_persistence_factory \
-    import RepresentationPersistenceFactory
+from leaf_common.representation.registry.representation_persistence_registry \
+    import RepresentationPersistenceRegistry
 from leaf_common.serialization.interface.self_identifying_representation_error \
     import SelfIdentifyingRepresentationError
 
 
 class SelfIdentifyingRestorer(Restorer):
     """
-    A Restorer that, given a RepresentationPersistenceFactory, knows how
+    A Restorer that, given a RepresentationPersistenceRegistry, knows how
     to look inside the contents of a file to see which Persistence
     implementation should be used to restore() an object from a file reference.
     """
 
-    def __init__(self, persistence_factory: RepresentationPersistenceFactory):
+    def __init__(self, persistence_registry: RepresentationPersistenceRegistry):
         """
         Constructor.
         """
 
-        self._persistence_factory = persistence_factory
+        self._persistence_registry = persistence_registry
         self._last_restored_representation_type = None
 
     def restore(self, file_reference: str = None) -> object:
@@ -46,7 +46,7 @@ class SelfIdentifyingRestorer(Restorer):
         if file_reference is None:
             return None
 
-        rep_type_list = self._persistence_factory.representation_types_from_filename(file_reference)
+        rep_type_list = self._persistence_registry.representation_types_from_filename(file_reference)
         if rep_type_list is None:
             raise ValueError("Could not find representation type for {0}".format(file_reference))
 
@@ -58,7 +58,7 @@ class SelfIdentifyingRestorer(Restorer):
         rep_type = None
         restored_object = None
         for test_rep_type in rep_type_list:
-            persistence = self._persistence_factory.create_from_representation_type(test_rep_type)
+            persistence = self._persistence_registry.create_from_representation_type(test_rep_type)
             try:
                 restored_object = persistence.restore(file_reference)
                 if restored_object is not None:

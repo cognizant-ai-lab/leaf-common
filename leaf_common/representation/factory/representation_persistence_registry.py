@@ -15,16 +15,16 @@ See class comment for details.
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.persistence.interface.persistence import Persistence
 
-from leaf_common.representation.factory.representation_file_extension_provider_factory \
-    import RepresentationFileExtensionProviderFactory
+from leaf_common.representation.registry.representation_file_extension_provider_registry \
+    import RepresentationFileExtensionProviderRegistry
 from leaf_common.representation.rule_based.persistence.rule_set_file_persistence \
     import RuleSetFilePersistence
 from leaf_common.representation.structure.structure_file_persistence import StructureFilePersistence
 
 
-class RepresentationPersistenceFactory(RepresentationFileExtensionProviderFactory):
+class RepresentationPersistenceRegistry(RepresentationFileExtensionProviderRegistry):
     """
-    Factory class which returns a leaf-common Persistence class
+    Registry class which returns a leaf-common Persistence class
     for the RepresentationType
     """
 
