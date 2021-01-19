@@ -19,6 +19,8 @@ from leaf_common.representation.rule_based.data.rule_set import RuleSet
 from leaf_common.representation.rule_based.serialization.rule_dictionary_converter \
     import RuleDictionaryConverter
 from leaf_common.serialization.interface.dictionary_converter import DictionaryConverter
+from leaf_common.serialization.interface.self_identifying_representation_error \
+    import SelfIdentifyingRepresentationError
 
 
 class RuleSetDictionaryConverter(DictionaryConverter):
@@ -70,9 +72,8 @@ class RuleSetDictionaryConverter(DictionaryConverter):
         """
         representation_type = obj_dict.get("representation_type", None)
         if representation_type != RepresentationType.RuleBased.value:
-            raise ValueError("Expected representation_type {0} got {1}".format(
-                                    RepresentationType.RuleBased.value,
-                                    representation_type))
+            raise SelfIdentifyingRepresentationError(RepresentationType.RuleBased,
+                                                     representation_type)
 
         min_maxes = obj_dict.get("min_maxes", None)
         obj = RuleSet(min_maxes=min_maxes)

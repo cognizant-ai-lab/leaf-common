@@ -1,0 +1,31 @@
+# Copyright (C) 2019-2020 Cognizant Digital Business, Evolutionary AI.
+# All Rights Reserved.
+# Issued under the Academic Public License.
+#
+# You can be released from the terms, and requirements of the Academic Public
+# License by purchasing a commercial license.
+# Purchase of a commercial license is mandatory for any use of the
+# leaf-common SDK Software in commercial settings.
+#
+# END COPYRIGHT
+
+class SelfIdentifyingRepresentationError(ValueError):
+    """
+    Specific exception to raise when attempting to deserialize a stream
+    via a Deserializer's to_object() call and the logic realizes that
+    what is being deserialized is not of the correct RepresentationType.
+    """
+
+    def __init__(self, expected_representation_type: RepresentationType = None,
+                 found_representation_type: RepresentationType = None,
+                 message: str = None):
+        use_message = message
+        if use_message is None:
+            use_message = "Unexpected RepresentationType"
+            if expected_representation_type is not None:
+                use_message = "Expected RepresentationType {0}".format(
+                                    expected_representation_type.value)
+            if found_representation_type is not None:
+                use_message = "{0} found {1}".format(use_message,
+                                     found_representation_type.value)
+        self.super(use_message)

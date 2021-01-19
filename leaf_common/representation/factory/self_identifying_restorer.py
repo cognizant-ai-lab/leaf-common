@@ -17,6 +17,8 @@ from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.persistence.interface.restorer import Restorer
 from leaf_common.representation.factory.representation_persistence_factory \
     import RepresentationPersistenceFactory
+from leaf_common.serialization.interface.self_identifying_representation_error \
+    import SelfIdentifyingRepresentationError
 
 
 class SelfIdentifyingRestorer(Restorer):
@@ -64,10 +66,10 @@ class SelfIdentifyingRestorer(Restorer):
                     rep_type = test_rep_type
                     break
 
-            # pylint: disable=bare-except
-            except:         # noqa: E722
-                # Swallow any exception in case the next representation type
-                # works.
+            except SelfIdentifyingRepresentationError:
+                # Swallow in case the next representation type works.
+                # Specifically do not swallow IOErrors so that
+                # FileNotFoundError and the likes can be propagated to caller.
                 pass
 
         if restored_object is None:
