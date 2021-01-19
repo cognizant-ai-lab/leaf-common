@@ -22,8 +22,7 @@ from leaf_common.serialization.interface.file_extension_provider \
 class SerializationFormat(Serializer, Deserializer, FileExtensionProvider):
     """
     An interface which combines implementation aspects of a Serializer
-    and a Deserializer with a format name for registration in a factory
-    setting.
+    and a Deserializer with a format name for registration.
     """
 
     def from_object(self, obj):
