@@ -22,6 +22,16 @@ class SelfIdentifyingRepresentationError(ValueError):
     def __init__(self, expected_representation_type: RepresentationType = None,
                  found_representation_type: RepresentationType = None,
                  message: str = None):
+        """
+        Constructor
+
+        :param expected_representation_type: The RepresentationType that had
+                been expected
+        :param found_representation_type: The RepresentationType that had
+                been found
+        :param message: A string message which overrides the standard messaging
+                provided by this class and its arguments
+        """
         use_message = message
         if use_message is None:
             use_message = "Unexpected RepresentationType"
@@ -31,4 +41,4 @@ class SelfIdentifyingRepresentationError(ValueError):
             if found_representation_type is not None:
                 use_message = "{0} found {1}".format(use_message,
                                                      found_representation_type.value)
-        self.super(use_message)
+        super().__init__(use_message)
