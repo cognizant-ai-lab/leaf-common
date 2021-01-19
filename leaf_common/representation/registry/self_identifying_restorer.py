@@ -58,7 +58,7 @@ class SelfIdentifyingRestorer(Restorer):
         rep_type = None
         restored_object = None
         for test_rep_type in rep_type_list:
-            persistence = self._persistence_registry.create_from_representation_type(test_rep_type)
+            persistence = self._persistence_registry.get_for_representation_type(test_rep_type)
             try:
                 restored_object = persistence.restore(file_reference)
                 if restored_object is not None:
