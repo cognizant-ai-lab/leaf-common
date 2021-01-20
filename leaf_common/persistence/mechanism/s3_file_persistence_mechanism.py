@@ -18,6 +18,7 @@ import botocore
 from leaf_common.persistence.mechanism.abstract_persistence_mechanism \
     import AbstractPersistenceMechanism
 
+
 class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
     """
     Implementation of the AbstractPersistenceMechanism which
@@ -25,7 +26,7 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
     """
 
     def __init__(self, folder, base_name, must_exist=True,
-                    bucket_base="", key_base=""):
+                 bucket_base="", key_base=""):
 
         super().__init__(folder, base_name, must_exist)
 
@@ -38,7 +39,6 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
         self.s3_client = boto3.client('s3')
         self.bucket_base = bucket_base
         self.key_base = key_base
-
 
     def open_source_for_read(self, read_to_fileobj,
                              file_extension_provider=None):
@@ -64,7 +64,7 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
         return_fileobj = None
         try:
             self.s3_client.download_fileobj(Fileobj=read_to_fileobj,
-                                     Bucket=self.bucket_base, Key=key)
+                                            Bucket=self.bucket_base, Key=key)
             logger = logging.getLogger(__name__)
             logger.info("S3 file read %s %s succeeded",
                         str(self.bucket_base), str(key))
@@ -76,7 +76,7 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
         except botocore.exceptions.ClientError as exception:
             logger = logging.getLogger(__name__)
             if exception.response['Error']['Code'] == "404" \
-                and not self.must_exist():
+                    and not self.must_exist():
 
                 # If the file doesn't exist, that's OK,
                 # we will check again later.
@@ -86,13 +86,12 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
             else:
                 # Something else has gone wrong
                 logger.error("S3 file read %s %s some other error happened %s",
-                                str(self.bucket_base),
-                                str(key),
-                                str(exception.response['Error']['Code']))
+                             str(self.bucket_base),
+                             str(key),
+                             str(exception.response['Error']['Code']))
                 raise
 
         return return_fileobj
-
 
     def open_dest_for_write(self, send_from_fileobj,
                             file_extension_provider=None):
@@ -111,13 +110,12 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
         key = self.get_key_name(file_extension_provider)
 
         self.s3_client.upload_fileobj(Fileobj=send_from_fileobj,
-                               Bucket=self.bucket_base, Key=key)
+                                      Bucket=self.bucket_base, Key=key)
 
         # upload_fileobj() actually flushes the buffer to S3,
         # so no need to do anything further.
 
         return retval
-
 
     def get_key_name(self, file_extension_provider):
         """

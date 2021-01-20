@@ -78,11 +78,11 @@ class PersistenceFactory():
         self.fallback = SerializationFormats.JSON
 
     def create_persistence(self, persist_dir, persist_file,
-                         serialization_format=None,
-                         persistence_mechanism=None,
-                         must_exist=True,
-                         use_file_extension=None,
-                         full_ref=None):
+                           serialization_format=None,
+                           persistence_mechanism=None,
+                           must_exist=True,
+                           use_file_extension=None,
+                           full_ref=None):
         """
         :param persist_dir: Directory/Folder of where the persisted
                     file should reside.
@@ -107,8 +107,8 @@ class PersistenceFactory():
                                             serialization_format)
 
         use_persist_dir, use_persist_file, use_file_extension = \
-                self._rearrange_components(persist_dir, persist_file,
-                                           use_file_extension, full_ref)
+            self._rearrange_components(persist_dir, persist_file,
+                                       use_file_extension, full_ref)
 
         persistence_mechanism_instance = \
             self.persistence_factory.create_persistence_mechanism(
@@ -122,50 +122,48 @@ class PersistenceFactory():
             persistence = NullPersistence()
         elif use_serialization_format == SerializationFormats.LEGACY_PICKLE:
             persistence = LegacyPicklePersistence(persistence_mechanism_instance,
-                            use_file_extension=use_file_extension)
+                                                  use_file_extension=use_file_extension)
         elif use_serialization_format == SerializationFormats.HOCON:
             persistence = HoconPersistence(persistence_mechanism_instance,
-                            reference_pruner=self.reference_pruner,
-                            dictionary_converter=self.dictionary_converter,
-                            use_file_extension=use_file_extension)
+                                           reference_pruner=self.reference_pruner,
+                                           dictionary_converter=self.dictionary_converter,
+                                           use_file_extension=use_file_extension)
         elif use_serialization_format == SerializationFormats.JSON:
             persistence = JsonPersistence(persistence_mechanism_instance,
-                            reference_pruner=self.reference_pruner,
-                            dictionary_converter=self.dictionary_converter,
-                            use_file_extension=use_file_extension)
+                                          reference_pruner=self.reference_pruner,
+                                          dictionary_converter=self.dictionary_converter,
+                                          use_file_extension=use_file_extension)
         elif use_serialization_format == SerializationFormats.JSON_GZIP:
             persistence = JsonGzipPersistence(persistence_mechanism_instance,
-                            reference_pruner=self.reference_pruner,
-                            dictionary_converter=self.dictionary_converter,
-                            use_file_extension=use_file_extension)
+                                              reference_pruner=self.reference_pruner,
+                                              dictionary_converter=self.dictionary_converter,
+                                              use_file_extension=use_file_extension)
         elif use_serialization_format == SerializationFormats.RAW_BYTES:
             persistence = RawBytesPersistence(persistence_mechanism_instance,
-                            use_file_extension=use_file_extension)
+                                              use_file_extension=use_file_extension)
         elif use_serialization_format == SerializationFormats.TEXT:
             persistence = TextPersistence(persistence_mechanism_instance,
-                            use_file_extension=use_file_extension)
+                                          use_file_extension=use_file_extension)
         elif use_serialization_format == SerializationFormats.YAML:
             persistence = YamlPersistence(persistence_mechanism_instance,
-                            reference_pruner=self.reference_pruner,
-                            dictionary_converter=self.dictionary_converter,
-                            use_file_extension=use_file_extension)
+                                          reference_pruner=self.reference_pruner,
+                                          dictionary_converter=self.dictionary_converter,
+                                          use_file_extension=use_file_extension)
         else:
             # Default
             message = "Don't know serialization format '%s' for type '%s'." +\
                         " Using fallback %s."
             logger = logging.getLogger(__name__)
             logger.warning(message, str(use_serialization_format),
-                                    str(self.object_type),
-                                    str(self.fallback))
+                           str(self.object_type), str(self.fallback))
             persistence = self.create_persistence(use_persist_dir,
-                            use_persist_file,
-                            serialization_format=self.fallback,
-                            persistence_mechanism=persistence_mechanism,
-                            must_exist=must_exist,
-                            use_file_extension=use_file_extension)
+                                                  use_persist_file,
+                                                  serialization_format=self.fallback,
+                                                  persistence_mechanism=persistence_mechanism,
+                                                  must_exist=must_exist,
+                                                  use_file_extension=use_file_extension)
 
         return persistence
-
 
     def _resolve_serialization_format(self, serialization_format):
         """
@@ -185,12 +183,10 @@ class PersistenceFactory():
                         " Using fallback %s."
             logger = logging.getLogger(__name__)
             logger.warning(message, str(serialization_format),
-                                    str(self.object_type),
-                                    str(self.fallback))
+                           str(self.object_type), str(self.fallback))
             use_serialization_format = self.fallback
 
         return use_serialization_format
-
 
     def _find_serialization_format(self, serialization_format):
         """
@@ -209,7 +205,6 @@ class PersistenceFactory():
                     found_serialization_format = serialization
 
         return found_serialization_format
-
 
     def _rearrange_components(self, persist_dir, persist_file,
                               file_extension, full_ref):

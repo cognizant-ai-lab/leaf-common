@@ -49,9 +49,9 @@ class EasyJsonPersistence(AbstractEasyPersistence):
         """
 
         super().__init__(SerializationFormats.JSON,
-                        base_name=base_name,
-                        folder=folder,
-                        must_exist=must_exist,
-                        object_type=object_type,
-                        dictionary_converter=dictionary_converter,
-                        full_ref=full_ref)
+                         base_name=base_name,
+                         folder=folder,
+                         must_exist=must_exist,
+                         object_type=object_type,
+                         dictionary_converter=dictionary_converter,
+                         full_ref=full_ref)

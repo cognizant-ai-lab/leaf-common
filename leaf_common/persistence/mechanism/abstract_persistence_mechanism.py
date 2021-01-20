@@ -42,7 +42,6 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
         self.base_name = base_name
         self._must_exist = must_exist
 
-
     def open_source_for_read(self, read_to_fileobj,
                              file_extension_provider=None):
         """
@@ -50,14 +49,12 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
         """
         raise NotImplementedError
 
-
     def open_dest_for_write(self, send_from_fileobj,
-                             file_extension_provider=None):
+                            file_extension_provider=None):
         """
         See PersistenceMechanism.open_source_for_read() for details.
         """
         raise NotImplementedError
-
 
     def must_exist(self):
         """
@@ -65,7 +62,6 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
                  True if a file must exist.
         """
         return self._must_exist
-
 
     def get_path(self, file_extension_provider=None):
         """

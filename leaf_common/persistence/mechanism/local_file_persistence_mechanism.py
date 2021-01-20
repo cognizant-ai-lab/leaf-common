@@ -54,7 +54,7 @@ class LocalFilePersistenceMechanism(AbstractPersistenceMechanism):
         return fileobj
 
     def open_dest_for_write(self, send_from_fileobj,
-                             file_extension_provider=None):
+                            file_extension_provider=None):
         """
         :param send_from_fileobj: A fileobj from which we will get all data
                             written out to the persisted instance.

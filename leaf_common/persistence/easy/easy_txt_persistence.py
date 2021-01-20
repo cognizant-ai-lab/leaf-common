@@ -41,7 +41,7 @@ class EasyTxtPersistence(AbstractEasyPersistence):
         """
 
         super().__init__(SerializationFormats.TEXT,
-                        base_name=base_name,
-                        folder=folder,
-                        must_exist=must_exist,
-                        object_type=object_type)
+                         base_name=base_name,
+                         folder=folder,
+                         must_exist=must_exist,
+                         object_type=object_type)

@@ -66,7 +66,7 @@ class AbstractEasyPersistence(Persistence):
         """
 
         if base_name is None and \
-            full_ref is None:
+                full_ref is None:
             raise ValueError(
                 "Must provide either base_name or full_ref in {}".format(
                                 self.__class__.__name__))
@@ -74,20 +74,20 @@ class AbstractEasyPersistence(Persistence):
         # Set up the DictionaryConverter
         use_dictionary_converter = dictionary_converter
         if dictionary_converter is None and \
-            object_type == "dict":
+                object_type == "dict":
             use_dictionary_converter = PassThroughDictionaryConverter()
 
         # default initialization
         factory = PersistenceFactory(object_type=object_type,
-                                dictionary_converter=use_dictionary_converter)
+                                     dictionary_converter=use_dictionary_converter)
 
         # To be initialized further by concrete subclasses
         self.persistence = factory.create_persistence(folder, base_name,
-                        persistence_mechanism=persistence_mechanism,
-                        serialization_format=serialization_format,
-                        must_exist=must_exist,
-                        use_file_extension=use_file_extension,
-                        full_ref=full_ref)
+                                                      persistence_mechanism=persistence_mechanism,
+                                                      serialization_format=serialization_format,
+                                                      must_exist=must_exist,
+                                                      use_file_extension=use_file_extension,
+                                                      full_ref=full_ref)
 
     def persist(self, obj):
         """
@@ -97,7 +97,6 @@ class AbstractEasyPersistence(Persistence):
         """
         self.persistence.persist(obj)
 
-
     def restore(self):
         """
         :return: an object from some persisted store as specified
@@ -106,7 +105,6 @@ class AbstractEasyPersistence(Persistence):
         """
         obj = self.persistence.restore()
         return obj
-
 
     def get_file_reference(self):
         """

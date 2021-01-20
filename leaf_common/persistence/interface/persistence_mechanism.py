@@ -38,9 +38,8 @@ class PersistenceMechanism():
         """
         raise NotImplementedError
 
-
     def open_dest_for_write(self, send_from_fileobj,
-                             file_extension_provider=None):
+                            file_extension_provider=None):
         """
         :param send_from_fileobj: A fileobj from which we will get all data
                             written out to the persisted instance.
@@ -57,14 +56,12 @@ class PersistenceMechanism():
         """
         raise NotImplementedError
 
-
     def must_exist(self):
         """
         :return: False if its OK for a file not to exist.
                  True if a file must exist.
         """
         raise NotImplementedError
-
 
     def get_path(self, file_extension_provider=None):
         """

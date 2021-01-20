@@ -53,10 +53,10 @@ class EasyHoconPersistence(AbstractEasyPersistence):
         """
 
         super().__init__(SerializationFormats.HOCON,
-                        base_name=base_name,
-                        folder=folder,
-                        must_exist=must_exist,
-                        object_type=object_type,
-                        dictionary_converter=dictionary_converter,
-                        use_file_extension=use_file_extension,
-                        full_ref=full_ref)
+                         base_name=base_name,
+                         folder=folder,
+                         must_exist=must_exist,
+                         object_type=object_type,
+                         dictionary_converter=dictionary_converter,
+                         use_file_extension=use_file_extension,
+                         full_ref=full_ref)

@@ -51,10 +51,9 @@ class PersistenceMechanismFactory():
         self.object_type = object_type
         self.fallback = PersistenceMechanisms.NULL
 
-
     def create_persistence_mechanism(self, folder, base_name,
-                                        persistence_mechanism=None,
-                                        must_exist=None):
+                                     persistence_mechanism=None,
+                                     must_exist=None):
         """
         :param folder: Directory/Folder of where the persisted
                     file should reside.
@@ -76,7 +75,7 @@ class PersistenceMechanismFactory():
 
         persistence_mechanism_instance = None
         if use_persistence_mechanism is None or \
-            use_persistence_mechanism.lower() == PersistenceMechanisms.NULL:
+                use_persistence_mechanism.lower() == PersistenceMechanisms.NULL:
             persistence_mechanism_instance = None
         elif use_persistence_mechanism.lower() == PersistenceMechanisms.LOCAL:
             persistence_mechanism_instance = LocalFilePersistenceMechanism(
@@ -92,11 +91,10 @@ class PersistenceMechanismFactory():
             message = "Don't know persistence mechanism '%s' for type '%s'."
             logger = logging.getLogger(__name__)
             logger.warning(message, str(use_persistence_mechanism),
-                                    str(self.object_type))
+                           str(self.object_type))
             persistence_mechanism_instance = None
 
         return persistence_mechanism_instance
-
 
     def _resolve_persistence_type(self, persistence_mechanism):
         """
@@ -116,12 +114,10 @@ class PersistenceMechanismFactory():
                         " Using fallback %s."
             logger = logging.getLogger(__name__)
             logger.warning(message, str(persistence_mechanism),
-                                    str(self.object_type),
-                                    str(self.fallback))
+                           str(self.object_type), str(self.fallback))
             use_persistence_mechanism = self.fallback
 
         return use_persistence_mechanism
-
 
     def _find_persistence_mechanism(self, persistence_mechanism):
         """
