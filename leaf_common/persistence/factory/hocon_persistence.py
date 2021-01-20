@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 from leaf_common.persistence.factory.abstract_persistence \
     import AbstractPersistence
@@ -22,6 +25,7 @@ class HoconPersistence(AbstractPersistence):
     saves Hocon data for an object via some persistence mechanism.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(self, persistence_mechanism,
                  use_file_extension=None,
                  reference_pruner=None,
@@ -48,9 +52,9 @@ class HoconPersistence(AbstractPersistence):
         super().__init__(persistence_mechanism,
                          use_file_extension=use_file_extension)
         self._serialization = HoconSerializationFormat(
-                                    reference_pruner=reference_pruner,
-                                    dictionary_converter=dictionary_converter,
-                                    pretty=pretty)
+            reference_pruner=reference_pruner,
+            dictionary_converter=dictionary_converter,
+            pretty=pretty)
 
     def get_serialization_format(self):
         """

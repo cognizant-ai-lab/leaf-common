@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 from leaf_common.persistence.factory.abstract_persistence \
     import AbstractPersistence
@@ -26,6 +29,7 @@ class JsonGzipPersistence(AbstractPersistence):
     saves gzipped JSON data for an object via some persistence mechanism.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(self, persistence_mechanism, use_file_extension=None,
                  reference_pruner=None, dictionary_converter=None, pretty=True):
         """
@@ -51,12 +55,12 @@ class JsonGzipPersistence(AbstractPersistence):
                          use_file_extension=use_file_extension)
         chained = ChainedSerializationFormat()
         chained.add_serialization_format(JsonSerializationFormat(
-                                    reference_pruner=reference_pruner,
-                                    dictionary_converter=dictionary_converter,
-                                    pretty=pretty))
+            reference_pruner=reference_pruner,
+            dictionary_converter=dictionary_converter,
+            pretty=pretty))
         chained.add_serialization_format(BufferedGzipSerializationFormat(
-                                    persistence_mechanism.folder,
-                                    persistence_mechanism.base_name))
+            persistence_mechanism.folder,
+            persistence_mechanism.base_name))
         self._serialization = chained
 
     def get_serialization_format(self):

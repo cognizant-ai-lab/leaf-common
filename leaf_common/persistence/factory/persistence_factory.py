@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 import logging
 import os
@@ -52,6 +55,7 @@ class PersistenceFactory():
         implementation.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(self, bucket_base="", key_base="", object_type="object",
                  reference_pruner=None, dictionary_converter=None):
         """
@@ -69,14 +73,15 @@ class PersistenceFactory():
         """
 
         self.persistence_factory = PersistenceMechanismFactory(
-                                        bucket_base=bucket_base,
-                                        key_base=key_base,
-                                        object_type=object_type)
+            bucket_base=bucket_base,
+            key_base=key_base,
+            object_type=object_type)
         self.object_type = object_type
         self.reference_pruner = reference_pruner
         self.dictionary_converter = dictionary_converter
         self.fallback = SerializationFormats.JSON
 
+    # pylint: disable=too-many-arguments
     def create_persistence(self, persist_dir, persist_file,
                            serialization_format=None,
                            persistence_mechanism=None,
@@ -104,7 +109,7 @@ class PersistenceFactory():
         """
 
         use_serialization_format = self._resolve_serialization_format(
-                                            serialization_format)
+            serialization_format)
 
         use_persist_dir, use_persist_file, use_file_extension = \
             self._rearrange_components(persist_dir, persist_file,
@@ -112,10 +117,10 @@ class PersistenceFactory():
 
         persistence_mechanism_instance = \
             self.persistence_factory.create_persistence_mechanism(
-                            use_persist_dir,
-                            use_persist_file,
-                            persistence_mechanism=persistence_mechanism,
-                            must_exist=must_exist)
+                use_persist_dir,
+                use_persist_file,
+                persistence_mechanism=persistence_mechanism,
+                must_exist=must_exist)
 
         persistence = None
         if persistence_mechanism_instance is None:
@@ -175,8 +180,7 @@ class PersistenceFactory():
         """
 
         # Find the SerializationFormat type to use
-        use_serialization_format = self._find_serialization_format(
-                                            serialization_format)
+        use_serialization_format = self._find_serialization_format(serialization_format)
         if use_serialization_format is None:
             # None found for argument, use fallback
             message = "Don't know serialization format '%s' for type '%s'." + \
@@ -188,6 +192,7 @@ class PersistenceFactory():
 
         return use_serialization_format
 
+    # pylint: disable=no-self-use
     def _find_serialization_format(self, serialization_format):
         """
         :param serialization_format: The string name of the
@@ -206,6 +211,7 @@ class PersistenceFactory():
 
         return found_serialization_format
 
+    # pylint: disable=no-self-use
     def _rearrange_components(self, persist_dir, persist_file,
                               file_extension, full_ref):
         """

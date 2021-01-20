@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 from leaf_common.persistence.factory.abstract_persistence \
     import AbstractPersistence
@@ -22,6 +25,7 @@ class YamlPersistence(AbstractPersistence):
     saves YAML data for an object via some persistence mechanism.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(self, persistence_mechanism, use_file_extension=None,
                  reference_pruner=None, dictionary_converter=None,
                  pretty=True):
@@ -47,9 +51,9 @@ class YamlPersistence(AbstractPersistence):
         super().__init__(persistence_mechanism,
                          use_file_extension=use_file_extension)
         self._serialization = YamlSerializationFormat(
-                                    reference_pruner=reference_pruner,
-                                    dictionary_converter=dictionary_converter,
-                                    pretty=pretty)
+            reference_pruner=reference_pruner,
+            dictionary_converter=dictionary_converter,
+            pretty=pretty)
 
     def get_serialization_format(self):
         return self._serialization

@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 import os.path as path
 
@@ -25,6 +28,9 @@ class ReferenceHelper():
     @classmethod
     def get_components(cls, full_ref=None, folder=".",
                        base_name=None, file_extension=None):
+        """
+        :return: a triple of folder, basename and file extension to use
+        """
 
         use_base_name = base_name
         use_folder = folder

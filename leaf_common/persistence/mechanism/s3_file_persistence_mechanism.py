@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 import logging
 import os
 
@@ -25,6 +28,7 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
     saves objects to a file on S3.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(self, folder, base_name, must_exist=True,
                  bucket_base="", key_base=""):
 

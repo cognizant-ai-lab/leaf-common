@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 import logging
 
 from leaf_common.persistence.mechanism.local_file_persistence_mechanism \
@@ -71,7 +74,7 @@ class PersistenceMechanismFactory():
             use_must_exist = self.must_exist
 
         use_persistence_mechanism = self._resolve_persistence_type(
-                                            persistence_mechanism)
+            persistence_mechanism)
 
         persistence_mechanism_instance = None
         if use_persistence_mechanism is None or \
@@ -79,14 +82,14 @@ class PersistenceMechanismFactory():
             persistence_mechanism_instance = None
         elif use_persistence_mechanism.lower() == PersistenceMechanisms.LOCAL:
             persistence_mechanism_instance = LocalFilePersistenceMechanism(
-                            folder, base_name,
-                            must_exist=use_must_exist)
+                folder, base_name,
+                must_exist=use_must_exist)
         elif use_persistence_mechanism.lower() == PersistenceMechanisms.S3:
             persistence_mechanism_instance = S3FilePersistenceMechanism(
-                            folder, base_name,
-                            must_exist=use_must_exist,
-                            bucket_base=self.bucket_base,
-                            key_base=self.key_base)
+                folder, base_name,
+                must_exist=use_must_exist,
+                bucket_base=self.bucket_base,
+                key_base=self.key_base)
         else:
             message = "Don't know persistence mechanism '%s' for type '%s'."
             logger = logging.getLogger(__name__)
@@ -107,7 +110,7 @@ class PersistenceMechanismFactory():
 
         # Find the Persistence Mechanism type to use
         use_persistence_mechanism = self._find_persistence_mechanism(
-                                            persistence_mechanism)
+            persistence_mechanism)
         if use_persistence_mechanism is None:
             # None found for argument, use fallback
             message = "Don't know persistence mechanism '%s' for type '%s'." + \
@@ -119,6 +122,7 @@ class PersistenceMechanismFactory():
 
         return use_persistence_mechanism
 
+    # pylint: disable=no-self-use
     def _find_persistence_mechanism(self, persistence_mechanism):
         """
         :param persistence_mechanism: The string name of the

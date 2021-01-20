@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 import io
 import os
@@ -52,11 +55,12 @@ class AbstractPersistence(Persistence):
         """
         raise NotImplementedError
 
-    def persist(self, obj):
+    def persist(self, obj, file_reference: str = None):
         """
         Persists the object passed in.
 
         :param obj: an object to persist
+        :param file_reference: Currently ignored
         """
 
         serialization = self.get_serialization_format()
@@ -72,8 +76,9 @@ class AbstractPersistence(Persistence):
                 with dest_fileobj:
                     shutil.copyfileobj(buffer_fileobj, dest_fileobj)
 
-    def restore(self):
+    def restore(self, file_reference: str = None):
         """
+        :param file_reference: Currently ignored
         :return: an object from some persisted store
         """
 
@@ -125,7 +130,7 @@ class AbstractPersistence(Persistence):
         file_extension_provider = None
         if self.use_file_extension is not None:
             file_extension_provider = OverrideFileExtensionProvider(
-                                        self.use_file_extension)
+                self.use_file_extension)
         else:
             file_extension_provider = self.get_serialization_format()
 
