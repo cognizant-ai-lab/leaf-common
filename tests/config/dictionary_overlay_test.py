@@ -87,7 +87,6 @@ class DictionaryOverlayTest(TestCase):
         value = result.get("bar")
         self.assertEqual(value, True)
 
-
     def test_deep_key_different_values(self):
         """
         Tests stuff for nested dictionaries
