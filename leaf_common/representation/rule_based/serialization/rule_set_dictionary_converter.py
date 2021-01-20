@@ -14,10 +14,13 @@ See class comment for details.
 """
 from typing import Dict
 
+from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
 from leaf_common.representation.rule_based.serialization.rule_dictionary_converter \
     import RuleDictionaryConverter
 from leaf_common.serialization.interface.dictionary_converter import DictionaryConverter
+from leaf_common.serialization.interface.self_identifying_representation_error \
+    import SelfIdentifyingRepresentationError
 
 
 class RuleSetDictionaryConverter(DictionaryConverter):
@@ -39,6 +42,11 @@ class RuleSetDictionaryConverter(DictionaryConverter):
             return None
 
         obj_dict = {
+            # This key allows for self-identifying representations
+            # when a common serialization format (like JSON) is shared
+            # between multiple representations.
+            "representation_type": RepresentationType.RuleBased.value,
+
             "age_state": obj.age_state,
             "default_action": obj.default_action,
             "default_action_coefficient": obj.default_action_coefficient,
@@ -62,6 +70,11 @@ class RuleSetDictionaryConverter(DictionaryConverter):
                 If obj_dict is not the correct type, it is also reasonable
                 to return None.
         """
+        representation_type = obj_dict.get("representation_type", None)
+        if representation_type != RepresentationType.RuleBased.value:
+            raise SelfIdentifyingRepresentationError(RepresentationType.RuleBased,
+                                                     representation_type)
+
         min_maxes = obj_dict.get("min_maxes", None)
         obj = RuleSet(min_maxes=min_maxes)
 

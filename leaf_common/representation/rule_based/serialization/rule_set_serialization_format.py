@@ -48,7 +48,7 @@ class RuleSetSerializationFormat(SerializationFormat):
         :return: A string representing a file extension for the
                 serialization method, including the ".".
         """
-        return ".rules"
+        return ".json"
 
     def from_object(self, obj: RuleSet) -> TextIO:
         """

@@ -40,7 +40,7 @@ class StructureSerializationFormat(SerializationFormat):
         :return: A string representing a file extension for the
                 serialization method, including the ".".
         """
-        return ".gm.json"
+        return ".json"
 
     def from_object(self, obj: Dict[str, object]) -> TextIO:
         """

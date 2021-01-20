@@ -22,8 +22,7 @@ from leaf_common.serialization.interface.file_extension_provider \
 class SerializationFormat(Serializer, Deserializer, FileExtensionProvider):
     """
     An interface which combines implementation aspects of a Serializer
-    and a Deserializer with a format name for registration in a factory
-    setting.
+    and a Deserializer with a format name for registration.
     """
 
     def from_object(self, obj):
@@ -49,9 +48,14 @@ class SerializationFormat(Serializer, Deserializer, FileExtensionProvider):
         """
         raise NotImplementedError
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".".
+
+                While the parent interface allows for returning
+                lists, a SerializationFormat implementation should
+                only ever have a single file extension associated
+                with it.
         """
         raise NotImplementedError
