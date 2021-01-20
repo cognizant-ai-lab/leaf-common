@@ -15,9 +15,6 @@ See class comment for details.
 import logging
 import os
 
-import boto3
-import botocore
-
 from leaf_common.persistence.mechanism.abstract_persistence_mechanism \
     import AbstractPersistenceMechanism
 
@@ -40,6 +37,9 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
         logging.getLogger('botocore').setLevel(logging.INFO)
         logging.getLogger('urllib3').setLevel(logging.INFO)
 
+        # Lazily import so client code can adopt at their own discretion
+        # pylint: disable=import-outside-toplevel,import-error,no-name-in-module
+        import boto3
         self.s3_client = boto3.client('s3')
         self.bucket_base = bucket_base
         self.key_base = key_base
@@ -62,6 +62,10 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
                and the read_to_fileobj has been already filled with data by
                this call.
         """
+
+        # Lazily import so client code can adopt at their own discretion
+        # pylint: disable=import-outside-toplevel,import-error,no-name-in-module
+        import botocore
 
         key = self.get_key_name(file_extension_provider)
 
