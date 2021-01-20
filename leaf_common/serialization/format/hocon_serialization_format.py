@@ -45,7 +45,6 @@ class HoconSerializationFormat(JsonSerializationFormat):
         obj = self.conversion_policy.convert_to_object(pruned_dict)
         return obj
 
-
     def get_file_extension(self):
         """
         :return: A string representing a file extension for the

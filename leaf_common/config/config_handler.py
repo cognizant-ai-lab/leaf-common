@@ -44,7 +44,6 @@ class ConfigHandler():
         config = self.deep_update(config, update_source)
         return config
 
-
     def deep_update(self, dest, source):
         for key, value in source.items():
             if isinstance(value, Mapping):
@@ -53,7 +52,6 @@ class ConfigHandler():
             else:
                 dest[key] = source[key]
         return dest
-
 
     def read_config_from_file(self, filepath):
 

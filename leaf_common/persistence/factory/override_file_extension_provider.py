@@ -27,7 +27,6 @@ class OverrideFileExtensionProvider(FileExtensionProvider):
         """
         self.file_extension = file_extension
 
-
     def get_file_extension(self):
         """
         :return: A string representing a file extension for the

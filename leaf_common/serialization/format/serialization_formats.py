@@ -20,7 +20,7 @@ class SerializationFormats():
     GZIP = "gzip"
     HOCON = "hocon"
     JSON = "json"
-    JSON_GZIP = JSON + "_"+ GZIP
+    JSON_GZIP = JSON + "_" + GZIP
     LEGACY_PICKLE = "legacy_pickle"
     RAW_BYTES = "raw_bytes"
     TEXT = "text"

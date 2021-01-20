@@ -24,7 +24,7 @@ class ReferenceHelper():
 
     @classmethod
     def get_components(cls, full_ref=None, folder=".",
-                            base_name=None, file_extension=None):
+                       base_name=None, file_extension=None):
 
         use_base_name = base_name
         use_folder = folder

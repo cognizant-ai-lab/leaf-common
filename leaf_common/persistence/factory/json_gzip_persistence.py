@@ -59,6 +59,5 @@ class JsonGzipPersistence(AbstractPersistence):
                                     persistence_mechanism.base_name))
         self._serialization = chained
 
-
     def get_serialization_format(self):
         return self._serialization

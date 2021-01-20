@@ -11,6 +11,7 @@
 # END COPYRIGHT
 import logging
 
+
 class ConversionPolicy():
     """
     Common code for passing an object through a ReferencePruner and
@@ -35,13 +36,11 @@ class ConversionPolicy():
         self._dictionary_converter = dictionary_converter
         self._pretty = pretty
 
-
     def is_pretty(self):
         """
         :return: Whether or not the output should be pretty
         """
         return self._pretty
-
 
     def convert_from_object(self, obj):
         """
@@ -61,7 +60,6 @@ class ConversionPolicy():
             pruned_dict = pruned_obj.__dict__
 
         return pruned_dict
-
 
     def convert_to_object(self, pruned_dict):
         """

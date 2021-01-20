@@ -41,7 +41,6 @@ class BufferedGzipSerializationFormat(GzipSerializationFormat):
         fileobj.seek(0, os.SEEK_SET)
         return fileobj
 
-
     def to_object(self, fileobj):
         """
         :param fileobj: The file-like object to deserialize.

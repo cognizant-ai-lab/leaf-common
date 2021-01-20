@@ -45,14 +45,12 @@ class AbstractPersistence(Persistence):
         self._mechanism = persistence_mechanism
         self.use_file_extension = use_file_extension
 
-
     def get_serialization_format(self):
         """
         :return: The SerializationFormat instance to be used in persist()
                  and restore()
         """
         raise NotImplementedError
-
 
     def persist(self, obj):
         """
@@ -69,7 +67,7 @@ class AbstractPersistence(Persistence):
 
             # Write contents from buffer.
             dest_fileobj = self._mechanism.open_dest_for_write(buffer_fileobj,
-                                            file_extension_provider)
+                                                               file_extension_provider)
             if dest_fileobj is not None:
                 with dest_fileobj:
                     shutil.copyfileobj(buffer_fileobj, dest_fileobj)
@@ -86,7 +84,7 @@ class AbstractPersistence(Persistence):
         with io.BytesIO() as buffer_fileobj:
             # Read data into buffer.
             source_fileobj = self._mechanism.open_source_for_read(buffer_fileobj,
-                                            file_extension_provider)
+                                                                  file_extension_provider)
             dest_obj = None
             if source_fileobj is not None:
 
@@ -110,7 +108,6 @@ class AbstractPersistence(Persistence):
 
         return previous_state
 
-
     def get_file_reference(self):
         """
         :return: A string reference to the file that would be accessed
@@ -119,7 +116,6 @@ class AbstractPersistence(Persistence):
         file_extension_provider = self.get_file_extension_provider()
         file_reference = self._mechanism.get_path(file_extension_provider)
         return file_reference
-
 
     def get_file_extension_provider(self):
         """

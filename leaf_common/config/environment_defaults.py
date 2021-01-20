@@ -20,7 +20,6 @@ class EnvironmentDefaults():
     this code.
     """
 
-
     @classmethod
     def set_environment_defaults(cls, default_dict):
         """
@@ -35,7 +34,7 @@ class EnvironmentDefaults():
         """
 
         if default_dict is None or \
-            not isinstance(default_dict, dict):
+                not isinstance(default_dict, dict):
             return None
 
         added = {}

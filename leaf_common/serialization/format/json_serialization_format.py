@@ -73,7 +73,6 @@ class JsonSerializationFormat(SerializationFormat):
 
         return fileobj
 
-
     def to_object(self, fileobj):
         """
         :param fileobj: The file-like object to deserialize.
@@ -93,7 +92,6 @@ class JsonSerializationFormat(SerializationFormat):
 
         obj = self.conversion_policy.convert_to_object(pruned_dict)
         return obj
-
 
     def get_file_extension(self):
         """

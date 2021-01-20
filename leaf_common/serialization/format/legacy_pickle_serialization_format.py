@@ -33,7 +33,7 @@ class LegacyPickleSerializationFormat(SerializationFormat):
     """
 
     def __init__(self, folder, base_name, must_exist=True,
-                    pickle_protocol=2):
+                 pickle_protocol=2):
         """
         Constructor
 
@@ -50,7 +50,6 @@ class LegacyPickleSerializationFormat(SerializationFormat):
         self._must_exist = must_exist
         self._pickle_protocol = pickle_protocol
         self._gzip = GzipSerializationFormat(folder, base_name)
-
 
     def from_object(self, obj):
         """
@@ -72,7 +71,6 @@ class LegacyPickleSerializationFormat(SerializationFormat):
         fileobj.seek(0, os.SEEK_SET)
 
         return fileobj
-
 
     def to_object(self, fileobj):
         """

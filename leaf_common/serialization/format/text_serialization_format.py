@@ -35,7 +35,6 @@ class TextSerializationFormat(SerializationFormat):
         super().__init__()
         self._must_exist = must_exist
 
-
     def from_object(self, obj):
         """
         :param obj: The object to serialize
@@ -47,13 +46,11 @@ class TextSerializationFormat(SerializationFormat):
         obj_str = str(obj)
         fileobj = io.BytesIO(bytearray(obj_str, 'UTF-8'))
 
-
         # Set to the beginning of the memory buffer
         # So next copy can work
         fileobj.seek(0, os.SEEK_SET)
 
         return fileobj
-
 
     def to_object(self, fileobj):
         """
@@ -74,7 +71,6 @@ class TextSerializationFormat(SerializationFormat):
         # By default, bytes are returned as string object.
         obj = fileobj.read()
         return obj
-
 
     def must_exist(self):
         """

@@ -32,7 +32,6 @@ class PassThroughDictionaryConverter(DictionaryConverter):
         """
         self.allow_restore_none = allow_restore_none
 
-
     def to_dict(self, obj):
         """
         :param obj: The object to be converted into a dictionary
@@ -46,7 +45,6 @@ class PassThroughDictionaryConverter(DictionaryConverter):
 
         return obj
 
-
     def from_dict(self, obj_dict):
         """
         :param obj_dict: The data-only dictionary to be converted into an object
@@ -57,7 +55,7 @@ class PassThroughDictionaryConverter(DictionaryConverter):
                 False, then these None cases will return an empty dictionary.
         """
         if obj_dict is None or \
-            not isinstance(obj_dict, dict):
+                not isinstance(obj_dict, dict):
 
             obj_dict = None
             if not self.allow_restore_none:

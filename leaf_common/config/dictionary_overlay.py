@@ -96,8 +96,8 @@ class DictionaryOverlay():
             basis_value = basis.get(key)
             overlay_value = overlay.get(key)
 
-            if not basis_value is None \
-                and not overlay_value is None:
+            if basis_value is not None \
+                    and overlay_value is not None:
                 # Adjust overlay value type here:
                 # if "basis" contains say A = 3 and overlay contains A = '3',
                 # we try to convert overlay string to numeric type

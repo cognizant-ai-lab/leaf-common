@@ -25,14 +25,12 @@ class ChainedSerializationFormat(SerializationFormat):
     def __init__(self):
         self.forward_chain = []
 
-
     def add_serialization_format(self, serialization_format):
 
         if not isinstance(serialization_format, SerializationFormat):
             raise ValueError("Class mismatch in ChainedSerializationFormat")
 
         self.forward_chain.append(serialization_format)
-
 
     def from_object(self, obj):
         """
@@ -62,7 +60,6 @@ class ChainedSerializationFormat(SerializationFormat):
         fileobj.seek(0, os.SEEK_SET)
         return fileobj
 
-
     def to_object(self, fileobj):
         """
         :param fileobj: The file-like object to deserialize.
@@ -89,14 +86,13 @@ class ChainedSerializationFormat(SerializationFormat):
 
                 # If the previous buffer was a file-like object, close it.
                 if last_buffer is not None and \
-                    hasattr(last_buffer, 'close'):
+                        hasattr(last_buffer, 'close'):
 
                     last_buffer.close()
 
                 last_buffer = obj
 
         return obj
-
 
     def get_file_extension(self):
         """

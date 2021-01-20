@@ -40,7 +40,6 @@ class GzipSerializationFormat(SerializationFormat):
         self.folder = folder
         self.base_name = base_name
 
-
     def from_object(self, obj):
         """
         :param obj: The object to serialize
@@ -51,7 +50,6 @@ class GzipSerializationFormat(SerializationFormat):
         fileobj = self._open_gzfileobj(obj, 'wb')
         fileobj.seek(0, os.SEEK_SET)
         return fileobj
-
 
     def to_object(self, fileobj):
         """
@@ -72,7 +70,6 @@ class GzipSerializationFormat(SerializationFormat):
 
         return obj
 
-
     def _open_gzfileobj(self, fileobj, mode):
         """
         :param fileobj: a fileobj receiving data from gzip
@@ -88,10 +85,9 @@ class GzipSerializationFormat(SerializationFormat):
         filename = self.get_path()
 
         gzfileobj = gzip.GzipFile(filename=str(filename), mode=mode,
-                                      fileobj=fileobj)
+                                  fileobj=fileobj)
 
         return gzfileobj
-
 
     def get_path(self):
         """

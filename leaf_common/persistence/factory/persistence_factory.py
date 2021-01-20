@@ -52,7 +52,6 @@ class PersistenceFactory():
         implementation.
     """
 
-
     def __init__(self, bucket_base="", key_base="", object_type="object",
                  reference_pruner=None, dictionary_converter=None):
         """
@@ -77,7 +76,6 @@ class PersistenceFactory():
         self.reference_pruner = reference_pruner
         self.dictionary_converter = dictionary_converter
         self.fallback = SerializationFormats.JSON
-
 
     def create_persistence(self, persist_dir, persist_file,
                          serialization_format=None,

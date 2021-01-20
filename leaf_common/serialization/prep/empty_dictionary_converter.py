@@ -33,7 +33,6 @@ class EmptyDictionaryConverter(DictionaryConverter):
         empty_dict = {}
         return empty_dict
 
-
     def from_dict(self, obj_dict):
         """
         :param obj_dict: The data-only dictionary to be converted into an object
@@ -43,7 +42,7 @@ class EmptyDictionaryConverter(DictionaryConverter):
                 to return None.
         """
         if obj_dict is None or \
-            not isinstance(obj_dict, dict):
+                not isinstance(obj_dict, dict):
             return None
 
         return None

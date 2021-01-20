@@ -26,7 +26,6 @@ class RawBytesSerializationFormat(SerializationFormat):
     We expect this to be called largely with image data.
     """
 
-
     def from_object(self, obj):
         """
         :param obj: The object to serialize
@@ -52,7 +51,6 @@ class RawBytesSerializationFormat(SerializationFormat):
 
         return fileobj
 
-
     def to_object(self, fileobj):
         """
         :param fileobj: The file-like object to deserialize.
@@ -69,7 +67,6 @@ class RawBytesSerializationFormat(SerializationFormat):
         # XXX Need to figure this out for full symmetry,
         #     but not urgent given that we care mostly about writing image data
         raise NotImplementedError
-
 
     def get_file_extension(self):
         """
