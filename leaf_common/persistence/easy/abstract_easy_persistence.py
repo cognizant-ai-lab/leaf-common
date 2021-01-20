@@ -117,3 +117,12 @@ class AbstractEasyPersistence(Persistence):
         """
         filename = self.persistence.get_file_reference()
         return filename
+
+    def get_file_extension(self):
+        """
+        :return: A string representing a file extension for the
+                serialization method, including the ".",
+                *or* a list of these strings that are considered valid
+                file extensions.
+        """
+        return self.persistence.get_file_extension()

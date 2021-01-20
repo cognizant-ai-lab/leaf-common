@@ -36,3 +36,12 @@ class NullPersistence(Persistence):
         :return: a restored instance of a previously persisted object
         """
         return None
+
+    def get_file_extension(self):
+        """
+        :return: A string representing a file extension for the
+                serialization method, including the ".",
+                *or* a list of these strings that are considered valid
+                file extensions.
+        """
+        return ""
