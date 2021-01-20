@@ -62,7 +62,7 @@ class TestRuleSet(TestCase):
         """
         Verify roundtrip with persisted rule_set "from the field" (gen 50 Flappy Bird)
         """
-        rules_file = os.path.join(self.fixtures_path, 'saved_rule_set.rules')
+        rules_file = os.path.join(self.fixtures_path, 'saved_rule_set')
         persistence = RuleSetFilePersistence()
         rule_set = persistence.restore(rules_file)
 

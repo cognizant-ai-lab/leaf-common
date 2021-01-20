@@ -45,9 +45,11 @@ class Persistence(Persistor, Restorer, FileExtensionProvider):
         """
         raise NotImplementedError
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> object:
         """
         :return: A string representing a file extension for the
-                serialization method, including the ".".
+                serialization method, including the ".",
+                *or* a list of these strings that are considered valid
+                file extensions.
         """
         raise NotImplementedError
