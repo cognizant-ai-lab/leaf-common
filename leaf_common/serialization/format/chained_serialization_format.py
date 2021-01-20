@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 import os
 
@@ -26,6 +29,10 @@ class ChainedSerializationFormat(SerializationFormat):
         self.forward_chain = []
 
     def add_serialization_format(self, serialization_format):
+        """
+        :param serialization_format: The SerializationFormat to be
+                added to the chain
+        """
 
         if not isinstance(serialization_format, SerializationFormat):
             raise ValueError("Class mismatch in ChainedSerializationFormat")

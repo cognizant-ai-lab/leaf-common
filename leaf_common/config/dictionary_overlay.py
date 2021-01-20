@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 
 class DictionaryOverlay():
@@ -123,6 +126,7 @@ class DictionaryOverlay():
 
         return result
 
+    # pylint: disable=no-self-use
     def _convert_overlay_value(self, basis_value, overlay_value):
         """
         Given basis value from configuration and overlay value

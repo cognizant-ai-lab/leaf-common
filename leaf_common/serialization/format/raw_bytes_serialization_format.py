@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 import io
 import os
@@ -64,7 +67,7 @@ class RawBytesSerializationFormat(SerializationFormat):
         :return: the deserialized object
         """
 
-        # XXX Need to figure this out for full symmetry,
+        # DEF:Need to figure this out for full symmetry,
         #     but not urgent given that we care mostly about writing image data
         raise NotImplementedError
 

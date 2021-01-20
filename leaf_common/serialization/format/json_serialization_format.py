@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 import io
 import json
@@ -42,9 +45,9 @@ class JsonSerializationFormat(SerializationFormat):
                 nicely formatted or not.  Try for: indent=4, sort_keys=True
         """
         self.conversion_policy = ConversionPolicy(
-                                    reference_pruner=reference_pruner,
-                                    dictionary_converter=dictionary_converter,
-                                    pretty=pretty)
+            reference_pruner=reference_pruner,
+            dictionary_converter=dictionary_converter,
+            pretty=pretty)
 
     def from_object(self, obj):
         """

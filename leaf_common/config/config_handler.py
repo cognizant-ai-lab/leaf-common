@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 import copy
 from collections.abc import Mapping
@@ -25,6 +28,18 @@ class ConfigHandler():
     """
 
     def import_config(self, config_source, default_config=None):
+        """
+        Main entry point for reading config files
+        :param config_source: Either a string filename reference to a
+                config dictionary to be read from the file, or
+                a config dictionary in and of itself
+        :param default_config: A config dictionary to be used as a default.
+                Default is None, indicating that no defaults are to be
+                applied when reading from the config_source.
+                When a dictionary is supplied, the default_config is used
+                as a basis for which any new config parameters read
+                from the config_source are overlayed on top of.
+        """
 
         # Set up a very basic config dictionary
         config = {}
@@ -45,6 +60,10 @@ class ConfigHandler():
         return config
 
     def deep_update(self, dest, source):
+        """
+        Performs overlay functionality
+        DEF: Use DictionaryOverlay class instead.
+        """
         for key, value in source.items():
             if isinstance(value, Mapping):
                 recurse = self.deep_update(dest.get(key, {}), value)
@@ -54,6 +73,10 @@ class ConfigHandler():
         return dest
 
     def read_config_from_file(self, filepath):
+        """
+        :param filepath: The file to parse
+        :return: The dictionary parsed from the config file
+        """
 
         # Create a map of our parser methods
         file_extension_to_parser_map = {
@@ -81,6 +104,11 @@ class ConfigHandler():
         return config
 
     def parse_with_method(self, parser, filepath):
+        """
+        :param parser: The parser method on this class to use
+        :param filepath: The file to parse
+        :return: The dictionary parsed from the config file
+        """
         # Python magic to get a handle to the method
         parser_method = getattr(self, parser)
 
@@ -88,12 +116,22 @@ class ConfigHandler():
         config = parser_method(filepath)
         return config
 
+    # pylint: disable=no-self-use
     def parse_hocon(self, filepath):
+        """
+        :param filepath: The hocon file to parse
+        :return: The dictionary parsed from the hocon config file
+        """
         persistence = EasyHoconPersistence(full_ref=filepath)
         config = persistence.restore()
         return config
 
+    # pylint: disable=no-self-use
     def parse_yaml(self, filepath):
+        """
+        :param filepath: The yaml file to parse
+        :return: The dictionary parsed from the yaml config file
+        """
         persistence = EasyYamlPersistence(full_ref=filepath)
         config = persistence.restore()
         return config

@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 import io
 import os
@@ -95,6 +98,7 @@ class LegacyPickleSerializationFormat(SerializationFormat):
         with self._gzip.to_object(fileobj) as gzfileobj:
             try:
                 deserialized_object = pickle.load(gzfileobj)
+            # pylint: disable=broad-except
             except Exception:
                 if not self.must_exist():
                     # If we get an EOFError, that's OK. That just means
