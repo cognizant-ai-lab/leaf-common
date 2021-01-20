@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details
+"""
 
 from leaf_common.persistence.factory.persistence_factory \
     import PersistenceFactory
@@ -69,7 +72,7 @@ class AbstractEasyPersistence(Persistence):
                 full_ref is None:
             raise ValueError(
                 "Must provide either base_name or full_ref in {}".format(
-                                self.__class__.__name__))
+                    self.__class__.__name__))
 
         # Set up the DictionaryConverter
         use_dictionary_converter = dictionary_converter
@@ -89,16 +92,18 @@ class AbstractEasyPersistence(Persistence):
                                                       use_file_extension=use_file_extension,
                                                       full_ref=full_ref)
 
-    def persist(self, obj):
+    def persist(self, obj, file_reference: str = None):
         """
         Persists the object passed in.
 
         :param obj: an object to persist
+        :param file_reference: Currently ignored
         """
         self.persistence.persist(obj)
 
-    def restore(self):
+    def restore(self, file_reference: str = None):
         """
+        :param file_reference: Currently ignored
         :return: an object from some persisted store as specified
                 by the constructor.  If must_exist is False,
                 this method can return None.

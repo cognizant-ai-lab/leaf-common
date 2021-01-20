@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details
+"""
 
 from leaf_common.persistence.easy.abstract_easy_persistence \
     import AbstractEasyPersistence
@@ -24,6 +27,7 @@ class EasyYamlPersistence(AbstractEasyPersistence):
     extra behaviors on persist() and restore() are implemented.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(self, base_name=None, folder=".", must_exist=False,
                  object_type="dict", dictionary_converter=None,
                  use_file_extension=None, full_ref=None):
