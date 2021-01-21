@@ -13,27 +13,22 @@
 See class comment for details.
 """
 
-from leaf_common.persistence.factory.simple_file_persistence import SimpleFilePersistence
-from leaf_common.serialization.interface.serialization_format import SerializationFormat
+from leaf_common.candidates.representation_types import RepresentationType
+from leaf_common.persistence.easy.easy_json_persistence import EasyJsonPersistence
+from leaf_common.representation.rule_based.serialization.rule_set_dictionary_converter \
+    import RuleSetDictionaryConverter
 
-from leaf_common.representation.rule_based.serialization.rule_set_serialization_format \
-    import RuleSetSerializationFormat
 
-
-class RuleSetFilePersistence(SimpleFilePersistence):
+class RuleSetFilePersistence(EasyJsonPersistence):
     """
     Implementation of the leaf-common Persistence interface which
     saves/restores a RuleSet to a file.
     """
 
-    def __init__(self, serialization_format: SerializationFormat = None):
+    def __init__(self):
         """
         Constructor.
-
-        :param serialization_format: A means of serializing a RuleSet
-                by default this is None and a RuleSetSerializationFormat is used
         """
-        use_format = serialization_format
-        if use_format is None:
-            use_format = RuleSetSerializationFormat()
-        super().__init__(use_format)
+        converter = RuleSetDictionaryConverter()
+        super().__init__(object_type=RepresentationType.RuleBased.value,
+                         dictionary_converter=converter)

@@ -46,14 +46,16 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
         self._must_exist = must_exist
 
     def open_source_for_read(self, read_to_fileobj,
-                             file_extension_provider=None):
+                             file_extension_provider=None,
+                             file_reference: str = None):
         """
         See PersistenceMechanism.open_source_for_read() for details.
         """
         raise NotImplementedError
 
     def open_dest_for_write(self, send_from_fileobj,
-                            file_extension_provider=None):
+                            file_extension_provider=None,
+                            file_reference: str = None):
         """
         See PersistenceMechanism.open_source_for_read() for details.
         """
@@ -66,15 +68,39 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
         """
         return self._must_exist
 
-    def get_path(self, file_extension_provider=None):
+    def get_path(self, file_extension_provider=None, file_reference: str = None):
         """
         :param file_extension_provider:
                 An implementation of the FileExtensionProvider interface
                 which is often related to the Serialization implementation.
+        :param file_reference: An optional file reference string to override
+                any file settings fixed at construct time. Default of None
+                indicates to resort to implementation's fixed file reference
+                settings.
         :return: the full path of the entity to store
         """
-        path = os.path.join(self.folder, self.base_name)
+        # First determine the path from any fixed settings
+        fixed_settings_path = os.path.join(self.folder, self.base_name)
+
+        file_extension = ""
         if file_extension_provider is not None:
             file_extension = file_extension_provider.get_file_extension()
-            path = path + file_extension
+
+        path = fixed_settings_path + file_extension
+
+        # Examine the optional file reference to see which fixed pieces
+        # we need to adopt
+        if file_reference is not None:
+
+            file_reference_path = file_reference
+            if not file_reference.startswith("/"):
+                # Not an Absolute path. Use our folder
+                file_reference_path = os.path.join(self.folder, file_reference)
+
+            if not file_reference_path.endswith(file_extension):
+                # No file extension, only basename. Use ours
+                file_reference_path = file_reference_path + file_extension
+
+            path = file_reference_path
+
         return path
