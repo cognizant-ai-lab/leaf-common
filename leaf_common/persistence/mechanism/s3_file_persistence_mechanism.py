@@ -153,8 +153,8 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
                 3. the base_name passed in at construct time
                 4. any file extension provided by the file_extension_provider
         """
-        # Ignore file_reference for now
-        _ = file_reference
+        if file_reference is not None:
+            raise ValueError("Using file_reference with S3FilePersistenceMechanism is not yet supported")
 
         key_file = self.base_name
         if file_extension_provider is not None:
