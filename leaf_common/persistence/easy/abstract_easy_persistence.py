@@ -68,12 +68,6 @@ class AbstractEasyPersistence(Persistence):
                 PersistenceMechanisms.LOCAL
         """
 
-        if base_name is None and \
-                full_ref is None:
-            raise ValueError(
-                "Must provide either base_name or full_ref in {}".format(
-                    self.__class__.__name__))
-
         # Set up the DictionaryConverter
         use_dictionary_converter = dictionary_converter
         if dictionary_converter is None and \
@@ -97,25 +91,35 @@ class AbstractEasyPersistence(Persistence):
         Persists the object passed in.
 
         :param obj: an object to persist
-        :param file_reference: Currently ignored
+        :param file_reference: An optional file reference string to override
+                any file settings fixed at construct time. Default of None
+                indicates to resort to implementation's fixed file reference
+                settings.
         """
-        self.persistence.persist(obj)
+        self.persistence.persist(obj, file_reference)
 
     def restore(self, file_reference: str = None):
         """
-        :param file_reference: Currently ignored
+        :param file_reference: An optional file reference string to override
+                any file settings fixed at construct time. Default of None
+                indicates to resort to implementation's fixed file reference
+                settings.
         :return: an object from some persisted store as specified
                 by the constructor.  If must_exist is False,
                 this method can return None.
         """
-        obj = self.persistence.restore()
+        obj = self.persistence.restore(file_reference)
         return obj
 
-    def get_file_reference(self):
+    def get_file_reference(self, file_reference: str = None):
         """
+        :param file_reference: An optional file reference string to override
+                any file settings fixed at construct time. Default of None
+                indicates to resort to implementation's fixed file reference
+                settings.
         :return: The full file reference of what is to be persisted
         """
-        filename = self.persistence.get_file_reference()
+        filename = self.persistence.get_file_reference(file_reference)
         return filename
 
     def get_file_extension(self):

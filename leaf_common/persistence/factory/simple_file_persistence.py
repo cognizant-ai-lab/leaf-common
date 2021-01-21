@@ -46,7 +46,10 @@ class SimpleFilePersistence(Persistence):
         file_name = self.affix_file_extension(file_reference)
 
         with self.serialization_format.from_object(obj) as buffer_fileobj:
-            with open(file_name, 'w') as dest_fileobj:
+            writestyle = 'wb'
+            if isinstance(buffer_fileobj, io.StringIO):
+                writestyle = 'w'
+            with open(file_name, writestyle) as dest_fileobj:
                 shutil.copyfileobj(buffer_fileobj, dest_fileobj)
 
         return file_name

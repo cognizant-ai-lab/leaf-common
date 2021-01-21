@@ -60,7 +60,10 @@ class AbstractPersistence(Persistence):
         Persists the object passed in.
 
         :param obj: an object to persist
-        :param file_reference: Currently ignored
+        :param file_reference: An optional file reference string to override
+                any file settings fixed at construct time. Default of None
+                indicates to resort to implementation's fixed file reference
+                settings.
         """
 
         serialization = self.get_serialization_format()
@@ -71,14 +74,18 @@ class AbstractPersistence(Persistence):
 
             # Write contents from buffer.
             dest_fileobj = self._mechanism.open_dest_for_write(buffer_fileobj,
-                                                               file_extension_provider)
+                                                               file_extension_provider,
+                                                               file_reference)
             if dest_fileobj is not None:
                 with dest_fileobj:
                     shutil.copyfileobj(buffer_fileobj, dest_fileobj)
 
     def restore(self, file_reference: str = None):
         """
-        :param file_reference: Currently ignored
+        :param file_reference: An optional file reference string to override
+                any file settings fixed at construct time. Default of None
+                indicates to resort to implementation's fixed file reference
+                settings.
         :return: an object from some persisted store
         """
 
@@ -89,7 +96,8 @@ class AbstractPersistence(Persistence):
         with io.BytesIO() as buffer_fileobj:
             # Read data into buffer.
             source_fileobj = self._mechanism.open_source_for_read(buffer_fileobj,
-                                                                  file_extension_provider)
+                                                                  file_extension_provider,
+                                                                  file_reference)
             dest_obj = None
             if source_fileobj is not None:
 
@@ -113,13 +121,18 @@ class AbstractPersistence(Persistence):
 
         return previous_state
 
-    def get_file_reference(self):
+    def get_file_reference(self, file_reference: str = None):
         """
+        :param file_reference: An optional file reference string to override
+                any file settings fixed at construct time. Default of None
+                indicates to resort to implementation's fixed file reference
+                settings.
         :return: A string reference to the file that would be accessed
                 by this instance.
         """
         file_extension_provider = self.get_file_extension_provider()
-        file_reference = self._mechanism.get_path(file_extension_provider)
+        file_reference = self._mechanism.get_path(file_extension_provider,
+                                                  file_reference)
         return file_reference
 
     def get_file_extension_provider(self):

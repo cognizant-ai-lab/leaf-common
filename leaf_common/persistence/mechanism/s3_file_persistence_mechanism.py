@@ -45,13 +45,18 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
         self.key_base = key_base
 
     def open_source_for_read(self, read_to_fileobj,
-                             file_extension_provider=None):
+                             file_extension_provider=None,
+                             file_reference: str = None):
         """
         :param read_to_fileobj: A fileobj into which we will put all data
                             read in from the persisted instance.
         :param file_extension_provider:
                 An implementation of the FileExtensionProvider interface
                 which is often related to the Serialization implementation.
+        :param file_reference: An optional file reference string to override
+                any file settings fixed at construct time. Default of None
+                indicates to resort to implementation's fixed file reference
+                settings.
         :return: Either:
             1. None, indicating that the file desired does not exist.
             2. Some fileobj opened and ready to receive data which this class
@@ -67,7 +72,7 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
         # pylint: disable=import-outside-toplevel,import-error,no-name-in-module
         import botocore
 
-        key = self.get_key_name(file_extension_provider)
+        key = self.get_key_name(file_extension_provider, file_reference)
 
         return_fileobj = None
         try:
@@ -102,20 +107,25 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
         return return_fileobj
 
     def open_dest_for_write(self, send_from_fileobj,
-                            file_extension_provider=None):
+                            file_extension_provider=None,
+                            file_reference: str = None):
         """
         :param send_from_fileobj: A fileobj from which we will get all data
                             written out to the persisted instance.
         :param file_extension_provider:
                 An implementation of the FileExtensionProvider interface
                 which is often related to the Serialization implementation.
+        :param file_reference: An optional file reference string to override
+                any file settings fixed at construct time. Default of None
+                indicates to resort to implementation's fixed file reference
+                settings.
         :return: None, indicating to the parent class that the send_from_fileobj
                 has been filled with data by this call.
         """
 
         retval = None
 
-        key = self.get_key_name(file_extension_provider)
+        key = self.get_key_name(file_extension_provider, file_reference)
 
         self.s3_client.upload_fileobj(Fileobj=send_from_fileobj,
                                       Bucket=self.bucket_base, Key=key)
@@ -125,11 +135,16 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
 
         return retval
 
-    def get_key_name(self, file_extension_provider):
+    def get_key_name(self, file_extension_provider, file_reference: str = None):
         """
         :param file_extension_provider:
                 An implementation of the FileExtensionProvider interface
                 which is often related to the Serialization implementation.
+        :param file_reference: An optional file reference string to override
+                any file settings fixed at construct time. Default of None
+                indicates to resort to implementation's fixed file reference
+                settings.
+                Currently ignored
         :return: the key name to use for the persisted entity
             This is a combination of:
                 1. a constant "key base" folder component
@@ -138,6 +153,8 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
                 3. the base_name passed in at construct time
                 4. any file extension provided by the file_extension_provider
         """
+        if file_reference is not None:
+            raise ValueError("Using file_reference with S3FilePersistenceMechanism is not yet supported")
 
         key_file = self.base_name
         if file_extension_provider is not None:
