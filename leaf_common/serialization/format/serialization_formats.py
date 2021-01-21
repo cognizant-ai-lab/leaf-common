@@ -24,9 +24,14 @@ class SerializationFormats():
     HOCON = "hocon"
     JSON = "json"
     JSON_GZIP = JSON + "_" + GZIP
-    LEGACY_PICKLE = "legacy_pickle"
     RAW_BYTES = "raw_bytes"
     TEXT = "text"
     YAML = "yaml"
 
-    SERIALIZATION_FORMATS = [LEGACY_PICKLE, HOCON, JSON, JSON_GZIP, RAW_BYTES, TEXT, YAML]
+    # Note: We are specifically *not* including pickle as a SerializationFormat
+    #   in leaf-common because of all the security and maintenence problems
+    #   it prompts.  While there is nothing about the system that prevents
+    #   such a SerializationFormat coming into being (we had it in the past),
+    #   we would much rather encourage the "clean living" that is possible
+    #   without pickle.  Why not try JSON instead? ;)
+    SERIALIZATION_FORMATS = [HOCON, JSON, JSON_GZIP, RAW_BYTES, TEXT, YAML]

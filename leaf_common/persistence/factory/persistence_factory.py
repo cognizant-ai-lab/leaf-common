@@ -22,8 +22,6 @@ from leaf_common.persistence.factory.hocon_persistence \
     import HoconPersistence
 from leaf_common.persistence.factory.json_persistence \
     import JsonPersistence
-from leaf_common.persistence.factory.legacy_pickle_persistence \
-    import LegacyPicklePersistence
 from leaf_common.persistence.factory.raw_bytes_persistence \
     import RawBytesPersistence
 from leaf_common.persistence.factory.reference_helper \
@@ -125,9 +123,6 @@ class PersistenceFactory():
         persistence = None
         if persistence_mechanism_instance is None:
             persistence = NullPersistence()
-        elif use_serialization_format == SerializationFormats.LEGACY_PICKLE:
-            persistence = LegacyPicklePersistence(persistence_mechanism_instance,
-                                                  use_file_extension=use_file_extension)
         elif use_serialization_format == SerializationFormats.HOCON:
             persistence = HoconPersistence(persistence_mechanism_instance,
                                            reference_pruner=self.reference_pruner,
