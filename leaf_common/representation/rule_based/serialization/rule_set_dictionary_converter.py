@@ -28,6 +28,17 @@ class RuleSetDictionaryConverter(DictionaryConverter):
     DictionaryConverter implementation for RuleSet objects.
     """
 
+    def __init__(self, verify_representation_type: bool = True):
+        """
+        Constructor
+
+        :param verify_representation_type: When True, from_dict() will raise
+                an error if the representation_type key does not match what we
+                are expecting.  When False, no such error is raised.
+                Default is True.
+        """
+        self._verify_representation_type = verify_representation_type
+
     def to_dict(self, obj: RuleSet) -> Dict[str, object]:
         """
         :param obj: The object to be converted into a dictionary
@@ -70,10 +81,11 @@ class RuleSetDictionaryConverter(DictionaryConverter):
                 If obj_dict is not the correct type, it is also reasonable
                 to return None.
         """
-        representation_type = obj_dict.get("representation_type", None)
-        if representation_type != RepresentationType.RuleBased.value:
-            raise SelfIdentifyingRepresentationError(RepresentationType.RuleBased,
-                                                     representation_type)
+        if self._verify_representation_type:
+            representation_type = obj_dict.get("representation_type", None)
+            if representation_type != RepresentationType.RuleBased.value:
+                raise SelfIdentifyingRepresentationError(RepresentationType.RuleBased,
+                                                         representation_type)
 
         min_maxes = obj_dict.get("min_maxes", None)
         obj = RuleSet(min_maxes=min_maxes)
