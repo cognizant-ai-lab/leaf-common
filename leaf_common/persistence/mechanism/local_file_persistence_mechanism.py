@@ -12,6 +12,7 @@
 """
 See class comment for details.
 """
+import io
 import logging
 import os
 
