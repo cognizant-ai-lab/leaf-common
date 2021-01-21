@@ -9,10 +9,13 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details
+"""
 
 from unittest import TestCase
 
-from leaf_common.util.dictionary_overlay import DictionaryOverlay
+from leaf_common.config.dictionary_overlay import DictionaryOverlay
 
 
 class DictionaryOverlayTest(TestCase):
@@ -24,6 +27,9 @@ class DictionaryOverlayTest(TestCase):
         self.overlay = DictionaryOverlay()
 
     def test_assumptions(self):
+        """
+        Does the constructor even work?
+        """
 
         self.assertIsNotNone(self.overlay)
 
