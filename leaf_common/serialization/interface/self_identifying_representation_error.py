@@ -40,7 +40,7 @@ class SelfIdentifyingRepresentationError(ValueError):
             use_message = "Unexpected RepresentationType"
             if expected_representation_type is not None:
                 use_message = "Expected RepresentationType {0}".format(
-                                    expected_representation_type.value)
+                    expected_representation_type.value)
             if found_representation_type is not None:
                 use_message = "{0} found {1}".format(use_message,
                                                      found_representation_type.value)
