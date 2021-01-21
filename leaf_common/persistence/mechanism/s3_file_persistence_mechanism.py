@@ -144,7 +144,7 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
                 any file settings fixed at construct time. Default of None
                 indicates to resort to implementation's fixed file reference
                 settings.
-                XXX Currently ignored
+                Currently ignored
         :return: the key name to use for the persisted entity
             This is a combination of:
                 1. a constant "key base" folder component
@@ -153,6 +153,8 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
                 3. the base_name passed in at construct time
                 4. any file extension provided by the file_extension_provider
         """
+        # Ignore file_reference for now
+        _ = file_reference
 
         key_file = self.base_name
         if file_extension_provider is not None:
