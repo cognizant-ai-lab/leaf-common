@@ -14,7 +14,6 @@ See class comment for details.
 """
 
 from leaf_common.serialization.format.json_serialization_format import JsonSerializationFormat
-from leaf_common.representation.rule_based.data.rule_set import RuleSet
 from leaf_common.representation.rule_based.serialization.rule_set_dictionary_converter \
     import RuleSetDictionaryConverter
 
