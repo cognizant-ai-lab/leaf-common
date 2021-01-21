@@ -80,7 +80,9 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
         :return: the full path of the entity to store
         """
         # First determine the path from any fixed settings
-        fixed_settings_path = os.path.join(self.folder, self.base_name)
+        fixed_settings_path = self.folder
+        if self.base_name is not None:
+            fixed_settings_path = os.path.join(self.folder, self.base_name)
 
         file_extension = ""
         if file_extension_provider is not None:
