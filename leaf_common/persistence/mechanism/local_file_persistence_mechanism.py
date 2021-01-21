@@ -75,4 +75,9 @@ class LocalFilePersistenceMechanism(AbstractPersistenceMechanism):
         dirs = os.path.dirname(path)
         os.makedirs(dirs, exist_ok=True)
 
-        return open(path, 'wb')
+        # Allow for string or bytes as input
+        writestyle = "wb"
+        if isinstance(send_from_fileobj, io.StringIO):
+            writestyle = "w"
+
+        return open(path, writestyle)
