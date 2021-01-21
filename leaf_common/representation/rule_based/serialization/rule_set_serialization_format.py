@@ -33,15 +33,22 @@ class RuleSetSerializationFormat(SerializationFormat):
     # do the registration of the numpy handlers
     registered = False
 
-    def __init__(self, indent: int = 4, sort_keys: bool = True):
+    def __init__(self, indent: int = 4, sort_keys: bool = True,
+                 verify_representation_type: bool = True):
         """
         Constructor
 
         :param indent: indentation of serialization. Default is 4
         :param sort_keys: should dict keys be sorted for serialization. Default is True
+        :param verify_representation_type: When True, from_dict() will raise
+                 an error if the representation_type key does not match what we
+                 are expecting.  When False, no such error is raised.
+                 Default is True.
         """
         self.indent = indent
         self.sort_keys = sort_keys
+        self.converter = RuleSetDictionaryConverter(
+            verify_representation_type=verify_representation_type)
 
     def get_file_extension(self) -> str:
         """
@@ -57,8 +64,7 @@ class RuleSetSerializationFormat(SerializationFormat):
                 bytes.  Any file cursors should be set to the beginning
                 of the data (ala seek to the beginning).
         """
-        converter = RuleSetDictionaryConverter()
-        obj_dict = converter.to_dict(obj)
+        obj_dict = self.converter.to_dict(obj)
 
         json_string = json.dumps(obj_dict, indent=self.indent, sort_keys=self.sort_keys)
         fileobj = StringIO(json_string)
@@ -79,6 +85,5 @@ class RuleSetSerializationFormat(SerializationFormat):
         json_string = fileobj.getvalue()
         obj_dict = json.loads(json_string)
 
-        converter = RuleSetDictionaryConverter()
-        obj = converter.from_dict(obj_dict)
+        obj = self.converter.from_dict(obj_dict)
         return obj
