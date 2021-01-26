@@ -80,6 +80,10 @@ class AbstractPersistence(Persistence):
                 with dest_fileobj:
                     shutil.copyfileobj(buffer_fileobj, dest_fileobj)
 
+        path = self._mechanism.get_path(file_extension_provider=file_extension_provider,
+                                        file_reference=file_reference)
+        return path
+
     def restore(self, file_reference: str = None):
         """
         :param file_reference: An optional file reference string to override

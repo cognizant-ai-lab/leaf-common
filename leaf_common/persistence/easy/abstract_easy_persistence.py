@@ -96,7 +96,7 @@ class AbstractEasyPersistence(Persistence):
                 indicates to resort to implementation's fixed file reference
                 settings.
         """
-        self.persistence.persist(obj, file_reference)
+        return self.persistence.persist(obj, file_reference)
 
     def restore(self, file_reference: str = None):
         """
