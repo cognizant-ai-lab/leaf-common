@@ -28,7 +28,6 @@ class Resolver():
 
         self.packages = packages
 
-
     def resolve_class_in_module(self, class_name, module_name=None,
                                 raise_if_not_found=True,
                                 verbose=False):
@@ -75,7 +74,6 @@ class Resolver():
         my_class = getattr(found_module, class_name)
         return my_class
 
-
     def try_to_import_module(self, module, messages):
         """
         Makes a single attempt to load a module
@@ -110,7 +108,6 @@ class Resolver():
             messages.append(message)
 
         return found_module
-
 
     def module_name_from_class_name(self, class_name):
         """
