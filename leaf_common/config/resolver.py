@@ -104,8 +104,7 @@ class Resolver():
             message += "in the file itself and the code can be found in "
             message += "another directory"
 
-        # pylint: disable=broad-except
-        except Exception as exception:
+        except Exception as exception:      # pylint: disable=broad-except
             message = "Module {0}: Couldn't load due to Exception: {1}".format(
                 module, str(exception))
 
