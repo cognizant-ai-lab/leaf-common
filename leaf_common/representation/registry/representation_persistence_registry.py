@@ -14,12 +14,12 @@ See class comment for details.
 """
 from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.persistence.interface.persistence import Persistence
+from leaf_common.persistence.easy.easy_json_persistence import EasyJsonPersistence
 
 from leaf_common.representation.registry.representation_file_extension_provider_registry \
     import RepresentationFileExtensionProviderRegistry
 from leaf_common.representation.rule_based.persistence.rule_set_file_persistence \
     import RuleSetFilePersistence
-from leaf_common.representation.structure.structure_file_persistence import StructureFilePersistence
 
 
 class RepresentationPersistenceRegistry(RepresentationFileExtensionProviderRegistry):
@@ -36,7 +36,7 @@ class RepresentationPersistenceRegistry(RepresentationFileExtensionProviderRegis
         super().__init__()
 
         # Do some simple registrations
-        self.register(RepresentationType.Structure, StructureFilePersistence())
+        self.register(RepresentationType.Structure, EasyJsonPersistence())
         self.register(RepresentationType.RuleBased, RuleSetFilePersistence())
 
     def register(self, rep_type: RepresentationType, file_extension_provider: Persistence):
