@@ -9,6 +9,9 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 import importlib
 import logging
@@ -74,6 +77,7 @@ class Resolver():
         my_class = getattr(found_module, class_name)
         return my_class
 
+    # pylint: disable=no-self-use
     def try_to_import_module(self, module, messages):
         """
         Makes a single attempt to load a module
@@ -100,6 +104,7 @@ class Resolver():
             message += "in the file itself and the code can be found in "
             message += "another directory"
 
+        # pylint: disable=broad-except
         except Exception as exception:
             message = "Module {0}: Couldn't load due to Exception: {1}".format(
                 module, str(exception))
@@ -109,6 +114,7 @@ class Resolver():
 
         return found_module
 
+    # pylint: disable=no-self-use
     def module_name_from_class_name(self, class_name):
         """
         :param class_name: The class name whose module name we are looking for
