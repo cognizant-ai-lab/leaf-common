@@ -60,6 +60,8 @@ class ConversionPolicy():
         pruned_dict = None
         if self._dictionary_converter is not None:
             pruned_dict = self._dictionary_converter.to_dict(pruned_obj)
+        elif isinstance(pruned_obj, dict):
+            pruned_dict = pruned_obj
         else:
             pruned_dict = pruned_obj.__dict__
 
