@@ -48,8 +48,14 @@ class ResponseCandidateDictionaryConverter(DictionaryConverter):
         """
         candidate = obj
 
-        interpretation = self.extension_packaging.from_extension_bytes(
+        try: 
+            interpretation = self.extension_packaging.from_extension_bytes(
                                 candidate.interpretation)
+        except UnicodeDecodeError:
+            # Allow pass through of bytes on failure here.
+            # Some client code has to do more to decode interpretation bytes
+            interpretation = candidate.interpretation
+
         metrics = self.extension_packaging.from_extension_bytes(
                                 candidate.metrics)
         identity = self.extension_packaging.from_extension_bytes(
