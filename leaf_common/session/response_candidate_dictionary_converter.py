@@ -48,7 +48,7 @@ class ResponseCandidateDictionaryConverter(DictionaryConverter):
         """
         candidate = obj
 
-        try: 
+        try:
             interpretation = self.extension_packaging.from_extension_bytes(
                                 candidate.interpretation)
         except UnicodeDecodeError:
