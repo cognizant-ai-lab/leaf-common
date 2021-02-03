@@ -27,7 +27,8 @@ class ConfigHandler():
     An abstract class which handles configuration dictionaries
     """
 
-    def import_config(self, config_source, default_config=None):
+    def import_config(self, config_source, default_config=None,
+                      must_exist=True):
         """
         Main entry point for reading config files
         :param config_source: Either a string filename reference to a
@@ -39,6 +40,11 @@ class ConfigHandler():
                 When a dictionary is supplied, the default_config is used
                 as a basis for which any new config parameters read
                 from the config_source are overlayed on top of.
+        :param must_exist: Default True.  When True, an error is
+                raised when the file does not exist upon config
+                reading via a Persistor restore() method.
+                When False, the lack of a file to restore from is
+                ignored and a dictionary value of None is returned
         """
 
         # Set up a very basic config dictionary
@@ -49,7 +55,7 @@ class ConfigHandler():
         # Potentially read config from a file, if config arg is a string filename
         update_source = {}
         if isinstance(config_source, str):
-            update_source = self.read_config_from_file(config_source)
+            update_source = self.read_config_from_file(config_source, must_exist)
 
         # Override entries from the defaults in setupConfig with the
         #     contents of the config arg that was passed in.
@@ -72,9 +78,14 @@ class ConfigHandler():
                 dest[key] = source[key]
         return dest
 
-    def read_config_from_file(self, filepath):
+    def read_config_from_file(self, filepath, must_exist):
         """
         :param filepath: The file to parse
+        :param must_exist: When True, an error is
+                raised when the file does not exist upon config
+                reading via a Persistor restore() method.
+                When False, the lack of a file to restore from is
+                ignored and a dictionary value of None is returned
         :return: The dictionary parsed from the config file
         """
 
@@ -93,45 +104,62 @@ class ConfigHandler():
             if filepath.endswith(file_extension):
                 parser = file_extension_to_parser_map.get(file_extension)
 
+        message = "Could not read {0} as config. Unknown file extension.".format(filepath)
         if parser is not None:
-            config = self.parse_with_method(parser, filepath)
+            config = self.parse_with_method(parser, filepath, must_exist)
+        elif must_exist:
+            raise ValueError(message)
         else:
             # Specifically use print here because this can happen
             # as part of setting up logging.
-            print("Could not read {0} as config".format(filepath))
+            print(message)
             config = {}
 
         return config
 
-    def parse_with_method(self, parser, filepath):
+    def parse_with_method(self, parser, filepath, must_exist):
         """
         :param parser: The parser method on this class to use
         :param filepath: The file to parse
+        :param must_exist: When True, an error is
+                raised when the file does not exist upon restore()
+                When False, the lack of a file to restore from is
+                ignored and a dictionary value of None is returned
         :return: The dictionary parsed from the config file
         """
         # Python magic to get a handle to the method
         parser_method = getattr(self, parser)
 
         # Call the parser method with the filepath, get dictionary back
-        config = parser_method(filepath)
+        config = parser_method(filepath, must_exist)
         return config
 
     # pylint: disable=no-self-use
-    def parse_hocon(self, filepath):
+    def parse_hocon(self, filepath, must_exist):
         """
         :param filepath: The hocon file to parse
+        :param must_exist: When True, an error is
+                raised when the file does not exist upon restore()
+                When False, the lack of a file to restore from is
+                ignored and a dictionary value of None is returned
         :return: The dictionary parsed from the hocon config file
         """
-        persistence = EasyHoconPersistence(full_ref=filepath)
+        persistence = EasyHoconPersistence(full_ref=filepath,
+                                           must_exist=must_exist)
         config = persistence.restore()
         return config
 
     # pylint: disable=no-self-use
-    def parse_yaml(self, filepath):
+    def parse_yaml(self, filepath, must_exist):
         """
         :param filepath: The yaml file to parse
+        :param must_exist: When True, an error is
+                raised when the file does not exist upon restore()
+                When False, the lack of a file to restore from is
+                ignored and a dictionary value of None is returned
         :return: The dictionary parsed from the yaml config file
         """
-        persistence = EasyYamlPersistence(full_ref=filepath)
+        persistence = EasyYamlPersistence(full_ref=filepath,
+                                          must_exist=must_exist)
         config = persistence.restore()
         return config
