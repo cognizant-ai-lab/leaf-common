@@ -12,6 +12,7 @@
 """
 See class comment for details.
 """
+from typing import Dict
 
 from leaf_common.config.config_filter import ConfigFilter
 
