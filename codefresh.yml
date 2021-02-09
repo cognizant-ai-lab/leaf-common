@@ -94,7 +94,7 @@ steps:
         title: "Publish leafcommon Artifact"
         description: "Publish leafcommon artifact into configured private pypi."
         type: "freestyle"
-        image: sentient-docker.jfrog.io/python:3.6-buster
+        image: sentient-docker.jfrog.io/python:3.8-slim
         working_directory: ${{CF_REPO_NAME}}
         # provide PYPI_INDEX_URL as a pipeline variable in codefresh ui. For example, currently
         # PYPI_INDEX_URL=https://sentient.jfrog.io/artifactory/api/pypi/sentient-pip-local
