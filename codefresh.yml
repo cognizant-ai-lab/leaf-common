@@ -94,23 +94,23 @@ steps:
         title: "Publish leafcommon Artifact"
         description: "Publish leafcommon artifact into configured private pypi."
         type: "freestyle"
-        image: sentient-docker.jfrog.io/python:3.6-buster
+        image: sentient-docker.jfrog.io/python:3.8-slim
         working_directory: ${{CF_REPO_NAME}}
         # provide PYPI_INDEX_URL as a pipeline variable in codefresh ui. For example, currently
         # PYPI_INDEX_URL=https://sentient.jfrog.io/artifactory/api/pypi/sentient-pip-local
         commands:
           - python setup.py -q bdist_wheel
           - pip install twine
-          - python -m twine upload 
-                       --password $ARTIFACTORY_PASSWORD 
-                       --username $ARTIFACTORY_LOGIN 
-                       --repository-url $PYPI_INDEX_URL
-                       dist/*
+          #- python -m twine upload 
+          #             --password $ARTIFACTORY_PASSWORD 
+          #             --username $ARTIFACTORY_LOGIN 
+          #             --repository-url $PYPI_INDEX_URL
+          #             dist/*
         when:
           condition:
             all:
               # This is idiomatic Codefresh for detecting if ${{CF_RELEASE_TAG}} has a value.
-              deploy_tagged_builds_only: 'includes("${{CF_RELEASE_TAG}}","{{CF_RELEASE_TAG}}") == false'
+              deploy_tagged_builds_only: 'includes("${{CF_RELEASE_TAG}}","{{CF_RELEASE_TAG}}") == true'
 
     end_clean:
         title: Clean up CodeFresh volume
