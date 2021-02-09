@@ -101,16 +101,16 @@ steps:
         commands:
           - python setup.py -q bdist_wheel
           - pip install twine
-          #- python -m twine upload 
-          #             --password $ARTIFACTORY_PASSWORD 
-          #             --username $ARTIFACTORY_LOGIN 
-          #             --repository-url $PYPI_INDEX_URL
-          #             dist/*
+          - python -m twine upload 
+                       --password $ARTIFACTORY_PASSWORD 
+                       --username $ARTIFACTORY_LOGIN 
+                       --repository-url $PYPI_INDEX_URL
+                       dist/*
         when:
           condition:
             all:
               # This is idiomatic Codefresh for detecting if ${{CF_RELEASE_TAG}} has a value.
-              deploy_tagged_builds_only: 'includes("${{CF_RELEASE_TAG}}","{{CF_RELEASE_TAG}}") == true'
+              deploy_tagged_builds_only: 'includes("${{CF_RELEASE_TAG}}","{{CF_RELEASE_TAG}}") == false'
 
     end_clean:
         title: Clean up CodeFresh volume
