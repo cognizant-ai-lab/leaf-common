@@ -23,10 +23,6 @@ class RuleSetSerializationFormat(JsonSerializationFormat):
     Class for serialization policy for RuleSets.
     """
 
-    # Use a class variable to tell us whether or not we need to
-    # do the registration of the numpy handlers
-    registered = False
-
     def __init__(self, pretty: bool = True,
                  verify_representation_type: bool = True):
         """

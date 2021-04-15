@@ -9,9 +9,15 @@
 # leaf-common SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 import copy
 
+# Note we leave numpy as optional to any client code,
+# so we do not include it in requirements.txt
+# pylint: disable=import-error
 import numpy as np
 
 from leaf_common.serialization.prep.pass_through_dictionary_converter \
@@ -55,6 +61,7 @@ class MetricsDictionaryConverter(PassThroughDictionaryConverter):
 
         return new_metrics
 
+    # pylint: disable=no-self-use
     def is_numpy_type(self, value):
         """
         :param value: The value to inspect
