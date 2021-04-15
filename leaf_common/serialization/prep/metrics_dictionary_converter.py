@@ -48,13 +48,12 @@ class MetricsDictionaryConverter(PassThroughDictionaryConverter):
         if execution is not None:
             eval_error = execution.get('eval_error', None)
             if eval_error is not None and \
-                isinstance(eval_error, str):
+                    isinstance(eval_error, str):
 
                 # Break up any traceback as an array of lines
                 execution['eval_error'] = eval_error.splitlines()
 
         return new_metrics
-
 
     def is_numpy_type(self, value):
         """
@@ -62,7 +61,6 @@ class MetricsDictionaryConverter(PassThroughDictionaryConverter):
         :return: True if the object came from numpy. False otherwise.
         """
         return type(value).__module__ == np.__name__
-
 
     def cleanup_metrics(self, datum):
         """
