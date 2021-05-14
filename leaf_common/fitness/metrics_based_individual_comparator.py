@@ -40,7 +40,6 @@ class MetricsBasedIndividualComparator(Comparator):
         self._field_extractor = FieldExtractor()
         self._number_comparator = NumberComparator()
 
-
     def compare(self, obj1, obj2):
         """
         :param obj1: The first MetricsProvider offered for comparison
@@ -60,7 +59,6 @@ class MetricsBasedIndividualComparator(Comparator):
 
             # Int and Float and None are supported in here
             return self._number_comparator.compare(metric_1, metric_2)
-
 
         # String and Boolean are supported here.
         # Unfortunately, Record.getField() returns an Object so we have to cast
@@ -88,7 +86,6 @@ class MetricsBasedIndividualComparator(Comparator):
             raise ValueError("Cannot compare metric type {0}".format(
                             type(metric_1).__name__))
         return retval
-
 
     def get_basis_value(self, obj):
         """

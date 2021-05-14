@@ -34,14 +34,14 @@ class FieldExtractor():
 
         # Handle the case of no dictionary
         if dictionary is None or \
-            not isinstance(dictionary, dict) or \
-            field_name is None:
+                not isinstance(dictionary, dict) or \
+                field_name is None:
             return default_value
 
         # Handle case where field_name is not a string
         # Just do the lookup anyway.
         if field_name is None or \
-            not isinstance(field_name, str):
+                not isinstance(field_name, str):
             return dictionary.get(field_name, default_value)
 
         # Handle the simple case of no delimited key
@@ -57,7 +57,7 @@ class FieldExtractor():
         # as we know we have more to look for.
         value = dictionary.get(use_field_name, None)
         if value is None or \
-            not isinstance(value, dict):
+                not isinstance(value, dict):
             return default_value
 
         # We know the value is a dictionary.

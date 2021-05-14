@@ -42,7 +42,6 @@ class StreamToLogger(StringIO):
         self.last_logged = []
         self.last_num_lines_logged = []
 
-
     def write(self, s):
         """
         Write the string s to the stream and return the number of characters
@@ -73,12 +72,12 @@ class StreamToLogger(StringIO):
         # Prevent some infinite loops when exceptions happen in loggers when
         # lower-level python logging code encounters a BrokenPipe error.
         dont_log = dont_log or \
-                    (exception_type == BrokenPipeError) or \
-                    (exception_type == RecursionError) or \
-                    ((exception_type == OSError) and \
-                     (str(exception_value) == str(errno.EPIPE)))
+                   (exception_type == BrokenPipeError) or \
+                   (exception_type == RecursionError) or \
+                   ((exception_type == OSError) and
+                    (str(exception_value) == str(errno.EPIPE)))
         dont_log = dont_log or \
-                    (num_lines > 0 and lines[0].startswith("--- Logging error ---"))
+                   (num_lines > 0 and lines[0].startswith("--- Logging error ---"))
 
         if dont_log:
             # ... then bail to avoid infinite recursion
@@ -102,7 +101,6 @@ class StreamToLogger(StringIO):
         # Return what write() interface wants, more or less.
         num_chars = len(s)
         return num_chars
-
 
     @classmethod
     def subvert(cls, logger=None, reroute_stdout=True, reroute_stderr=True):

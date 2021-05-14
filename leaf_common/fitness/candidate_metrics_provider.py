@@ -26,7 +26,6 @@ class CandidateMetricsProvider(MetricsProvider):
         """
         self._candidate = candidate
 
-
     def get_metrics(self):
         """
         Returns the metrics of this entity.

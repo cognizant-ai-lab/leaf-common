@@ -60,13 +60,11 @@ class FitnessObjectives():
         if self._ranking_comparators is None:
             self._ranking_comparators = []
 
-
     def get_fitness_objectives(self):
         """
         :return: the immutable list of FitnessObjective data
         """
         return copy.copy(self._fitness_objectives)
-
 
     def get_ranking_comparators(self):
         """
@@ -80,13 +78,11 @@ class FitnessObjectives():
         """
         return copy.copy(self._ranking_comparators)
 
-
     def get_number_of_fitness_objectives(self):
         """
         :return: the number of fitness objectives
         """
         return len(self._fitness_objectives)
-
 
     def get_fitness_objective(self, index):
         """
@@ -94,10 +90,9 @@ class FitnessObjectives():
         :return: the index-th FitnessObjective
         """
         if index < 0 or \
-            index >= self.get_number_of_fitness_objectives():
+                index >= self.get_number_of_fitness_objectives():
             return None
         return self._fitness_objectives[index]
-
 
     def get_ranking_comparator(self, index):
         """
@@ -105,10 +100,9 @@ class FitnessObjectives():
         :return: the index-th ranking Comparator.
         """
         if index < 0 or \
-            index >= self.get_number_of_fitness_objectives():
+                index >= self.get_number_of_fitness_objectives():
             return None
         return self._ranking_comparators[index]
-
 
     def get_lowest_value(self, index):
         """
@@ -116,7 +110,7 @@ class FitnessObjectives():
         :return: the index-th comparator's lowest value.
         """
         if index < 0 or \
-            index >= self.get_number_of_fitness_objectives():
+                index >= self.get_number_of_fitness_objectives():
             return None
 
         fitness_objective = self.get_fitness_objective(index)
@@ -128,7 +122,6 @@ class FitnessObjectives():
 
         return lowest_value
 
-
     def get_highest_value(self, index):
         """
         :param index: the index of the ranking comparator to return
@@ -136,7 +129,7 @@ class FitnessObjectives():
         """
 
         if index < 0 or \
-            index >= self.get_number_of_fitness_objectives():
+                index >= self.get_number_of_fitness_objectives():
             return None
 
         lowest_value = self.get_lowest_value(index)
@@ -144,9 +137,8 @@ class FitnessObjectives():
             return None
 
         # Can't get pylint to shut up.
-        #pylint: disable=invalid-unary-operand-type
+        # pylint: disable=invalid-unary-operand-type
         return -lowest_value
-
 
     def get_value_from_metrics_provider(self, metrics_provider, index):
         """

@@ -26,11 +26,9 @@ class CanonicalMultiConfigParserTest(TestCase):
         self.key = "my_key"
         self.parser = CanonicalMultiConfigParser(name_key=self.key)
 
-
     def test_assumptions(self):
 
         self.assertIsNotNone(self.parser)
-
 
     def test_none(self):
         single_value = None
@@ -40,7 +38,6 @@ class CanonicalMultiConfigParserTest(TestCase):
 
         num = len(canonical)
         self.assertEqual(num, 0)
-
 
     def test_single_string(self):
 
@@ -61,7 +58,6 @@ class CanonicalMultiConfigParserTest(TestCase):
         self.assertIsNotNone(name)
         self.assertIsInstance(name, str)
         self.assertEqual(name, single_value)
-
 
     def test_list_of_strings(self):
 
@@ -92,7 +88,6 @@ class CanonicalMultiConfigParserTest(TestCase):
         self.assertIsInstance(name, str)
         self.assertEqual(name, "Name2")
 
-
     def test_single_dictionary(self):
 
         single_value = {
@@ -118,7 +113,6 @@ class CanonicalMultiConfigParserTest(TestCase):
 
         num_keys = len(first.keys())
         self.assertEqual(num_keys, 2)
-
 
     def test_multi_dictionary_dict(self):
 
@@ -165,7 +159,6 @@ class CanonicalMultiConfigParserTest(TestCase):
         self.assertEqual(num_keys, 2)
         value = second.get("more_config")
         self.assertFalse(value)
-
 
     def test_list_of_dictionaries(self):
 
@@ -216,7 +209,6 @@ class CanonicalMultiConfigParserTest(TestCase):
         self.assertEqual(num_keys, 2)
         value = second.get("more_config")
         self.assertFalse(value)
-
 
     def test_alt_list_of_dictionaries(self):
 

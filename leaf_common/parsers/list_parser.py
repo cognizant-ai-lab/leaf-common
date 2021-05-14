@@ -56,7 +56,6 @@ class ListParser(Parser):
         if self._type_parser is None:
             self._type_parser = StringParser()
 
-
     def parse(self, input_obj):
         """
         Fulfills the Parser interface
@@ -65,7 +64,6 @@ class ListParser(Parser):
         :return: an list object parsed from that object
         """
         return self.parse_list(input_obj)
-
 
     def parse_list(self, input_obj):
         """
@@ -96,9 +94,8 @@ class ListParser(Parser):
             trimmed_list = input_obj.strip()
             split_list = re.split(self._delimiter_regex, trimmed_list)
 
-
         if split_list is not None and \
-            len(split_list) > 0:
+                len(split_list) > 0:
 
             # Parse each component of the list
             for one_element in split_list:

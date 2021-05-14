@@ -57,7 +57,6 @@ class FitnessObjectivesFromConfig():
 
         return fitness_objectives
 
-
     def find_basis_config(self, config, nested_config):
         """
         :param config: The config object/dictionary to extract
@@ -80,13 +79,12 @@ class FitnessObjectivesFromConfig():
         if nested_config is not None:
             # If the config was a master config, get the nested config out of it
             nested_config_dict = self.extractor.get_field(basis_config,
-                                                    nested_config, None)
+                                                          nested_config, None)
             if nested_config_dict is not None and \
-                isinstance(nested_config_dict, dict):
+                    isinstance(nested_config_dict, dict):
                 basis_config = nested_config_dict
 
         return basis_config
-
 
     def find_legacy_fields(self, config_dict):
         """
@@ -101,10 +99,9 @@ class FitnessObjectivesFromConfig():
         default_maximize_fitness = 'true'
 
         # Check for multi-objective
-        alt_obj_strength = self.extractor.get_field(config_dict, 'alt_obj_strength',
-                                               0)
+        alt_obj_strength = self.extractor.get_field(config_dict, 'alt_obj_strength', 0)
         coevo_alt_obj_strength = self.extractor.get_field(config_dict,
-                                                     'coevo_alt_obj_str', 0)
+                                                          'coevo_alt_obj_str', 0)
         # Either of these not being 0 means that the alt objective is used
         # for ParetoSort either in Species or Coevolution, so we need the
         # other objective defined.
@@ -114,25 +111,24 @@ class FitnessObjectivesFromConfig():
 
         # Try the nested fitness dict first
         metric_names = self.extractor.get_field(config_dict,
-                                           'fitness.metric.name',
-                                            default_fitness_names)
+                                                'fitness.metric.name',
+                                                 default_fitness_names)
         maximize_fitnesses = self.extractor.get_field(config_dict,
-                                              'fitness.metric.maximize',
-                                              default_maximize_fitness)
+                                                      'fitness.metric.maximize',
+                                                      default_maximize_fitness)
 
         # Now try the flattened name
         metric_names = self.extractor.get_field(config_dict,
-                                           'fitness_metrics_names',
-                                           metric_names)
+                                                'fitness_metrics_names',
+                                                metric_names)
         maximize_fitnesses = self.extractor.get_field(config_dict,
-                                                 'fitness_metrics_maximize',
-                                                 maximize_fitnesses)
+                                                      'fitness_metrics_maximize',
+                                                      maximize_fitnesses)
 
         # Build the FitnessObjectives object
         builder = FitnessObjectivesBuilder(metric_names=metric_names,
-                                        maximize_fitnesses=maximize_fitnesses)
+                                           maximize_fitnesses=maximize_fitnesses)
         return builder
-
 
     def find_modern_specification(self, config_dict):
         """
@@ -159,7 +155,6 @@ class FitnessObjectivesFromConfig():
                             objective_dictionary_list=fitness_objectives)
 
         return builder
-
 
     def parse_into_list(self, fitness):
         """
@@ -203,15 +198,14 @@ class FitnessObjectivesFromConfig():
             fitness = [fitness]
 
         elif isinstance(fitness, int) or \
-             isinstance(fitness, float) or \
-             isinstance(fitness, bool):
+                isinstance(fitness, float) or \
+                isinstance(fitness, bool):
             # Damn fool specification.
             # We don't know what they are thinking.
             # Use legacy.
             return None
 
         return fitness
-
 
     def parse_list(self, fitness):
         """
@@ -244,7 +238,6 @@ class FitnessObjectivesFromConfig():
             one_dict["metric_name"] = stripped
 
         return objective_dictionary_list
-
 
     def alter_comparators(self, fitness_objectives):
         """

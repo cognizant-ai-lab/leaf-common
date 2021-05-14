@@ -45,7 +45,6 @@ class CanonicalMultiConfigParser(Parser):
         """
         self.name_key = name_key
 
-
     def parse(self, input_obj):
         """
         :param input_obj: the string (or other object) to parse
@@ -62,7 +61,6 @@ class CanonicalMultiConfigParser(Parser):
         config_list = self.parse_one_value(None, input_obj, config_list)
 
         return config_list
-
 
     def parse_one_value(self, key, value, config_list):
         """
@@ -112,7 +110,7 @@ class CanonicalMultiConfigParser(Parser):
                     sub_value = value.get(sub_key)
                     # Recurse.
                     config_list = self.parse_one_value(sub_key, sub_value,
-                                                    config_list)
+                                                       config_list)
             else:
                 # The dictionary is the config for the given key.
                 # Add an entry to the config_list for this pair.

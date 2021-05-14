@@ -28,14 +28,14 @@ class LoggingSetup():
     # Tied for Public Enemy #2 for too-many-arguments
     # pylint: disable=too-many-arguments
     def __init__(self, default_log_config_dir=".",
-                        default_log_config_file='logging.json',
-                        default_log_level='DEBUG',
-                        log_config_env=None,
-                        log_level_env=None,
-                        log_file=None,
-                        logging_config=None,
-                        source_anchor=None,
-                        default_logger_name=None):
+                 default_log_config_file='logging.json',
+                 default_log_level='DEBUG',
+                 log_config_env=None,
+                 log_level_env=None,
+                 log_file=None,
+                 logging_config=None,
+                 source_anchor=None,
+                 default_logger_name=None):
         """
         Constructor.
 
@@ -76,7 +76,6 @@ class LoggingSetup():
         self.source_anchor = source_anchor
         self.default_logger_name = default_logger_name
 
-
     def setup_with_diversion(self):
         """
         Sets up logging while diverting stdout/err to the
@@ -107,7 +106,6 @@ class LoggingSetup():
 
         return logger
 
-
     def setup(self):
         """
         Actually set up the logging per the parameters in the constructor.
@@ -128,14 +126,13 @@ class LoggingSetup():
 
         # Use the configuration we got.
         if config is not None \
-            and isinstance(config, dict):
+                and isinstance(config, dict):
             config = self.replace_log_file(config)
             logging.config.dictConfig(config)
         else:
             log_level = self.determine_log_level()
             logging.basicConfig(filename=self.log_file,
                                 level=log_level)
-
 
     def determine_log_config_file_path(self):
         """
@@ -163,7 +160,7 @@ class LoggingSetup():
         log_config_file_path = default_logging_config_file
         if self.log_config_env is not None:
             log_config_file_path = os.environ.get(self.log_config_env,
-                                        default_logging_config_file)
+                                                  default_logging_config_file)
 
         # Whatever we got, make sure it is an absolute path
         if log_config_file_path.startswith("."):
@@ -175,7 +172,6 @@ class LoggingSetup():
 
         return log_config_file_path
 
-
     def determine_log_level(self):
         """
         This is only used when no config file is found.
@@ -185,9 +181,8 @@ class LoggingSetup():
         log_level = self.default_log_level
         if self.log_level_env is not None:
             log_level = os.environ.get(self.log_level_env,
-                                        self.default_log_level)
+                                       self.default_log_level)
         return log_level
-
 
     def replace_log_file(self, config):
         """
@@ -213,7 +208,6 @@ class LoggingSetup():
                 break
 
         return config
-
 
     @classmethod
     def get_absolute_source_file_path(cls, relative_filepath, source_anchor=None):

@@ -27,7 +27,6 @@ class ReversedComparator(Comparator):
         """
         self._basis_comparator = basis_comparator
 
-
     def compare(self, obj1, obj2):
         """
         :param obj1: The first object offered for comparison
@@ -54,7 +53,6 @@ class ReversedComparator(Comparator):
         :return: the basis comparator
         """
         return self._basis_comparator
-
 
     @staticmethod
     def reverse(basis_comparator):

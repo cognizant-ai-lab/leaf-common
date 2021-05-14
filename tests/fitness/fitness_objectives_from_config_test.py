@@ -15,6 +15,7 @@ from unittest import TestCase
 from servicecommon.fitness.fitness_objectives_from_config \
     import FitnessObjectivesFromConfig
 
+
 class FitnessObjectivesFromConfigTest(TestCase):
     """
     Tests for the FitnessObjectivesFromConfig parser.
@@ -87,7 +88,6 @@ class FitnessObjectivesFromConfigTest(TestCase):
         self.assertEqual(objective.get_metric_name(), "my_metric_name")
         self.assertTrue(objective.is_maximize_fitness())
 
-
     def test_modern_single_dict_value_fitness(self):
 
         # Test regular case
@@ -131,7 +131,6 @@ class FitnessObjectivesFromConfigTest(TestCase):
         self.assertEqual(objective.get_metric_name(), "my_metric_name")
         self.assertFalse(objective.is_maximize_fitness())
 
-
     def test_modern_single_list_value_fitness(self):
 
         # Test regular case
@@ -173,7 +172,6 @@ class FitnessObjectivesFromConfigTest(TestCase):
         self.assertIsNotNone(objective)
         self.assertEqual(objective.get_metric_name(), "my_metric_name")
         self.assertTrue(objective.is_maximize_fitness())
-
 
     def test_modern_multi_dict_value_fitness(self):
 
@@ -289,7 +287,6 @@ class FitnessObjectivesFromConfigTest(TestCase):
         self.assertIsNotNone(objective)
         self.assertEqual(objective.get_metric_name(), "my_fitness")
         self.assertFalse(objective.is_maximize_fitness())
-
 
     def test_legacy_fields(self):
 

@@ -44,8 +44,9 @@ class FitnessObjectivesBuilder():
 
     DEFAULT_MAXIMIZE_FITNESS = True
 
-    def __init__(self, metric_names=None, maximize_fitnesses=None,
-                  objective_dictionary_list=None):
+    def __init__(self, metric_names=None,
+                 maximize_fitnesses=None,
+                 objective_dictionary_list=None):
         """
         Constructor.
 
@@ -77,7 +78,6 @@ class FitnessObjectivesBuilder():
         self._maximize_fitnesses = maximize_fitnesses
         self._objective_dictionary_list = objective_dictionary_list
 
-
     def build(self):
         """
         :return: a FitnessObjectives instance given the constructor arguments.
@@ -94,7 +94,6 @@ class FitnessObjectivesBuilder():
         fitness_objectives = FitnessObjectives(objectives_list,
                                                ranking_comparators)
         return fitness_objectives
-
 
     def parse_fitness_objectives(self):
         """
@@ -134,7 +133,6 @@ class FitnessObjectivesBuilder():
 
         return objectives
 
-
     def parse_from_dictionaries(self):
         """
         :return: FitnessObjectives structure built from more modern parsing
@@ -152,7 +150,6 @@ class FitnessObjectivesBuilder():
             objectives.append(objective)
 
         return objectives
-
 
     def create_ranking_comparators(self, objectives):
         """
