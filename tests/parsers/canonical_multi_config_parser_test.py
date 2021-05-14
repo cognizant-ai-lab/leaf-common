@@ -22,15 +22,25 @@ class CanonicalMultiConfigParserTest(TestCase):
     """
 
     def setUp(self):
+        """
+        Set up member variables for each test
+        """
 
         self.key = "my_key"
         self.parser = CanonicalMultiConfigParser(name_key=self.key)
 
     def test_assumptions(self):
+        """
+        Test the assumptions the rest of the tests make
+        """
 
         self.assertIsNotNone(self.parser)
 
     def test_none(self):
+        """
+        Tests None value
+        """
+
         single_value = None
         canonical = self.parser.parse(single_value)
         self.assertIsNotNone(canonical)
@@ -40,6 +50,9 @@ class CanonicalMultiConfigParserTest(TestCase):
         self.assertEqual(num, 0)
 
     def test_single_string(self):
+        """
+        Tests a single string
+        """
 
         single_value = "Name1"
         canonical = self.parser.parse(single_value)
@@ -60,6 +73,9 @@ class CanonicalMultiConfigParserTest(TestCase):
         self.assertEqual(name, single_value)
 
     def test_list_of_strings(self):
+        """
+        Tests a list of strings
+        """
 
         single_value = ["Name1", "Name2"]
         canonical = self.parser.parse(single_value)
@@ -89,6 +105,9 @@ class CanonicalMultiConfigParserTest(TestCase):
         self.assertEqual(name, "Name2")
 
     def test_single_dictionary(self):
+        """
+        Tests a single dictionary
+        """
 
         single_value = {
             self.key: "Name1",
@@ -115,6 +134,9 @@ class CanonicalMultiConfigParserTest(TestCase):
         self.assertEqual(num_keys, 2)
 
     def test_multi_dictionary_dict(self):
+        """
+        Test a single structure of key/config dictionary pairs
+        """
 
         single_value = {
             "Name1": {
@@ -161,6 +183,9 @@ class CanonicalMultiConfigParserTest(TestCase):
         self.assertFalse(value)
 
     def test_list_of_dictionaries(self):
+        """
+        Test a list of dictionaries
+        """
 
         single_value = [
             {
@@ -211,6 +236,9 @@ class CanonicalMultiConfigParserTest(TestCase):
         self.assertFalse(value)
 
     def test_alt_list_of_dictionaries(self):
+        """
+        Tests list of dictionaries in another way
+        """
 
         single_value = [
             {

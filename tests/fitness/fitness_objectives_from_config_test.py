@@ -9,6 +9,9 @@
 # leaf-common SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 from unittest import TestCase
 
@@ -24,14 +27,23 @@ class FitnessObjectivesFromConfigTest(TestCase):
     """
 
     def setUp(self):
+        """
+        Set up member variables for other tests.
+        """
 
         self.parser = FitnessObjectivesFromConfig()
 
     def test_assumptions(self):
+        """
+        Test assumptions other tests need
+        """
 
         self.assertIsNotNone(self.parser)
 
     def test_no_config_keys(self):
+        """
+        Tests when no fitness is specified at all
+        """
 
         # Test regular case
         config = {
@@ -51,6 +63,9 @@ class FitnessObjectivesFromConfigTest(TestCase):
         self.assertTrue(objective.is_maximize_fitness())
 
     def test_modern_single_string_value_fitness(self):
+        """
+        Tests single fitness metric specified as single string
+        """
 
         # Test regular case
         config = {
@@ -89,6 +104,9 @@ class FitnessObjectivesFromConfigTest(TestCase):
         self.assertTrue(objective.is_maximize_fitness())
 
     def test_modern_single_dict_value_fitness(self):
+        """
+        Tests structure for single fitness (no list)
+        """
 
         # Test regular case
         config = {
@@ -132,6 +150,9 @@ class FitnessObjectivesFromConfigTest(TestCase):
         self.assertFalse(objective.is_maximize_fitness())
 
     def test_modern_single_list_value_fitness(self):
+        """
+        Test list with single fitness structure
+        """
 
         # Test regular case
         config = {
@@ -174,6 +195,10 @@ class FitnessObjectivesFromConfigTest(TestCase):
         self.assertTrue(objective.is_maximize_fitness())
 
     def test_modern_multi_dict_value_fitness(self):
+        """
+        Tests array of fitnesses with each component having a full structure
+        definition.
+        """
 
         # Test regular case
         config = {
@@ -208,6 +233,9 @@ class FitnessObjectivesFromConfigTest(TestCase):
         self.assertTrue(objective.is_maximize_fitness())
 
     def test_modern_multi_string_value_fitness(self):
+        """
+        Tests array of fitnesses with single fitness name
+        """
 
         # Test regular case
         config = {
@@ -236,6 +264,9 @@ class FitnessObjectivesFromConfigTest(TestCase):
         self.assertTrue(objective.is_maximize_fitness())
 
     def test_modern_multi_mixed_value_fitness(self):
+        """
+        Tests array of fitness values with varied structure
+        """
 
         # Test regular case
         config = {
@@ -267,6 +298,9 @@ class FitnessObjectivesFromConfigTest(TestCase):
         self.assertTrue(objective.is_maximize_fitness())
 
     def test_legacy_structure(self):
+        """
+        Tests incorporation of legacy structure in config
+        """
 
         config = {
             'fitness': {
@@ -289,6 +323,9 @@ class FitnessObjectivesFromConfigTest(TestCase):
         self.assertFalse(objective.is_maximize_fitness())
 
     def test_legacy_fields(self):
+        """
+        Tests incorporation of legacy fitness fields
+        """
 
         config = {
             'fitness_metrics_names': 'fitness, alt_objective',
