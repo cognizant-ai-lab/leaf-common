@@ -29,13 +29,11 @@ class FitnessObjective():
         self._metric_name = metric_name
         self._maximize_fitness = maximize_fitness
 
-
     def get_metric_name(self):
         """
         :return: the String name of the fitness metric
         """
         return self._metric_name
-
 
     def is_maximize_fitness(self):
         """

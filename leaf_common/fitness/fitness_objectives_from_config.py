@@ -112,7 +112,7 @@ class FitnessObjectivesFromConfig():
         # Try the nested fitness dict first
         metric_names = self.extractor.get_field(config_dict,
                                                 'fitness.metric.name',
-                                                 default_fitness_names)
+                                                default_fitness_names)
         maximize_fitnesses = self.extractor.get_field(config_dict,
                                                       'fitness.metric.maximize',
                                                       default_maximize_fitness)

@@ -72,12 +72,12 @@ class StreamToLogger(StringIO):
         # Prevent some infinite loops when exceptions happen in loggers when
         # lower-level python logging code encounters a BrokenPipe error.
         dont_log = dont_log or \
-                   (exception_type == BrokenPipeError) or \
-                   (exception_type == RecursionError) or \
-                   ((exception_type == OSError) and
-                    (str(exception_value) == str(errno.EPIPE)))
+            (exception_type == BrokenPipeError) or \
+            (exception_type == RecursionError) or \
+            ((exception_type == OSError) and
+             (str(exception_value) == str(errno.EPIPE)))
         dont_log = dont_log or \
-                   (num_lines > 0 and lines[0].startswith("--- Logging error ---"))
+            (num_lines > 0 and lines[0].startswith("--- Logging error ---"))
 
         if dont_log:
             # ... then bail to avoid infinite recursion

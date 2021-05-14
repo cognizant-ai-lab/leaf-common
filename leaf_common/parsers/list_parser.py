@@ -65,7 +65,7 @@ class ListParser(Parser):
         """
         return self.parse_list(input_obj)
 
-    def parse_list(self, input_obj):
+    def parse_list(self, input_obj):        # noqa: C901
         """
         :param input_obj: a String representing a
                 delimiter_regex-separated list of values
