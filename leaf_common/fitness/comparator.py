@@ -9,6 +9,9 @@
 # leaf-common SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 
 class Comparator():
@@ -25,6 +28,7 @@ class Comparator():
         """
         raise NotImplementedError
 
+    # pylint: disable=no-self-use
     def get_basis_value(self, obj):
         """
         This default implementation returns the object itself, which is a

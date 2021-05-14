@@ -9,6 +9,9 @@
 # leaf-common SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 import copy
 
@@ -151,6 +154,7 @@ class FitnessObjectivesBuilder():
 
         return objectives
 
+    # pylint: disable=no-self-use
     def create_ranking_comparators(self, objectives):
         """
         Called from build().

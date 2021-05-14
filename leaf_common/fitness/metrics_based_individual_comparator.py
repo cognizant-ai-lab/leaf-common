@@ -9,6 +9,9 @@
 # leaf-common SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 from leaf_common.fitness.comparator import Comparator
 from leaf_common.fitness.metrics_provider import MetricsProvider
@@ -55,7 +58,7 @@ class MetricsBasedIndividualComparator(Comparator):
         metric_2 = self.get_basis_value(metrics_provider_2)
 
         if metric_1 is None or metric_2 is None or \
-           isinstance(metric_1, int) or isinstance(metric_1, float):
+           isinstance(metric_1, (int, float)):
 
             # Int and Float and None are supported in here
             return self._number_comparator.compare(metric_1, metric_2)
