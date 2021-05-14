@@ -9,6 +9,9 @@
 # leaf-common SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 from leaf_common.fitness.fitness_objectives_builder \
     import FitnessObjectivesBuilder
@@ -156,6 +159,7 @@ class FitnessObjectivesFromConfig():
 
         return builder
 
+    # pylint: disable=no-self-use
     def parse_into_list(self, fitness):
         """
         :param fitness: The raw value of the fitness field to parse.
@@ -197,9 +201,7 @@ class FitnessObjectivesFromConfig():
             # Make a list out of the single string and continue
             fitness = [fitness]
 
-        elif isinstance(fitness, int) or \
-                isinstance(fitness, float) or \
-                isinstance(fitness, bool):
+        elif isinstance(fitness, (bool, float, int)):
             # Damn fool specification.
             # We don't know what they are thinking.
             # Use legacy.
@@ -207,6 +209,7 @@ class FitnessObjectivesFromConfig():
 
         return fitness
 
+    # pylint: disable=no-self-use
     def parse_list(self, fitness):
         """
         :param fitness: The list-normalized, not component-normalize
@@ -239,6 +242,7 @@ class FitnessObjectivesFromConfig():
 
         return objective_dictionary_list
 
+    # pylint: disable=no-self-use
     def alter_comparators(self, fitness_objectives):
         """
         Method to allow for alteration of the comparators to reflect

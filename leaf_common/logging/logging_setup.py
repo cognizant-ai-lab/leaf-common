@@ -22,6 +22,7 @@ from leaf_common.config.config_handler import ConfigHandler
 from leaf_common.logging.stream_to_logger import StreamToLogger
 
 
+# pylint: disable=too-many-instance-attributes
 class LoggingSetup():
     """
     Class to aid in setting up python logging from a JSON file

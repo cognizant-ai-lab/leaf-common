@@ -9,10 +9,13 @@
 # leaf-common SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 from unittest import TestCase
 
-from servicecommon.parsers.canonical_multi_config_parser \
+from leaf_common.parsers.canonical_multi_config_parser \
     import CanonicalMultiConfigParser
 
 

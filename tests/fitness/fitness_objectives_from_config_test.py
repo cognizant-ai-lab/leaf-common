@@ -15,7 +15,7 @@ See class comment for details.
 
 from unittest import TestCase
 
-from servicecommon.fitness.fitness_objectives_from_config \
+from leaf_common.fitness.fitness_objectives_from_config \
     import FitnessObjectivesFromConfig
 
 
