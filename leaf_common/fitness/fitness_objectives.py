@@ -17,6 +17,7 @@ import copy
 import math
 
 from leaf_common.parsers.field_extractor import FieldExtractor
+from leaf_common.fitness.metrics_provider import MetricsProvider
 
 
 class FitnessObjectives():
@@ -153,7 +154,16 @@ class FitnessObjectives():
         if metrics_provider is None:
             return None
 
-        metrics = metrics_provider.get_metrics()
+        if isinstance(metrics_provider, MetricsProvider):
+            # Use the interface on instances that implement it
+            metrics = metrics_provider.get_metrics()
+        elif isinstance(metrics_provider, dict):
+            # Check for the case of the metrics provider being a dictionary 
+            metrics = metrics_provider.get("metrics", None)
+        else:
+            # Don't know how to get metrics from this object
+            return None
+
         fitness_objective = self.get_fitness_objective(index)
         if fitness_objective is None:
             return None
