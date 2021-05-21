@@ -158,7 +158,7 @@ class FitnessObjectives():
             # Use the interface on instances that implement it
             metrics = metrics_provider.get_metrics()
         elif isinstance(metrics_provider, dict):
-            # Check for the case of the metrics provider being a dictionary 
+            # Check for the case of the metrics provider being a dictionary
             metrics = metrics_provider.get("metrics", None)
         else:
             # Don't know how to get metrics from this object
