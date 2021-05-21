@@ -158,8 +158,11 @@ class FitnessObjectives():
             # Use the interface on instances that implement it
             metrics = metrics_provider.get_metrics()
         elif isinstance(metrics_provider, dict):
-            # Check for the case of the metrics provider being a dictionary
-            metrics = metrics_provider.get("metrics", None)
+            # Check for the case of the metrics provider being a dictionary.
+            # Use the provided dict as its own default, as this allows
+            # for both something containing the metrics dictionary
+            # and a metrics dictionary itself to be passed in as an arg.
+            metrics = metrics_provider.get("metrics", metrics_provider)
         else:
             # Don't know how to get metrics from this object
             return None
