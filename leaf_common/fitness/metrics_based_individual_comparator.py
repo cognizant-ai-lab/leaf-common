@@ -25,7 +25,7 @@ class MetricsBasedIndividualComparator(Comparator):
     A comparator that compares metrics_providers based on a given metric.
     """
 
-    def __init__(self, metric_name, raise_on_problems=True):
+    def __init__(self, metric_name: str, raise_on_problems: bool = True):
         """
         Creates a comparator that compares MetricsProviders based on the the
         value of the passed metric.

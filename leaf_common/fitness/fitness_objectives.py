@@ -16,8 +16,10 @@ See class comment for details.
 import copy
 import math
 
-from leaf_common.parsers.field_extractor import FieldExtractor
-from leaf_common.fitness.metrics_provider import MetricsProvider
+from typing import List
+
+from leaf_common.fitness.comparator import Comparator
+from leaf_common.fitness.fitness_objective import FitnessObjective
 
 
 class FitnessObjectives():
@@ -42,7 +44,8 @@ class FitnessObjectives():
     (Meaning coevolution might have > 1)
     """
 
-    def __init__(self, objectives, ranking_comparators):
+    def __init__(self, objectives: List[FitnessObjectives],
+                 ranking_comparators: List[Comparator]):
         """
         Constructor.
 
@@ -64,13 +67,13 @@ class FitnessObjectives():
         if self._ranking_comparators is None:
             self._ranking_comparators = []
 
-    def get_fitness_objectives(self):
+    def get_fitness_objectives(self) -> List[FitnessObjective]:
         """
         :return: the immutable list of FitnessObjective data
         """
         return copy.copy(self._fitness_objectives)
 
-    def get_ranking_comparators(self):
+    def get_ranking_comparators(self) -> List[Comparator]:
         """
         :return: the ImmutableList of ranking Comparators.
             Each Comparator corresponds to a single FitnessObjective.
@@ -82,13 +85,13 @@ class FitnessObjectives():
         """
         return copy.copy(self._ranking_comparators)
 
-    def get_number_of_fitness_objectives(self):
+    def get_number_of_fitness_objectives(self) -> int:
         """
         :return: the number of fitness objectives
         """
         return len(self._fitness_objectives)
 
-    def get_fitness_objective(self, index):
+    def get_fitness_objective(self, index: int) -> FitnessObjective:
         """
         :param index: the index of FitnessObjective to return
         :return: the index-th FitnessObjective
@@ -98,7 +101,7 @@ class FitnessObjectives():
             return None
         return self._fitness_objectives[index]
 
-    def get_ranking_comparator(self, index):
+    def get_ranking_comparator(self, index: int) -> Comparator:
         """
         :param index: the index of the ranking comparator to return
         :return: the index-th ranking Comparator.
@@ -108,7 +111,7 @@ class FitnessObjectives():
             return None
         return self._ranking_comparators[index]
 
-    def get_lowest_value(self, index):
+    def get_lowest_value(self, index: int):
         """
         :param index: the index of the ranking comparator to return
         :return: the index-th comparator's lowest value.
@@ -126,7 +129,7 @@ class FitnessObjectives():
 
         return lowest_value
 
-    def get_highest_value(self, index):
+    def get_highest_value(self, index: int):
         """
         :param index: the index of the ranking comparator to return
         :return: the index-th comparator's highest value.
@@ -144,7 +147,7 @@ class FitnessObjectives():
         # pylint: disable=invalid-unary-operand-type
         return -lowest_value
 
-    def get_value_from_metrics_provider(self, metrics_provider, index):
+    def get_value_from_metrics_provider(self, metrics_provider, index: int):
         """
         :param metrics_provider: An implementation of the MetricsProvider
                 interface
