@@ -44,7 +44,7 @@ class FitnessObjectives():
     (Meaning coevolution might have > 1)
     """
 
-    def __init__(self, objectives: List[FitnessObjectives],
+    def __init__(self, objectives: List[FitnessObjective],
                  ranking_comparators: List[Comparator]):
         """
         Constructor.
