@@ -107,7 +107,17 @@ class MetricsBasedIndividualComparator(Comparator):
         # Allow a MetricsProvider, or a metrics dict itself
         metrics = metrics_provider
         if isinstance(metrics_provider, MetricsProvider):
+            # Use the interface on instances that implement it
             metrics = metrics_provider.get_metrics()
+        elif isinstance(metrics_provider, dict):
+            # Check for the case of the metrics provider being a dictionary.
+            # Use the provided dict as its own default, as this allows
+            # for both something containing the metrics dictionary
+            # and a metrics dictionary itself to be passed in as an arg.
+            metrics = metrics_provider.get("metrics", metrics_provider)
+        else:
+            # Don't know how to get metrics from this object
+            return None
 
         if metrics is not None:
             metric = self._field_extractor.get_field(metrics, self._metric_name)
