@@ -25,7 +25,7 @@ class MetricsBasedIndividualComparator(Comparator):
     A comparator that compares metrics_providers based on a given metric.
     """
 
-    def __init__(self, metric_name, raise_on_problems=True):
+    def __init__(self, metric_name: str, raise_on_problems: bool = True):
         """
         Creates a comparator that compares MetricsProviders based on the the
         value of the passed metric.
@@ -102,13 +102,25 @@ class MetricsBasedIndividualComparator(Comparator):
         """
         metrics_provider = obj
 
-        metric = None
+        if metrics_provider is None:
+            return None
 
         # Allow a MetricsProvider, or a metrics dict itself
         metrics = metrics_provider
         if isinstance(metrics_provider, MetricsProvider):
+            # Use the interface on instances that implement it
             metrics = metrics_provider.get_metrics()
+        elif isinstance(metrics_provider, dict):
+            # Check for the case of the metrics provider being a dictionary.
+            # Use the provided dict as its own default, as this allows
+            # for both something containing the metrics dictionary
+            # and a metrics dictionary itself to be passed in as an arg.
+            metrics = metrics_provider.get("metrics", metrics_provider)
+        else:
+            # Don't know how to get metrics from this object
+            return None
 
+        metric = None
         if metrics is not None:
             metric = self._field_extractor.get_field(metrics, self._metric_name)
 
