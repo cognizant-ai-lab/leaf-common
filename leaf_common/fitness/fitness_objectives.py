@@ -151,28 +151,6 @@ class FitnessObjectives():
         :param index: the index of FitnessObjective value to return
         :return: The value of the fitness metric, or None if it does not exist
         """
-        if metrics_provider is None:
-            return None
-
-        if isinstance(metrics_provider, MetricsProvider):
-            # Use the interface on instances that implement it
-            metrics = metrics_provider.get_metrics()
-        elif isinstance(metrics_provider, dict):
-            # Check for the case of the metrics provider being a dictionary.
-            # Use the provided dict as its own default, as this allows
-            # for both something containing the metrics dictionary
-            # and a metrics dictionary itself to be passed in as an arg.
-            metrics = metrics_provider.get("metrics", metrics_provider)
-        else:
-            # Don't know how to get metrics from this object
-            return None
-
-        fitness_objective = self.get_fitness_objective(index)
-        if fitness_objective is None:
-            return None
-
-        metric_name = fitness_objective.get_metric_name()
-
-        extractor = FieldExtractor()
-        value = extractor.get_field(metrics, metric_name)
-        return value
+        comparator = self.get_ranking_comparator(index)
+        metric_value = comparator.get_basis_value(metrics_provider)
+        return metric_value

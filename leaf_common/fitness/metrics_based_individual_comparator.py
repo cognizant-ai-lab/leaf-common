@@ -102,7 +102,8 @@ class MetricsBasedIndividualComparator(Comparator):
         """
         metrics_provider = obj
 
-        metric = None
+        if metrics_provider is None:
+            return None
 
         # Allow a MetricsProvider, or a metrics dict itself
         metrics = metrics_provider
@@ -119,6 +120,7 @@ class MetricsBasedIndividualComparator(Comparator):
             # Don't know how to get metrics from this object
             return None
 
+        metric = None
         if metrics is not None:
             metric = self._field_extractor.get_field(metrics, self._metric_name)
 
