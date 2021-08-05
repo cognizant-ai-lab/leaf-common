@@ -18,7 +18,7 @@ from __future__ import annotations      # noqa: F407
 
 import time
 
-from servicecommon.util.timeout_reached_exception import TimeoutReachedException
+from leaf_common.time.timeout_reached_exception import TimeoutReachedException
 
 
 class Timeout:
