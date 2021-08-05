@@ -9,6 +9,10 @@
 # ENN-release SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details
+"""
+
 import time
 
 from unittest import TestCase
@@ -22,9 +26,15 @@ class TimeoutTest(TestCase):
     """
 
     def setUp(self):
+        """
+        Common test set up
+        """
         self.timeout = Timeout("test")
 
     def test_assumptions(self):
+        """
+        Test basic assumptions about the Timeout object
+        """
 
         self.assertIsNotNone(self.timeout)
         self.assertTrue(self.timeout.get_limit_in_seconds() < 0)
