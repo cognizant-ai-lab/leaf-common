@@ -15,6 +15,8 @@ See class comment for details
 
 import datetime
 
+from pytz import timezone
+
 
 class TimeUtil:
     """
@@ -35,9 +37,6 @@ class TimeUtil:
         # make it nice for the debugging developers.
         local_tzname = local_tz.tzname(local_now)
         if local_tzname == "UTC":
-
-            # Lazy import. Use only if needed.
-            from pytz import timezone
 
             use_tz = timezone('US/Pacific')
             now = datetime.datetime.now(use_tz)
