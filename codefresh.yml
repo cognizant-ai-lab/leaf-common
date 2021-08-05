@@ -3,7 +3,7 @@ steps:
     start_clean:
         title: Clean up CodeFresh volume
         # Images come from hierarchy at: https://github.com/docker-library/python
-        image: sentient-docker.jfrog.io/python:3.6-buster
+        image: sentient-docker.jfrog.io/python:3.8-buster
         commands:
             - rm -rf '${{CF_REPO_NAME}}' venv
 
@@ -16,7 +16,7 @@ steps:
 
     install_dependencies_and_setup:
         title: Install dependencies and setup security
-        image: sentient-docker.jfrog.io/python:3.6-buster
+        image: sentient-docker.jfrog.io/python:3.8-buster
         shell: bash
         description: >-
             1. Create a virtualenv inside the CodeFresh workspace
@@ -41,7 +41,7 @@ steps:
 
     flake8:
         title: Run static flake8 checks
-        image: sentient-docker.jfrog.io/python:3.6-buster
+        image: sentient-docker.jfrog.io/python:3.8-buster
         shell: bash
         description: Run Flake8
         commands:
@@ -58,7 +58,7 @@ steps:
 
     pylint:
         title: Run static pylint checks
-        image: sentient-docker.jfrog.io/python:3.6-buster
+        image: sentient-docker.jfrog.io/python:3.8-buster
         shell: bash
         description: Run Pylint
         commands:
@@ -75,7 +75,7 @@ steps:
 
     tests:
         title: Run unit tests
-        image: sentient-docker.jfrog.io/python:3.6-buster
+        image: sentient-docker.jfrog.io/python:3.8-buster
         shell: bash
         description: Run unit tests (nosetests)
         commands:
@@ -114,6 +114,6 @@ steps:
 
     end_clean:
         title: Clean up CodeFresh volume
-        image: sentient-docker.jfrog.io/python:3.6-buster
+        image: sentient-docker.jfrog.io/python:3.8-buster
         commands:
             - rm -rf '${{CF_REPO_NAME}}' venv
