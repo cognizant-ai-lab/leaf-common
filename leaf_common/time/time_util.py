@@ -34,7 +34,7 @@ class TimeUtil:
 
         # If the user's machine doesn't care about the time zone,
         # make it nice for the debugging developers.
-        local_tzname = local.tz.tzname(local_now)
+        local_tzname = local_tz.tzname(local_now)
         if local_tzname == "UTC":
 
             use_tz = timezone('US/Pacific')
