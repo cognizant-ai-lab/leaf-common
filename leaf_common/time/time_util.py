@@ -9,6 +9,9 @@
 # leaf-common SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details
+"""
 
 import datetime
 from pytz import timezone
@@ -20,13 +23,22 @@ class TimeUtil:
     """
 
     @staticmethod
-    def get_time(space: bool = True):
+    def get_time():
         """
         Creates a nicely formated timestamp
         """
-        if space:
-            return datetime.datetime.now(timezone('US/Pacific')) \
-                .strftime("%Y-%m-%d %H:%M:%S %Z%z")
+        now = datetime.datetime.now()
 
-        return datetime.datetime.now(timezone('US/Pacific')) \
-            .strftime("%Y-%m-%d_%H-%M-%S_%Z%z")
+        local_now = now.astimezone()
+        local_tz = local_now.tzinfo
+
+        # If the user's machine doesn't care about the time zone,
+        # make it nice for the debugging developers.
+        local_tzname = local.tz.tzname(local_now)
+        if local_tzname == "UTC":
+
+            use_tz = timezone('US/Pacific')
+            now = datetime.datetime.now(use_tz)
+
+        formatted_time = now.strftime("%Y-%m-%d %H:%M:%S %Z%z")
+        return formatted_time

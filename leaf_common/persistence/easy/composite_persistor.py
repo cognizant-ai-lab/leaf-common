@@ -9,6 +9,9 @@
 # leaf-common SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details
+"""
 
 from typing import List
 
@@ -42,7 +45,7 @@ class CompositePersistor(Persistor):
         """
 
         for persistor in self._persistors:
-            # XXX Should we do anything automatically here with file suffixes?
+            # DEF: Should we do anything automatically here with file suffixes?
             persistor.persist(obj, file_reference)
 
     def add_persistor(self, persistor: Persistor):
