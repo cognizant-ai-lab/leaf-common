@@ -15,6 +15,9 @@ See class comment for details
 
 
 class TimeoutReachedException(Exception):
+    """
+    Exception raised by the Timeout.check_timeout() method.
+    """
 
     def __init__(self, timeout: object):
         """
