@@ -11,7 +11,7 @@
 # END COPYRIGHT
 
 # Needed for Timeout self-typing in has_time() below
-from __future__ import annotations
+from __future__ import annotations      # noqa: F407
 
 import time
 
@@ -106,7 +106,6 @@ class Timeout:
         remain = self.start_time + self.limit_in_seconds - time.time()
         remain = max(remain, 0)
         return remain
-
 
     @classmethod
     def has_time(cls, interval_seconds: float, timeout: Timeout = None) -> bool:
