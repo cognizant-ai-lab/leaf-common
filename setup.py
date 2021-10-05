@@ -32,7 +32,7 @@ setup(
     name='leaf-common',
     version=LIBRARY_VERSION,
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
-    packages=find_packages('.', exclude=['tests']),
+    packages=find_packages('.', exclude=['tests*']),
     install_requires=[
     ],
     description='LEAF team common code library',
