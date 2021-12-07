@@ -22,28 +22,47 @@ class RedactorDictionaryConverterTest(TestCase):
     """
 
     def setUp(self):
+        """
+        Set up member for tests
+        """
         self.converter = RedactorDictionaryConverter()
 
     def test_assumptions(self):
+        """
+        Tests converter got constructed
+        """
         self.assertIsNotNone(self.converter)
 
-    def is_redacted(self, safe_dict, key):
+    @staticmethod
+    def is_redacted(safe_dict, key):
+        """
+        :return: True if the value for the key in the dictionary is redacted
+        """
         value = safe_dict.get(key, None)
         is_redacted = (value == "<redacted>")
         return is_redacted
 
     def test_none(self):
+        """
+        Tests that the None value is handled correctly
+        """
         unsafe_dict = None
         safe_dict = self.converter.to_dict(unsafe_dict)
         self.assertIsNone(safe_dict)
 
     def test_empty(self):
+        """
+        Tests that an empty dictionary value is handled correctly
+        """
         unsafe_dict = {}
         safe_dict = self.converter.to_dict(unsafe_dict)
         self.assertIsNotNone(safe_dict)
-        self.assertEquals(len(safe_dict.keys()), 0)
+        self.assertEqual(len(safe_dict.keys()), 0)
 
     def test_simple(self):
+        """
+        Tests redaction in a simple dictionary
+        """
 
         unsafe_dict = {
             "unredacted": "value in the clear",
@@ -71,6 +90,9 @@ class RedactorDictionaryConverterTest(TestCase):
         self.assertTrue(self.is_redacted(safe_dict, "AWS_SECRET_ACCESS_KEY"))
 
     def test_nested(self):
+        """
+        Tests redaction in nested dictionary
+        """
 
         unsafe_dict = {
             "unredacted": "value in the clear",
@@ -104,6 +126,9 @@ class RedactorDictionaryConverterTest(TestCase):
 
 
     def test_list(self):
+        """
+        Tests redaction in a list
+        """
 
         unsafe_dict = {
             "list": [
@@ -128,7 +153,7 @@ class RedactorDictionaryConverterTest(TestCase):
         outer_safe_dict = self.converter.to_dict(unsafe_dict)
         safe_list = outer_safe_dict["list"]
         safe_dict = safe_list[2]
-        
+
         self.assertFalse(self.is_redacted(safe_dict, "unredacted"))
 
         self.assertTrue(self.is_redacted(safe_dict, "ENN_AUTH_CLIENT_ID"))
