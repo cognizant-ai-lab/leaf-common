@@ -96,7 +96,7 @@ steps:
             condition:
                 any:
                     # Don't let flake8 fail the builds until we make an attempt at actually fixing it
-                static_test_fail: steps.run_pylint.result == 'failure' || steps.run_flake8.result == 'failure'
+                    static_test_fail: steps.run_pylint.result == 'failure' || steps.run_flake8.result == 'failure'
 
     publish_leafcommon_artifact:
         title: "Publish leafcommon Artifact"
