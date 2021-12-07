@@ -9,6 +9,9 @@
 # leaf-distributed SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details
+"""
 
 from unittest import TestCase
 
