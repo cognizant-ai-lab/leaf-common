@@ -26,7 +26,7 @@ class RedactorDictionaryConverter(DictionaryConverter):
     """
 
     def __init__(self,
-                 redacted_value = "<redacted>",
+                 redacted_value="<redacted>",
                  unsafe_key_fragments: List[str] = None):
         """
         Constructor
@@ -64,7 +64,7 @@ class RedactorDictionaryConverter(DictionaryConverter):
                 to return None.
         """
         if obj is None or \
-            not isinstance(obj, dict):
+                not isinstance(obj, dict):
             return None
 
         obj_dict = self.redact_dict(obj)

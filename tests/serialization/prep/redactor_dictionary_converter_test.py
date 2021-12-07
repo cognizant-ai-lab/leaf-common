@@ -124,7 +124,6 @@ class RedactorDictionaryConverterTest(TestCase):
         self.assertTrue(self.is_redacted(safe_dict, "AWS_ACCESS_KEY_ID"))
         self.assertTrue(self.is_redacted(safe_dict, "AWS_SECRET_ACCESS_KEY"))
 
-
     def test_list(self):
         """
         Tests redaction in a list
@@ -146,7 +145,7 @@ class RedactorDictionaryConverterTest(TestCase):
                     "AWS_SECRET_ACCESS_KEY": "oh this is sooo secret",
                     "COMPLETION_SERVICE_SOURCE_CREDENTIALS": "oh this is sooo secret"
                 },
-                [ ]
+                []
             ]
         }
 
