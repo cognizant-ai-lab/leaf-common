@@ -43,7 +43,6 @@ steps:
         title: Run pylint
         image: sentient-docker.jfrog.io/python:3.8-buster
         description: "Run Pylint"
-        working_directory: ${{CF_VOLUME_PATH}}/leaf-common
         # Allow the pipeline to continue if this step fails
         fail_fast: false
         shell: bash
@@ -59,7 +58,6 @@ steps:
         title: Run flake8
         image: sentient-docker.jfrog.io/python:3.8-buster
         description: Run Flake8
-        working_directory: ${{CF_VOLUME_PATH}}/leaf-common
         fail_fast: false
         shell: bash
         commands:
@@ -78,7 +76,6 @@ steps:
         commands:
             - export VENV=./venv/codefresh
             - source $VENV/bin/activate
-            - mkdir -p $HOME/.enn
             - cd '${{CF_REPO_NAME}}'
             - git status
             - export PYTHONPATH=$PWD
