@@ -55,6 +55,7 @@ class LocalFilePersistenceMechanism(AbstractPersistenceMechanism):
 
         fileobj = None
         try:
+            # pylint: disable=consider-using-with
             fileobj = open(path, 'rb')
         except FileNotFoundError as ex:
             if self.must_exist():
