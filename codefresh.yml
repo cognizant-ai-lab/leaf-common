@@ -46,6 +46,7 @@ steps:
         working_directory: ${{CF_VOLUME_PATH}}/leaf-common
         # Allow the pipeline to continue if this step fails
         fail_fast: false
+        shell: bash
         commands:
             - export VENV=./venv/codefresh
             - source $VENV/bin/activate
@@ -60,6 +61,7 @@ steps:
         description: Run Flake8
         working_directory: ${{CF_VOLUME_PATH}}/leaf-common
         fail_fast: false
+        shell: bash
         commands:
             - export VENV=./venv/codefresh
             - source $VENV/bin/activate
