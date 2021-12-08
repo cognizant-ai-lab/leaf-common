@@ -13,7 +13,7 @@
 See class comment for details.
 """
 
-import os.path as path
+from os import path
 
 
 class ReferenceHelper():

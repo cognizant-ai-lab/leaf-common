@@ -20,6 +20,7 @@ class MessageType(str, Enum):
     Represents the various types of log messages an application may generate.
     """
 
+    # pylint: disable=invalid-name
     # For messages that do not fit into any of the other categories
     Other = 'Other'
 

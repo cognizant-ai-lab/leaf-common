@@ -22,6 +22,7 @@ class RepresentationType(str, Enum):
     Encapsulates the various model representation types supported by ESP.
     """
 
+    # pylint: disable=invalid-name
     # The bytes of a Keras neural network hd5 file.
     KerasNN = 'KerasNN'
 

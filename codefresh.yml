@@ -39,39 +39,34 @@ steps:
             - pip -V
             - export PYTHONPATH=$PWD
 
-    flake8:
-        title: Run static flake8 checks
+    run_pylint:
+        title: Run pylint
         image: sentient-docker.jfrog.io/python:3.8-buster
+        description: "Run Pylint"
+        # Allow the pipeline to continue if this step fails
+        fail_fast: false
         shell: bash
-        description: Run Flake8
         commands:
             - export VENV=./venv/codefresh
             - source $VENV/bin/activate
             - echo "PATH=$PATH"
             - cd '${{CF_REPO_NAME}}'
             - git status
-            - export PYTHONPATH=$PWD
-            - echo "PYTHONPATH=$PYTHONPATH"
-            - export FLAKE8_CMD=`which flake8`
-            - echo "FLAKE8_CMD=$FLAKE8_CMD"
-            - $FLAKE8_CMD .
+            - build_scripts/run_pylint.sh
 
-    pylint:
-        title: Run static pylint checks
+    run_flake8:
+        title: Run flake8
         image: sentient-docker.jfrog.io/python:3.8-buster
+        description: Run Flake8
+        fail_fast: false
         shell: bash
-        description: Run Pylint
         commands:
             - export VENV=./venv/codefresh
             - source $VENV/bin/activate
             - echo "PATH=$PATH"
             - cd '${{CF_REPO_NAME}}'
             - git status
-            - export PYTHONPATH=$PWD
-            - echo "PYTHONPATH=$PYTHONPATH"
-            - export PYLINT_CMD=`which pylint`
-            - echo "PYLINT_CMD=$PYLINT_CMD"
-            - $PYLINT_CMD $(find . -name \*.py | xargs)
+            - build_scripts/run_flake8.sh
 
     tests:
         title: Run unit tests
@@ -81,7 +76,6 @@ steps:
         commands:
             - export VENV=./venv/codefresh
             - source $VENV/bin/activate
-            - mkdir -p $HOME/.enn
             - cd '${{CF_REPO_NAME}}'
             - git status
             - export PYTHONPATH=$PWD
@@ -89,6 +83,17 @@ steps:
             - export NOSETESTS_CMD=`which nosetests`
             - echo "NOSETESTS=$NOSETESTS_CMD"
             - $NOSETESTS_CMD -v --with-ignore-docstrings .
+
+    static_checks:
+        title: Check For Fast-Failed Static Tests
+        image: sentient-docker.jfrog.io/alpine
+        commands:
+            - exit 1
+        when:
+            condition:
+                any:
+                    # Don't let flake8 fail the builds until we make an attempt at actually fixing it
+                    static_test_fail: steps.run_pylint.result == 'failure' || steps.run_flake8.result == 'failure'
 
     publish_leafcommon_artifact:
         title: "Publish leafcommon Artifact"
