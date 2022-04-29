@@ -47,7 +47,7 @@ class DictionaryOverlay():
                 and not allow_overlay_only_items:
             separator = ', '
             message = separator.join(overlay_only_items)
-            raise ValueError("overlay items not present in basis: {0}".format(message))
+            raise ValueError(f"overlay items not present in basis: {message}")
         return result
 
     def _do_overlay(self, basis, overlay, overlay_only_items, items_prefix):
@@ -120,7 +120,7 @@ class DictionaryOverlay():
                 result_value = self._do_overlay(basis_value,
                                                 overlay_value,
                                                 overlay_only_items,
-                                                "{0}{1}.".format(items_prefix, key))
+                                                f"{items_prefix}{key}.")
 
             result[key] = result_value
 

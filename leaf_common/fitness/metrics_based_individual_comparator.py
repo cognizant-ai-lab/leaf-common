@@ -86,8 +86,8 @@ class MetricsBasedIndividualComparator(Comparator):
         elif not self._raise_on_problems:
             retval = -1
         else:
-            raise ValueError("Cannot compare metric type {0}".format(
-                            type(metric_1).__name__))
+            metric_type_name = type(metric_1).__name__
+            raise ValueError(f"Cannot compare metric type {metric_type_name}")
         return retval
 
     def get_basis_value(self, obj):
