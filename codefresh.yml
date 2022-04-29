@@ -3,7 +3,7 @@ steps:
     start_clean:
         title: Clean up CodeFresh volume
         # Images come from hierarchy at: https://github.com/docker-library/python
-        image: sentient-docker.jfrog.io/python:3.8-buster
+        image: python:3.8-buster
         commands:
             - rm -rf '${{CF_REPO_NAME}}' venv
 
@@ -16,7 +16,7 @@ steps:
 
     install_dependencies_and_setup:
         title: Install dependencies and setup security
-        image: sentient-docker.jfrog.io/python:3.8-buster
+        image: python:3.8-buster
         shell: bash
         description: >-
             1. Create a virtualenv inside the CodeFresh workspace
@@ -41,7 +41,7 @@ steps:
 
     run_pylint:
         title: Run pylint
-        image: sentient-docker.jfrog.io/python:3.8-buster
+        image: python:3.8-buster
         description: "Run Pylint"
         # Allow the pipeline to continue if this step fails
         fail_fast: false
@@ -56,7 +56,7 @@ steps:
 
     run_flake8:
         title: Run flake8
-        image: sentient-docker.jfrog.io/python:3.8-buster
+        image: python:3.8-buster
         description: Run Flake8
         fail_fast: false
         shell: bash
@@ -70,7 +70,7 @@ steps:
 
     tests:
         title: Run unit tests
-        image: sentient-docker.jfrog.io/python:3.8-buster
+        image: python:3.8-buster
         shell: bash
         description: Run unit tests (nosetests)
         commands:
@@ -86,7 +86,7 @@ steps:
 
     static_checks:
         title: Check For Fast-Failed Static Tests
-        image: sentient-docker.jfrog.io/alpine
+        image: alpine
         commands:
             - exit 1
         when:
@@ -99,7 +99,7 @@ steps:
         title: "Publish leafcommon Artifact"
         description: "Publish leafcommon artifact into configured private pypi."
         type: "freestyle"
-        image: sentient-docker.jfrog.io/python:3.8-slim
+        image: python:3.8-slim
         working_directory: ${{CF_REPO_NAME}}
         # provide PYPI_INDEX_URL as a pipeline variable in codefresh ui. For example, currently
         # PYPI_INDEX_URL=https://sentient.jfrog.io/artifactory/api/pypi/sentient-pip-local
@@ -119,6 +119,6 @@ steps:
 
     end_clean:
         title: Clean up CodeFresh volume
-        image: sentient-docker.jfrog.io/python:3.8-buster
+        image: python:3.8-buster
         commands:
             - rm -rf '${{CF_REPO_NAME}}' venv
