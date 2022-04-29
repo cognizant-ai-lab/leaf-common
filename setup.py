@@ -13,6 +13,7 @@ CURRENT_PYTHON = sys.version_info[:2]
 REQUIRED_PYTHON = (3, 6)
 
 if CURRENT_PYTHON < REQUIRED_PYTHON:
+    # pylint: disable=consider-using-f-string
     sys.stderr.write("""
 ==========================
 Unsupported Python version
@@ -24,14 +25,14 @@ install it on Python {}.{}.
 
 
 def _read(fname):
-    with open(os.path.join(os.path.dirname(__file__), fname)) as file_name:
+    with open(os.path.join(os.path.dirname(__file__), fname), encoding="UTF-8") as file_name:
         return file_name.read()
 
 
 setup(
     name='leaf-common',
     version=LIBRARY_VERSION,
-    python_requires='>={}.{}'.format(*REQUIRED_PYTHON),
+    python_requires='>={}.{}'.format(*REQUIRED_PYTHON), # pylint: disable=consider-using-f-string
     packages=find_packages('.', exclude=['tests*']),
     install_requires=[
     ],

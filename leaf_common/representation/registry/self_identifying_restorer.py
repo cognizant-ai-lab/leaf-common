@@ -48,7 +48,7 @@ class SelfIdentifyingRestorer(Restorer):
 
         rep_type_list = self._persistence_registry.representation_types_from_filename(file_reference)
         if rep_type_list is None:
-            raise ValueError("Could not find representation type for {0}".format(file_reference))
+            raise ValueError(f"Could not find representation type for {file_reference}")
 
         # For any given file extension (like JSON), there could be multiple
         # representation types that could live in there.  Here we need to attempt
@@ -74,8 +74,7 @@ class SelfIdentifyingRestorer(Restorer):
 
         if restored_object is None:
             self._last_restored_representation_type = None
-            raise ValueError("Could not open file {0} using any RepresentationType in {1}".format(
-                             file_reference, rep_type_list))
+            raise ValueError(f"Could not open file {file_reference} using any RepresentationType in {rep_type_list}")
 
         self._last_restored_representation_type = rep_type
         return restored_object

@@ -57,14 +57,14 @@ class Resolver():
         if verbose:
             logger.info("Attempting to resolve module %s", use_module_name)
         for package in self.packages:
-            fully_qualified_module = "{0}.{1}".format(package, use_module_name)
+            fully_qualified_module = f"{package}.{use_module_name}"
             found_module = self.try_to_import_module(fully_qualified_module,
                                                      messages)
             if found_module is not None:
                 break
 
         if found_module is None:
-            message = "Could not find code for {0}".format(use_module_name)
+            message = f"Could not find code for {use_module_name}"
             messages.append(message)
             for message in messages:
                 # Always print a message when we couldn't find something
@@ -93,20 +93,17 @@ class Resolver():
             found_module = importlib.import_module(module)
         except SyntaxError as exception:
             message = \
-                "Module {0}: Couldn't load due to SyntaxError: {1}".format(
-                    module, str(exception))
+                f"Module {module}: Couldn't load due to SyntaxError: {str(exception)}"
         except ImportError as exception:
             message = \
-                "Module {0}: Couldn't load due to ImportError: {1}".format(
-                    module, str(exception))
+                f"Module {module}: Couldn't load due to ImportError: {str(exception)}"
             message += "...\n"
             message += "This might be OK if this is *not* an ImportError "
             message += "in the file itself and the code can be found in "
             message += "another directory"
 
         except Exception as exception:      # pylint: disable=broad-except
-            message = "Module {0}: Couldn't load due to Exception: {1}".format(
-                module, str(exception))
+            message = f"Module {module}: Couldn't load due to Exception: {str(exception)}"
 
         if message is not None:
             messages.append(message)

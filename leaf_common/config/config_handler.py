@@ -104,7 +104,7 @@ class ConfigHandler():
             if filepath.endswith(file_extension):
                 parser = file_extension_to_parser_map.get(file_extension)
 
-        message = "Could not read {0} as config. Unknown file extension.".format(filepath)
+        message = f"Could not read {filepath} as config. Unknown file extension."
         if parser is not None:
             config = self.parse_with_method(parser, filepath, must_exist)
         elif must_exist:
