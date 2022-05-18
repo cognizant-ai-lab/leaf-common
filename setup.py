@@ -7,7 +7,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-LIBRARY_VERSION = "1.1.36"
+LIBRARY_VERSION = "1.1.37"
 
 CURRENT_PYTHON = sys.version_info[:2]
 REQUIRED_PYTHON = (3, 6)
@@ -35,6 +35,7 @@ setup(
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON), # pylint: disable=consider-using-f-string
     packages=find_packages('.', exclude=['tests*']),
     install_requires=[
+        "hvac>=0.11.2"
     ],
     description='LEAF team common code library',
     long_description=_read('README.md'),
