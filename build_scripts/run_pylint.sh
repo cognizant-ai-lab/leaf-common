@@ -26,7 +26,7 @@ do
     then
         ignore_this=${dir}
     fi
-        
+
     # See if it's a directory we specifically want to ignore
     for ignore_dir in ${IGNORE}
     do
@@ -45,7 +45,7 @@ done
 
 echo "Running pylint on directories '${use_dirs}':"
 # shellcheck disable=2086
-pylint --load-plugins=pylint_protobuf -j 0 -rn --rcfile=${RCFILE} ${use_dirs}
+pylint -j 0 -rn --rcfile=${RCFILE} ${use_dirs}
 retval=$?
 
 # If we got this far, all is well
