@@ -19,7 +19,10 @@
 # ... But theoretically leaf-common should not depend on anything.
 #       ... or at least very little.
 
+# For secure communications with LEAF Services
 grpcio>=1.38.1
+pyOpenSSL>=21.0.0
+python-jose>=3.3.0
 
 # For vault access
 hvac>=0.11.2

@@ -36,7 +36,9 @@ setup(
     packages=find_packages('.', exclude=['tests*']),
     install_requires=[
         "grpcio>=1.38.1",
-        "hvac>=0.11.2"
+        "hvac>=0.11.2",
+        "pyOpenSSL>=21.0.0",
+        "python-jose>=3.3.0"
     ],
     description='LEAF team common code library',
     long_description=_read('README.md'),
