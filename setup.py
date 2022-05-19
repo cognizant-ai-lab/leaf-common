@@ -7,7 +7,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-LIBRARY_VERSION = "1.1.37"
+LIBRARY_VERSION = "1.1.38"
 
 CURRENT_PYTHON = sys.version_info[:2]
 REQUIRED_PYTHON = (3, 6)
@@ -32,7 +32,7 @@ def _read(fname):
 setup(
     name='leaf-common',
     version=LIBRARY_VERSION,
-    python_requires='>={}.{}'.format(*REQUIRED_PYTHON), # pylint: disable=consider-using-f-string
+    python_requires='>={}.{}'.format(*REQUIRED_PYTHON),     # pylint: disable=consider-using-f-string
     packages=find_packages('.', exclude=['tests*']),
     install_requires=[
         # Specifically use >= to specify a base version we know works
