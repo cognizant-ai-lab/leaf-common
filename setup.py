@@ -35,6 +35,9 @@ setup(
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON), # pylint: disable=consider-using-f-string
     packages=find_packages('.', exclude=['tests*']),
     install_requires=[
+        # Specifically use >= to specify a base version we know works
+        # while allowing code that depends on this library to upgrade
+        # versions as they see fit.
         "grpcio>=1.38.1",
         "hvac>=0.11.2",
         "pyOpenSSL>=21.0.0",
