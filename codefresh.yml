@@ -85,10 +85,7 @@ steps:
                     - echo "PYTHONPATH=$PYTHONPATH"
                     - export NOSETESTS_CMD=`which nosetests`
                     - echo "NOSETESTS=$NOSETESTS_CMD"
-                    - $NOSETESTS_CMD -v --nocapture --with-ignore-docstrings
-                                --with-timer --timer-top-n 10
-                                --timer-ok 30s --timer-warning 60s
-                                .
+                    - $NOSETESTS_CMD -v --nocapture --with-ignore-docstrings --with-timer --timer-top-n 10 --timer-ok 30s --timer-warning 60s .
 
     all_test_status:
         title: Check For Failed Tests
