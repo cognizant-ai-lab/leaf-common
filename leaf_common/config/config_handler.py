@@ -95,7 +95,7 @@ class ConfigHandler():
         file_extension_to_parser_map = {
             '.conf': 'parse_hocon',
             '.hocon': 'parse_hocon',
-            # Treat json separately as it's been shown that large json files 
+            # Treat json separately as it's been shown that large json files
             # are really slow for the hocon parser to load.
             '.json': 'parse_json',
             '.properties': 'parse_hocon',

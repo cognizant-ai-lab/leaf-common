@@ -46,7 +46,6 @@ do
     fi
 done
 
-# If we got this far, all is well
-echo "Flake8 complete. No issues found."
+echo "Flake8 complete."
 
 exit ${retval}
