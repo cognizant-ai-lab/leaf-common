@@ -13,6 +13,8 @@
 See class comment for details.
 """
 
+from pyhocon import ConfigFactory
+
 from leaf_common.serialization.format.json_serialization_format \
     import JsonSerializationFormat
 
@@ -40,11 +42,6 @@ class HoconSerializationFormat(JsonSerializationFormat):
         if fileobj is not None:
             hocon_bytes = fileobj.getvalue()
             hocon_string = hocon_bytes.decode("utf-8")
-
-            # Use lazy imports so client code can choose to adopt
-            # hocon on its own terms
-            # pylint: disable=import-outside-toplevel,import-error
-            from pyhocon import ConfigFactory
 
             # Load the HOCON into a dictionary
             pruned_dict = ConfigFactory.parse_string(hocon_string)

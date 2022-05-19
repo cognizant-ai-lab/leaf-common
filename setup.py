@@ -7,7 +7,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-LIBRARY_VERSION = "1.1.36"
+LIBRARY_VERSION = "1.1.37"
 
 CURRENT_PYTHON = sys.version_info[:2]
 REQUIRED_PYTHON = (3, 6)
@@ -35,6 +35,16 @@ setup(
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON), # pylint: disable=consider-using-f-string
     packages=find_packages('.', exclude=['tests*']),
     install_requires=[
+        # Specifically use >= to specify a base version we know works
+        # while allowing code that depends on this library to upgrade
+        # versions as they see fit.
+        "grpcio>=1.38.1",
+        "hvac>=0.11.2",
+        "pyhocon>=0.3.59",
+        "pyOpenSSL>=21.0.0",
+        "python-jose>=3.3.0",
+        "pytz>=2021.3",
+        "ruamel.yaml>=0.17.20"
     ],
     description='LEAF team common code library',
     long_description=_read('README.md'),

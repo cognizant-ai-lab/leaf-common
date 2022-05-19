@@ -10,10 +10,27 @@
 #
 # As this is a low-level library included by many projects we
 # specifically do *not* want heavy dependencies that drag in lots
-# of other # transient dependencies in this library (think: Keras).
+# of other transient dependencies in this library (think: Keras).
 # The intent is not to bloat the delivery infrastructure
 # (builds, containers, etc) of client code that does not need
 # all the other transient dependencies.
 #
 # Any dependencies added here must also be listed in setup.py.
 # ... But theoretically leaf-common should not depend on anything.
+#       ... or at least very little.
+
+# For secure communications with LEAF Services
+grpcio>=1.38.1
+pyOpenSSL>=21.0.0
+python-jose>=3.3.0
+
+# For vault access
+hvac>=0.11.2
+
+# For time_util stuff
+pytz>=2021.3
+
+# For serialization
+ruamel.yaml>=0.17.20
+pyhocon>=0.3.59
+
