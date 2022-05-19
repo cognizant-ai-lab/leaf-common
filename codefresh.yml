@@ -82,7 +82,7 @@ steps:
             - echo "PYTHONPATH=$PYTHONPATH"
             - export NOSETESTS_CMD=`which nosetests`
             - echo "NOSETESTS=$NOSETESTS_CMD"
-            - $NOSETESTS_CMD -v --with-ignore-docstrings .
+            - $NOSETESTS_CMD -v --nocapture --with-ignore-docstrings --with-timer --timer-top-n 10 --timer-ok 30s --timer-warning 60s .
 
     static_checks:
         title: Check For Fast-Failed Static Tests
