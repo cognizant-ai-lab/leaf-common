@@ -129,16 +129,8 @@ class GrpcChannelSecurity():
                 in the instance's security_cfg dictionary.
         """
 
-        # See if the credentials were already supplied in the security config
-        # dictionary.  This happens in the case where
-        # update_security_config_with_credentials() is called when refresh of certs
-        # is not automatic and we get the credentials once per invocation of an app.
-        # While this is valid, it's not as robust as some other situations where
-        # certs are auto-refreshed by other elements of the system onto a mounted
-        # filesystem, however there is extra overhead per-connection in this case.
-        credentials = self.security_cfg.get("credentials", None)
-
-        if credentials is None and self.needs_credentials():
+        credentials = None
+        if self.needs_credentials():
             # We have no previous credentials passed into the security config dict.
             # Try to get the credentials given other information in the dict.
             chan_creds = self._get_channel_credentials()
@@ -154,39 +146,26 @@ class GrpcChannelSecurity():
 
         return credentials
 
-    def update_security_config_with_credentials(self):
-        """
-        Updates the given security config with credentials.
-        When this is called, the object's security_cfg dictionary with which it was
-        constructed gets its 'credentials' key updated with the channel credentials.
-        Doing this implies that any certs that are read at call time will not
-        be subsequently updated by any external entity -- this is effectively a one
-        shot deal.
-        """
-        credentials = self.get_composite_channel_credentials()
-        self.security_cfg["credentials"] = credentials
-
-    def _refresh_token(self):
+    def _get_auth_token(self):
         """
         Queries the token issuing host to retrieve a new JWT based token for use with
         the gRPC interface in use.
-        :return: Nothing, but on exit, the jwt_token member is updated.
+        :return: The token.
         """
-        # This first call will also set self.jwt_token
-        unverified_header = self._get_unverified_header()
+        unverified_header, token = self._get_unverified_header_and_token()
 
         rsa_key = self._get_rsa_key(unverified_header)
 
         # Will raise an exception on any validation failures
         alg = rsa_key.get("alg", None)
-
         if not alg:
-            self.reset_token()
+            token = None
+        jws.verify(token, rsa_key, alg)
 
-        jws.verify(self.jwt_token, rsa_key, alg)
+        return token
 
     # pylint: disable=too-many-locals
-    def _get_unverified_header(self):
+    def _get_unverified_header_and_token(self):
         """
         Open an HTTP connection to the 'auth_domain' to obtain an unverified
         header to be used later.
@@ -195,6 +174,7 @@ class GrpcChannelSecurity():
                 'auth_domain'.
         """
         unverified_header = None
+        token = None
 
         # Create the payload to send to the auth_domain
         auth_client_id = self.security_cfg.get("auth_client_id")
@@ -235,10 +215,9 @@ class GrpcChannelSecurity():
 
                     utf8_data = data.decode("utf-8")
                     resp_dict = json.loads(utf8_data)
-                    self.jwt_token = resp_dict.get('access_token', None)
-                    if self.has_token():
-                        unverified_header = jwt.get_unverified_header(
-                                                    self.jwt_token)
+                    token = resp_dict.get('access_token', None)
+                    if token is not None:
+                        unverified_header = jwt.get_unverified_header(token)
             finally:
                 conn.close()
 
@@ -246,7 +225,7 @@ class GrpcChannelSecurity():
                 message = f"Could not get access_token to {self.service_name}. "
                 self._log_retry_help(message)
 
-        return unverified_header
+        return unverified_header, token
 
     def _get_rsa_key(self, unverified_header):
         """
@@ -395,7 +374,7 @@ The most likely cause(s) of this are:
                 if no jwt_token yet exists.
         """
         if not self.has_token():
-            self._refresh_token()
+            self.jwt_token = self._get_auth_token()
 
         call_creds = grpc.access_token_call_credentials(self.jwt_token)
         composite_call_creds = grpc.composite_call_credentials(call_creds)
