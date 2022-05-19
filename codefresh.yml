@@ -25,12 +25,12 @@ steps:
         commands:
             - export VENV=./venv/codefresh
             - mkdir -p $VENV
-            - pip install pip==22.0.4
+            - pip install pip==22.1
             - pip install virtualenv==20.14.1
             - export VENV_CMD=`which virtualenv`
             - $VENV_CMD $VENV
             - source $VENV/bin/activate
-            - pip install pip==22.0.4
+            - pip install pip==22.1
             - pip install virtualenv==20.14.1
             - cd '${{CF_REPO_NAME}}'
             - git status
