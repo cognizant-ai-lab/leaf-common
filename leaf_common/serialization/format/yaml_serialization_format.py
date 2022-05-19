@@ -15,6 +15,9 @@ See class comment for details.
 
 import os
 
+from ruamel.yaml import YAML
+from ruamel.yaml.compat import BytesIO
+
 from leaf_common.serialization.interface.serialization_format \
     import SerializationFormat
 
@@ -55,12 +58,6 @@ class YamlSerializationFormat(SerializationFormat):
         """
         pruned_dict = self.conversion_policy.convert_from_object(obj)
 
-        # lazy import so clients can choose to support on their own terms.
-        # pylint: disable=import-outside-toplevel,import-error,no-name-in-module
-        from ruamel.yaml import YAML
-        # pylint: disable=import-outside-toplevel,import-error,no-name-in-module
-        from ruamel.yaml.compat import BytesIO
-
         # See if YAML should be pretty or not
         yaml = YAML(typ='safe', pure=True)
         if self.conversion_policy.is_pretty():
@@ -86,10 +83,6 @@ class YamlSerializationFormat(SerializationFormat):
                 fileobj is left to the caller.
         :return: the deserialized object
         """
-
-        # lazy import so clients can choose to support on their own terms.
-        # pylint: disable=import-outside-toplevel,import-error,no-name-in-module
-        from ruamel.yaml import YAML
 
         pruned_dict = None
         if fileobj is not None:

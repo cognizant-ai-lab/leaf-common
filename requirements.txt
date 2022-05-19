@@ -26,3 +26,11 @@ python-jose>=3.3.0
 
 # For vault access
 hvac>=0.11.2
+
+# For time_util stuff
+pytz>=2021.3
+
+# For serialization
+ruamel.yaml>=0.17.20
+pyhocon>=0.3.59
+

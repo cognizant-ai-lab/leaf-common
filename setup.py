@@ -40,8 +40,11 @@ setup(
         # versions as they see fit.
         "grpcio>=1.38.1",
         "hvac>=0.11.2",
+        "pyhocon>=0.3.59",
         "pyOpenSSL>=21.0.0",
-        "python-jose>=3.3.0"
+        "python-jose>=3.3.0",
+        "pytz>=2021.3",
+        "ruamel.yaml>=0.17.20"
     ],
     description='LEAF team common code library',
     long_description=_read('README.md'),
