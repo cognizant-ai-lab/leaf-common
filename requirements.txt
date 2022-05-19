@@ -19,5 +19,7 @@
 # ... But theoretically leaf-common should not depend on anything.
 #       ... or at least very little.
 
+grpcio>=1.38.1
+
 # For vault access
 hvac>=0.11.2

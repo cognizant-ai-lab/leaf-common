@@ -35,6 +35,7 @@ setup(
     python_requires='>={}.{}'.format(*REQUIRED_PYTHON), # pylint: disable=consider-using-f-string
     packages=find_packages('.', exclude=['tests*']),
     install_requires=[
+        "grpcio>=1.38.1",
         "hvac>=0.11.2"
     ],
     description='LEAF team common code library',
