@@ -39,72 +39,72 @@ steps:
             - pip -V
             - export PYTHONPATH=$PWD
 
-  run_all_tests:
-    type: parallel
-    steps:
-        run_pylint:
-            title: Run pylint
-            image: python:3.8-buster
-            description: "Run Pylint"
-            # Allow the pipeline to continue if this step fails
-            fail_fast: false
-            shell: bash
-            commands:
-                - export VENV=./venv/codefresh
-                - source $VENV/bin/activate
-                - echo "PATH=$PATH"
-                - cd '${{CF_REPO_NAME}}'
-                - git status
-                - build_scripts/run_pylint.sh
+    run_all_tests:
+        type: parallel
+        steps:
+            run_pylint:
+                title: Run pylint
+                image: python:3.8-buster
+                description: "Run Pylint"
+                # Allow the pipeline to continue if this step fails
+                fail_fast: false
+                shell: bash
+                commands:
+                    - export VENV=./venv/codefresh
+                    - source $VENV/bin/activate
+                    - echo "PATH=$PATH"
+                    - cd '${{CF_REPO_NAME}}'
+                    - git status
+                    - build_scripts/run_pylint.sh
 
-        run_flake8:
-            title: Run flake8
-            image: python:3.8-buster
-            description: Run Flake8
-            fail_fast: false
-            shell: bash
-            commands:
-                - export VENV=./venv/codefresh
-                - source $VENV/bin/activate
-                - echo "PATH=$PATH"
-                - cd '${{CF_REPO_NAME}}'
-                - git status
-                - build_scripts/run_flake8.sh
+            run_flake8:
+                title: Run flake8
+                image: python:3.8-buster
+                description: Run Flake8
+                fail_fast: false
+                shell: bash
+                commands:
+                    - export VENV=./venv/codefresh
+                    - source $VENV/bin/activate
+                    - echo "PATH=$PATH"
+                    - cd '${{CF_REPO_NAME}}'
+                    - git status
+                    - build_scripts/run_flake8.sh
 
-        tests:
-            title: Run unit tests
-            image: python:3.8-buster
-            shell: bash
-            description: Run unit tests (nosetests)
-            commands:
-                - export VENV=./venv/codefresh
-                - source $VENV/bin/activate
-                - cd '${{CF_REPO_NAME}}'
-                - git status
-                - export PYTHONPATH=$PWD
-                - echo "PYTHONPATH=$PYTHONPATH"
-                - export NOSETESTS_CMD=`which nosetests`
-                - echo "NOSETESTS=$NOSETESTS_CMD"
-                - $NOSETESTS_CMD -v --nocapture --with-ignore-docstrings
+            run_unit_tests:
+                title: Run unit tests
+                image: python:3.8-buster
+                shell: bash
+                description: Run unit tests (nosetests)
+                commands:
+                    - export VENV=./venv/codefresh
+                    - source $VENV/bin/activate
+                    - cd '${{CF_REPO_NAME}}'
+                    - git status
+                    - export PYTHONPATH=$PWD
+                    - echo "PYTHONPATH=$PYTHONPATH"
+                    - export NOSETESTS_CMD=`which nosetests`
+                    - echo "NOSETESTS=$NOSETESTS_CMD"
+                    - $NOSETESTS_CMD -v --nocapture --with-ignore-docstrings
                                 --with-timer --timer-top-n 10
                                 --timer-ok 30s --timer-warning 60s
                                 .
 
-  all_test_status:
-      title: Check For Failed Tests
-      description: "Handle any fail cases that may have occurred"
-      image: alpine:3.13.1
-      commands:
-        - exit 1
-      when:
-        condition:
-          any:
-            static_test_fail:
-              steps.run_pylint.result == 'failure' ||
-              steps.run_flake8.result == 'failure' ||
-              steps.run_shellcheck.result == 'failure' ||
-              steps.run_unit_tests == 'failure' ||
-              steps.run_all_tests == 'failure'
+    all_test_status:
+        title: Check For Failed Tests
+        description: "Handle any fail cases that may have occurred"
+        image: alpine:3.13.1
+        commands:
+            - exit 1
+        when:
+            condition:
+                any:
+                    static_test_fail:
+                        steps.run_pylint.result == 'failure' ||
+                        steps.run_flake8.result == 'failure' ||
+                        steps.run_shellcheck.result == 'failure' ||
+                        steps.run_unit_tests == 'failure' ||
+                        steps.run_all_tests == 'failure'
 
     # publish_leafcommon_artifact:
     #     title: "Publish leafcommon Artifact"
