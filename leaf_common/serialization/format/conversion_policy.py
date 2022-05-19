@@ -13,8 +13,6 @@
 See class comment for details.
 """
 
-import logging
-
 
 class ConversionPolicy():
     """
@@ -80,8 +78,7 @@ class ConversionPolicy():
         if self._dictionary_converter is not None:
             pruned_obj = self._dictionary_converter.from_dict(pruned_dict)
         else:
-            # logger = logging.getLogger(__name__)
-            # logger.info("No DictionaryConverter!")
+            # No DictionaryConverter
             pruned_obj = pruned_dict
 
         # Graft duplicate references back onto the object
