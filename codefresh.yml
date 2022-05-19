@@ -39,83 +39,94 @@ steps:
             - pip -V
             - export PYTHONPATH=$PWD
 
-    run_pylint:
-        title: Run pylint
-        image: python:3.8-buster
-        description: "Run Pylint"
-        # Allow the pipeline to continue if this step fails
-        fail_fast: false
-        shell: bash
-        commands:
-            - export VENV=./venv/codefresh
-            - source $VENV/bin/activate
-            - echo "PATH=$PATH"
-            - cd '${{CF_REPO_NAME}}'
-            - git status
-            - build_scripts/run_pylint.sh
+  run_all_tests:
+    type: parallel
+    steps:
+        run_pylint:
+            title: Run pylint
+            image: python:3.8-buster
+            description: "Run Pylint"
+            # Allow the pipeline to continue if this step fails
+            fail_fast: false
+            shell: bash
+            commands:
+                - export VENV=./venv/codefresh
+                - source $VENV/bin/activate
+                - echo "PATH=$PATH"
+                - cd '${{CF_REPO_NAME}}'
+                - git status
+                - build_scripts/run_pylint.sh
 
-    run_flake8:
-        title: Run flake8
-        image: python:3.8-buster
-        description: Run Flake8
-        fail_fast: false
-        shell: bash
-        commands:
-            - export VENV=./venv/codefresh
-            - source $VENV/bin/activate
-            - echo "PATH=$PATH"
-            - cd '${{CF_REPO_NAME}}'
-            - git status
-            - build_scripts/run_flake8.sh
+        run_flake8:
+            title: Run flake8
+            image: python:3.8-buster
+            description: Run Flake8
+            fail_fast: false
+            shell: bash
+            commands:
+                - export VENV=./venv/codefresh
+                - source $VENV/bin/activate
+                - echo "PATH=$PATH"
+                - cd '${{CF_REPO_NAME}}'
+                - git status
+                - build_scripts/run_flake8.sh
 
-    tests:
-        title: Run unit tests
-        image: python:3.8-buster
-        shell: bash
-        description: Run unit tests (nosetests)
-        commands:
-            - export VENV=./venv/codefresh
-            - source $VENV/bin/activate
-            - cd '${{CF_REPO_NAME}}'
-            - git status
-            - export PYTHONPATH=$PWD
-            - echo "PYTHONPATH=$PYTHONPATH"
-            - export NOSETESTS_CMD=`which nosetests`
-            - echo "NOSETESTS=$NOSETESTS_CMD"
-            - $NOSETESTS_CMD -v --nocapture --with-ignore-docstrings --with-timer --timer-top-n 10 --timer-ok 30s --timer-warning 60s .
+        tests:
+            title: Run unit tests
+            image: python:3.8-buster
+            shell: bash
+            description: Run unit tests (nosetests)
+            commands:
+                - export VENV=./venv/codefresh
+                - source $VENV/bin/activate
+                - cd '${{CF_REPO_NAME}}'
+                - git status
+                - export PYTHONPATH=$PWD
+                - echo "PYTHONPATH=$PYTHONPATH"
+                - export NOSETESTS_CMD=`which nosetests`
+                - echo "NOSETESTS=$NOSETESTS_CMD"
+                - $NOSETESTS_CMD -v --nocapture --with-ignore-docstrings
+                                --with-timer --timer-top-n 10
+                                --timer-ok 30s --timer-warning 60s
+                                .
 
-    static_checks:
-        title: Check For Fast-Failed Static Tests
-        image: alpine
-        commands:
-            - exit 1
-        when:
-            condition:
-                any:
-                    # Don't let flake8 fail the builds until we make an attempt at actually fixing it
-                    static_test_fail: steps.run_pylint.result == 'failure' || steps.run_flake8.result == 'failure'
+  all_test_status:
+      title: Check For Failed Tests
+      description: "Handle any fail cases that may have occurred"
+      image: alpine:3.13.1
+      commands:
+        - exit 1
+      when:
+        condition:
+          any:
+            static_test_fail:
+              steps.run_pylint.result == 'failure' ||
+              steps.run_flake8.result == 'failure' ||
+              steps.run_shellcheck.result == 'failure' ||
+              steps.run_unit_tests == 'failure' ||
+              steps.run_all_tests == 'failure'
 
-    publish_leafcommon_artifact:
-        title: "Publish leafcommon Artifact"
-        description: "Publish leafcommon artifact into configured private pypi."
-        type: "freestyle"
-        image: python:3.8-slim
-        working_directory: ${{CF_REPO_NAME}}
-        # provide PYPI_INDEX_URL as a pipeline variable in codefresh ui. For example, currently
-        # PYPI_INDEX_URL=https://sentient.jfrog.io/artifactory/api/pypi/sentient-pip-local
-        commands:
-          - python setup.py -q bdist_wheel
-          - pip install twine
-          - python -m twine upload 
-                       --password $ARTIFACTORY_PASSWORD 
-                       --username $ARTIFACTORY_LOGIN 
-                       --repository-url $PYPI_INDEX_URL
-                       dist/*
-        when:
-          condition:
-            all:
-              # This is idiomatic Codefresh for detecting if ${{CF_RELEASE_TAG}} has a value.
-              deploy_tagged_builds_only: 'includes("${{CF_RELEASE_TAG}}","{{CF_RELEASE_TAG}}") == false'
+    # publish_leafcommon_artifact:
+    #     title: "Publish leafcommon Artifact"
+    #     description: "Publish leafcommon artifact into configured private pypi."
+    #     type: "freestyle"
+    #     image: python:3.8-slim
+    #     working_directory: ${{CF_REPO_NAME}}
+    #     # provide PYPI_INDEX_URL as a pipeline variable in codefresh ui. For example, currently
+    #     # PYPI_INDEX_URL=https://sentient.jfrog.io/artifactory/api/pypi/sentient-pip-local
+    #     commands:
+    #       - python setup.py -q bdist_wheel
+    #       - pip install twine
+    #       - python -m twine upload
+    #                    --password $ARTIFACTORY_PASSWORD
+    #                    --username $ARTIFACTORY_LOGIN
+    #                    --repository-url $PYPI_INDEX_URL
+    #                    dist/*
+    #     when:
+    #       condition:
+    #         all:
+    #           # This is idiomatic Codefresh for detecting if ${{CF_RELEASE_TAG}} has a value.
+    #           deploy_tagged_builds_only: 'includes("${{CF_RELEASE_TAG}}","{{CF_RELEASE_TAG}}") == false'
 
     end_clean:
         title: Clean up CodeFresh volume
