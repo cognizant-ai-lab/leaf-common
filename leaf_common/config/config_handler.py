@@ -18,6 +18,8 @@ from collections.abc import Mapping
 
 from leaf_common.persistence.easy.easy_hocon_persistence \
     import EasyHoconPersistence
+from leaf_common.persistence.easy.easy_json_persistence \
+    import EasyJsonPersistence
 from leaf_common.persistence.easy.easy_yaml_persistence \
     import EasyYamlPersistence
 
@@ -93,7 +95,9 @@ class ConfigHandler():
         file_extension_to_parser_map = {
             '.conf': 'parse_hocon',
             '.hocon': 'parse_hocon',
-            '.json': 'parse_hocon',
+            # Treat json separately as it's been shown that large json files 
+            # are really slow for the hocon parser to load.
+            '.json': 'parse_json',
             '.properties': 'parse_hocon',
             '.yaml': 'parse_yaml'
         }
@@ -132,6 +136,21 @@ class ConfigHandler():
 
         # Call the parser method with the filepath, get dictionary back
         config = parser_method(filepath, must_exist)
+        return config
+
+    # pylint: disable=no-self-use
+    def parse_json(self, filepath, must_exist):
+        """
+        :param filepath: The json file to parse
+        :param must_exist: When True, an error is
+                raised when the file does not exist upon restore()
+                When False, the lack of a file to restore from is
+                ignored and a dictionary value of None is returned
+        :return: The dictionary parsed from the hocon config file
+        """
+        persistence = EasyJsonPersistence(full_ref=filepath,
+                                          must_exist=must_exist)
+        config = persistence.restore()
         return config
 
     # pylint: disable=no-self-use
