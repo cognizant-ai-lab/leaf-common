@@ -88,7 +88,7 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
 
     def _create_auth_domain_payload(self) -> str:
         """
-        :return: A payload string to be used in verifying with the 
+        :return: A payload string to be used in verifying with the
                  auth_domain.
         """
 
