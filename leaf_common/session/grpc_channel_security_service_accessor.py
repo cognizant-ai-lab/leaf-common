@@ -71,17 +71,21 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
 
         return token
 
-    # pylint: disable=too-many-locals
-    def _get_unverified_header_and_token(self):
+    @staticmethod
+    def is_appropriate_for(security_config: Dict[str, Any]) -> bool:
         """
-        Open an HTTP connection to the 'auth_domain' to obtain an unverified
-        header to be used later.
+        :param security_config: A standardized LEAF security config dictionary
+        :return: True if this class is appropriate given the contents of
+                 the security_config dictionary
+        """
+        username = security_config.get("username", None)
+        password = security_config.get("password", None)
+        return bool(username) and bool(password)
 
-        :return: An unverified header from the security_cfg dictionary's
-                'auth_domain'.
+    def _create_payload(self):
         """
-        unverified_header = None
-        token = None
+        :return: A payload string to be used with the 
+        """
 
         # Create the payload to send to the auth_domain
         auth_client_id = self.security_cfg.get("auth_client_id")
@@ -102,6 +106,22 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
         payload = payload.format(auth_client_id, auth_secret,
                                  auth_audience, username, password,
                                  scope)
+
+        return payload
+
+    def _get_unverified_header_and_token(self):
+        """
+        Open an HTTP connection to the 'auth_domain' to obtain an unverified
+        header to be used later.
+
+        :return: An unverified header from the security_cfg dictionary's
+                'auth_domain'.
+        """
+        unverified_header = None
+        token = None
+
+        payload = self._create_payload()
+
         # Create the headers to send to the auth_domain
         headers = {'content-type': "application/x-www-form-urlencoded"}
 

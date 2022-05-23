@@ -13,6 +13,9 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import Dict
+
 import logging
 
 from inspect import currentframe
@@ -36,8 +39,10 @@ class GrpcChannelSecurity():
     reading key/value pairs from a security configuration dictionary.
     """
 
-    def __init__(self, security_cfg=None, service_name="service",
-                 poll_interval_seconds=15, umbrella_timeout=None):
+    def __init__(self, security_cfg: Dict[str, Any] = None,
+                 service_name: str = "service",
+                 poll_interval_seconds: int = 15,
+                 umbrella_timeout: Timeout = None):
         """
         :param security_cfg: An optional dictionary of parameters used to
                         secure the TLS and the authentication of the gRPC
@@ -72,20 +77,20 @@ class GrpcChannelSecurity():
                                                     poll_interval_seconds,
                                                     umbrella_timeout)
 
-    def has_token(self):
+    def has_token(self) -> bool:
         """
         :return: True when we alrady have a JWT token
         """
         has = (self.jwt_token is not None)
         return has
 
-    def reset_token(self):
+    def reset_token(self) -> None:
         """
         Resets the JWT Token
         """
         self.jwt_token = None
 
-    def needs_credentials(self):
+    def needs_credentials(self) -> bool:
         """
         Credentials are needed not needed if the connection_type key
         in the security_config is set to "insecure".  When this key is
@@ -110,7 +115,7 @@ class GrpcChannelSecurity():
 
         return needed
 
-    def get_auth_host_override(self):
+    def get_auth_host_override(self) -> str:
         """
         :return: The auth_host_override from the security config dictionary,
                 or None if this does not exist.
