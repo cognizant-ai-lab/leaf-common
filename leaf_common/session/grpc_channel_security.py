@@ -72,10 +72,10 @@ class GrpcChannelSecurity():
 
         self.jwt_token = None
         self.service_accessor = GrpcChannelSecurityServiceAccessor(
-                                                    self.security_cfg,
-                                                    service_name,
-                                                    poll_interval_seconds,
-                                                    umbrella_timeout)
+                                    security_cfg=self.security_cfg,
+                                    service_name=service_name,
+                                    poll_interval_seconds=poll_interval_seconds,
+                                    umbrella_timeout=umbrella_timeout)
 
     def has_token(self) -> bool:
         """

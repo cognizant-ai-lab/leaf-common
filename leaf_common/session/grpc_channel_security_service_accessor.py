@@ -34,6 +34,7 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
     """
 
     def __init__(self, security_cfg: Dict[str, Any] = None,
+                 auth0_defaults: Dict[str, Any] = None,
                  service_name: str = "service",
                  poll_interval_seconds: int = 15,
                  umbrella_timeout: Timeout = None):
@@ -42,6 +43,8 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
                         secure the TLS and the authentication of the gRPC
                         connection.  Supplying this implies use of a secure
                         GRPC Channel.  Default is None, uses insecure channel.
+        :param auth0_defaults: An optional dictionary containing defaults for
+                auth0 access. Primarily for ESP compatibility.
         :param service_name: a string for the name of the service,
                             used for logging
         :param poll_interval_seconds: length of time in seconds methods
@@ -52,6 +55,9 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
         """
 
         self.security_cfg = security_cfg
+        self.auth0_defaults = auth0_defaults
+        if self.auth0_defaults is None:
+            self.auth0_defaults = {}
         self.service_name = service_name
         self.poll_interval_seconds = poll_interval_seconds
         self.gave_help = False
@@ -93,12 +99,16 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
         """
 
         # Create the payload to send to the auth_domain
-        auth_client_id = self.security_cfg.get("auth_client_id")
+        auth_client_id = self.security_cfg.get("auth_client_id",
+                                               self.auth0_defaults.get("DEFAULT_AUTH0_CLIENT_ID"))
         auth_secret = self.security_cfg.get("auth_secret")
-        auth_audience = self.security_cfg.get("auth_audience")
+                                            self.auth0_defaults.get("DEFAULT_AUTH0_CLIENT_SECRET"))
+        auth_audience = self.security_cfg.get("auth_audience",
+                                              self.auth0_defaults.get("DEFAULT_AUTH0_AUDIENCE"))
         username = self.security_cfg.get("username")
         password = self.security_cfg.get("password")
-        scope = self.security_cfg.get("scope", "all:enn")
+        scope = self.security_cfg.get("scope",
+                                      self.auth0_defaults.get("DEFAULT_AUTH0_PERMISSION"))
 
         payload = "client_id={0}&" \
                   "client_secret={1}&" \
