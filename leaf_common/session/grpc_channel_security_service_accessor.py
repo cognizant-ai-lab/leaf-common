@@ -12,6 +12,8 @@
 """
 See class comment for details.
 """
+from typing import Any
+from typing import Dict
 
 import http.client
 import json
@@ -31,8 +33,10 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
     reading key/value pairs from a security configuration dictionary.
     """
 
-    def __init__(self, security_cfg=None, service_name="service",
-                 poll_interval_seconds=15, umbrella_timeout=None):
+    def __init__(self, security_cfg: Dict[str, Any] = None,
+                 service_name: str = "service",
+                 poll_interval_seconds: int = 15,
+                 umbrella_timeout: Timeout = None):
         """
         :param security_cfg: An optional dictionary of parameters used to
                         secure the TLS and the authentication of the gRPC
@@ -53,7 +57,7 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
         self.gave_help = False
         self.umbrella_timeout = umbrella_timeout
 
-    def get_auth_token(self):
+    def get_auth_token(self) -> str:
         """
         Queries the token issuing host to retrieve a new JWT based token for use with
         the gRPC interface in use.
@@ -82,7 +86,7 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
         password = security_config.get("password", None)
         return bool(username) and bool(password)
 
-    def _create_payload(self):
+    def _create_payload(self) -> str:
         """
         :return: A payload string to be used with the 
         """
@@ -109,7 +113,7 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
 
         return payload
 
-    def _get_unverified_header_and_token(self):
+    def _get_unverified_header_and_token(self) -> str, str:
         """
         Open an HTTP connection to the 'auth_domain' to obtain an unverified
         header to be used later.
@@ -154,7 +158,7 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
 
         return unverified_header, token
 
-    def _get_rsa_key(self, unverified_header):
+    def _get_rsa_key(self, unverified_header: str) -> str:
         """
         Opens an HTTP connection to the auth_domain to get the rsa_key
         :param unverified_header:  The unverified_header from a previous call
@@ -201,7 +205,7 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
 
         return rsa_key
 
-    def _log_retry_help(self, message):
+    def _log_retry_help(self, message: str):
         """
         Logs the given message.
         Adds a help message if the help has not yet been given.
