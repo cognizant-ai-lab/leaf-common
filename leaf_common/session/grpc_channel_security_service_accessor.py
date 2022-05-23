@@ -113,7 +113,7 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
 
         return payload
 
-    def _get_unverified_header_and_token(self) -> str, str:
+    def _get_unverified_header_and_token(self):
         """
         Open an HTTP connection to the 'auth_domain' to obtain an unverified
         header to be used later.
