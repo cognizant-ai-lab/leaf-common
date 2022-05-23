@@ -101,7 +101,7 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
         # Create the payload to send to the auth_domain
         auth_client_id = self.security_cfg.get("auth_client_id",
                                                self.auth0_defaults.get("DEFAULT_AUTH0_CLIENT_ID"))
-        auth_secret = self.security_cfg.get("auth_secret")
+        auth_secret = self.security_cfg.get("auth_secret",
                                             self.auth0_defaults.get("DEFAULT_AUTH0_CLIENT_SECRET"))
         auth_audience = self.security_cfg.get("auth_audience",
                                               self.auth0_defaults.get("DEFAULT_AUTH0_AUDIENCE"))
