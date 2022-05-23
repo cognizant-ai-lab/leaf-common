@@ -86,9 +86,10 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
         password = security_config.get("password", None)
         return bool(username) and bool(password)
 
-    def _create_payload(self) -> str:
+    def _create_auth_domain_payload(self) -> str:
         """
-        :return: A payload string to be used with the 
+        :return: A payload string to be used in verifying with the 
+                 auth_domain.
         """
 
         # Create the payload to send to the auth_domain
@@ -124,7 +125,7 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
         unverified_header = None
         token = None
 
-        payload = self._create_payload()
+        payload = self._create_auth_domain_payload()
 
         # Create the headers to send to the auth_domain
         headers = {'content-type': "application/x-www-form-urlencoded"}
