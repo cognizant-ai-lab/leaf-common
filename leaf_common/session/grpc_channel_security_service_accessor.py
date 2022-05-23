@@ -33,6 +33,7 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
     reading key/value pairs from a security configuration dictionary.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(self, security_cfg: Dict[str, Any] = None,
                  auth0_defaults: Dict[str, Any] = None,
                  service_name: str = "service",
