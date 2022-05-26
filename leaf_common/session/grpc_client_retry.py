@@ -46,7 +46,7 @@ class GrpcClientRetry():
                  max_message_length=-1, limited_retry_set=None,
                  limited_retry_attempts=3, metadata=None,
                  security_cfg=None, channel_security=None,
-                 umbrella_timeout=None, auth0_defaults=None):
+                 umbrella_timeout=None):
         """
         :param service_name: a string for the name of the service,
                             used for logging
@@ -88,9 +88,6 @@ class GrpcClientRetry():
                         the lifetime of any token received from a secure service
         :param umbrella_timeout: A Timeout object under which the length of all
                         looping and retries should be considered
-        :param auth0_defaults: a default security_config dictionary
-                        to use when information is missing from the regular
-                        security_cfg.
         """
 
         self.logger = logging.getLogger(__name__)
@@ -114,7 +111,7 @@ class GrpcClientRetry():
             # potentially lasts as long as this class does.
             self.channel_security = \
                 GrpcChannelSecurity(security_cfg=security_cfg,
-                                    auth0_defaults=auth0_defaults,
+                                    auth0_defaults=None,
                                     service_name=service_name,
                                     poll_interval_seconds=timeout_in_seconds,
                                     umbrella_timeout=umbrella_timeout)
