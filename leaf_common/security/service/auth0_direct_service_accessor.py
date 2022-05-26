@@ -29,8 +29,8 @@ from leaf_common.time.timeout import Timeout
 
 class Auth0DirectServiceAccessor(ServiceAccessor):
     """
-    A class aiding in the creation of GRPC channel security credentials by
-    reading key/value pairs from a security configuration dictionary.
+    ServiceAccessor implmentation that obtains a security token
+    directly from Auth0 for secure communication between client and service.
     """
 
     # pylint: disable=too-many-arguments
