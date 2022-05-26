@@ -36,7 +36,9 @@ from leaf_common.security.service.service_accessor_factory \
 class GrpcChannelSecurity():
     """
     A class aiding in the creation of GRPC channel security credentials by
-    reading key/value pairs from a security configuration dictionary.
+    reading key/value pairs from a security configuration dictionary to
+    figure out just how we will be getting a token to access a LEAF service.
+    This class also handles caching of a token as well.
     """
 
     # pylint: disable=too-many-arguments
