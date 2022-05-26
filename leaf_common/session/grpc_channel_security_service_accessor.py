@@ -56,17 +56,17 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
         self.auth0_defaults = auth0_defaults
         if self.auth0_defaults is None:
             self.auth0_defaults = {}
-        self.service_name = service_name
         self.poll_interval_seconds = poll_interval_seconds
         self.gave_help = False
         self.umbrella_timeout = umbrella_timeout
 
-        auth_audience = auth0_defaults.get("auth_audience", "")
+        # Determine the service name from the auth_audience
+        auth_audience = self.auth0_defaults.get("auth_audience", "")
         if security_cfg is not None:
             auth_audience = security_cfg.get("auth_audience", auth_audience)
         self.service_name = auth_audience.split("/")[-1]
         if not self.service_name.endswith("-service"):
-            self.service_name = f"{service_name}-service"
+            self.service_name = f"{self.service_name}-service"
 
     def get_auth_token(self) -> str:
         """
