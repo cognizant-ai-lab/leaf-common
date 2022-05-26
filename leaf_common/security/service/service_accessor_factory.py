@@ -80,7 +80,7 @@ class ServiceAccessorFactory:
                 if accessor_class == Auth0DirectServiceAccessor:
                     # Special args
                     accessor = Auth0DirectServiceAccessor(
-                                            security_cfg=security_config,
+                                            security_config=security_config,
                                             auth0_defaults=auth0_defaults,
                                             service_name=service_name,
                                             poll_interval_seconds=poll_interval_seconds,

@@ -34,29 +34,29 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, security_cfg: Dict[str, Any] = None,
+    def __init__(self, security_config: Dict[str, Any] = None,
                  auth0_defaults: Dict[str, Any] = None,
                  service_name: str = None,
                  poll_interval_seconds: int = 15,
                  umbrella_timeout: Timeout = None):
         """
-        :param security_cfg: An optional dictionary of parameters used to
-                        secure the TLS and the authentication of the gRPC
-                        connection.  Supplying this implies use of a secure
-                        GRPC Channel.  Default is None, uses insecure channel.
+        Constructor
+
+        :param security_config: A security config dictionary for access to a
+                particular server
         :param auth0_defaults: An optional dictionary containing defaults for
                 auth0 access. Primarily for ESP compatibility.
         :param service_name: An optional string to be used for error messages
                 when connecting to a service. If not given, we attempt to
-                get this from the security_cfg/auth0_defaults.
+                get this from the security_config/auth0_defaults.
         :param poll_interval_seconds: length of time in seconds methods
-                            on this class will wait before retrying connections
-                            or specific gRPC calls. Default to 15 seconds.
+                on this class will wait before retrying connections
+                or specific gRPC calls. Default to 15 seconds.
         :param umbrella_timeout: A Timeout object under which the length of all
-                        looping and retries should be considered
+                looping and retries should be considered
         """
 
-        self.security_cfg = security_cfg
+        self.security_config = security_config
         self.auth0_defaults = auth0_defaults
         if self.auth0_defaults is None:
             self.auth0_defaults = {}
@@ -68,8 +68,8 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         self.service_name = service_name
         if self.service_name is None:
             auth_audience = self.auth0_defaults.get("auth_audience", "")
-            if security_cfg is not None:
-                auth_audience = security_cfg.get("auth_audience", auth_audience)
+            if security_config is not None:
+                auth_audience = security_config.get("auth_audience", auth_audience)
             self.service_name = auth_audience.split("/")[-1]
             if not self.service_name.endswith("-service"):
                 self.service_name = f"{self.service_name}-service"
@@ -110,15 +110,15 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         """
 
         # Create the payload to send to the auth_domain
-        auth_client_id = self.security_cfg.get("auth_client_id",
-                                               self.auth0_defaults.get("auth_client_id"))
-        auth_secret = self.security_cfg.get("auth_secret",
-                                            self.auth0_defaults.get("auth_secret"))
-        auth_audience = self.security_cfg.get("auth_audience",
-                                              self.auth0_defaults.get("auth_audience"))
-        username = self.security_cfg.get("username")
-        password = self.security_cfg.get("password")
-        scope = self.security_cfg.get("scope", self.auth0_defaults.get("scope"))
+        auth_client_id = self.security_config.get("auth_client_id",
+                                                  self.auth0_defaults.get("auth_client_id"))
+        auth_secret = self.security_config.get("auth_secret",
+                                               self.auth0_defaults.get("auth_secret"))
+        auth_audience = self.security_config.get("auth_audience",
+                                                 self.auth0_defaults.get("auth_audience"))
+        username = self.security_config.get("username")
+        password = self.security_config.get("password")
+        scope = self.security_config.get("scope", self.auth0_defaults.get("scope"))
 
         payload = "client_id={0}&" \
                   "client_secret={1}&" \
@@ -139,7 +139,7 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         Open an HTTP connection to the 'auth_domain' to obtain an unverified
         header to be used later.
 
-        :return: An unverified header from the security_cfg dictionary's
+        :return: An unverified header from the security_config dictionary's
                 'auth_domain'.
         """
         unverified_header = None
@@ -151,8 +151,8 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         headers = {'content-type': "application/x-www-form-urlencoded"}
 
         # Connect to the auth_domain
-        auth_domain = self.security_cfg.get("auth_domain",
-                                            "cognizant-ai.auth0.com")
+        auth_domain = self.security_config.get("auth_domain",
+                                               "cognizant-ai.auth0.com")
         self.gave_help = False
 
         while not unverified_header and \
@@ -192,8 +192,8 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         # authenticity
         rsa_key = {}
 
-        auth_domain = self.security_cfg.get("auth_domain",
-                                            "cognizant-ai.auth0.com")
+        auth_domain = self.security_config.get("auth_domain",
+                                               "cognizant-ai.auth0.com")
         self.gave_help = False
 
         # Empty dictionaries return False here
@@ -240,8 +240,8 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         logger.warning(message)
 
         if not self.gave_help:
-            file_ref = self.security_cfg.get("source_file_reference",
-                                             "<unknown>")
+            file_ref = self.security_config.get("source_file_reference",
+                                                "<unknown>")
             help_message = \
                 """
 The most likely cause(s) of this are:
