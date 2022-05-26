@@ -241,11 +241,11 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
 
         if not self.gave_help:
             file_ref = self.security_config.get("source_file_reference",
-                                                "<unknown>")
+                                                "the command line arguments")
             help_message = \
                 """
 The most likely cause(s) of this are:
-    1.  Your security credentials in %s is
+    1.  Your security credentials in %s are
         not entirely correct.  Please review the contents of that file
         to be sure the credentials in there are correct.
     2.  You are not able to reach outside the perimeter of your firewall.
