@@ -82,7 +82,7 @@ class VaultDynamicTokenServiceAccessor(ServiceAccessor):
         # the audience in the auth0 defaults.
         default_vault_secret = None
         if auth0_defaults is not None:
-            auth_audience = auth0_defaults.get("DEFAULT_AUTH0_AUDIENCE", "")
+            auth_audience = auth0_defaults.get("auth_audience", "")
             service_name = auth_audience.split("/")[-1]
             if not service_name.endswith("-service"):
                 service_name = f"{service_name}-service"

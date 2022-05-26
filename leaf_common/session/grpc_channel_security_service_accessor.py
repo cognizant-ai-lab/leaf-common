@@ -101,15 +101,14 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
 
         # Create the payload to send to the auth_domain
         auth_client_id = self.security_cfg.get("auth_client_id",
-                                               self.auth0_defaults.get("DEFAULT_AUTH0_CLIENT_ID"))
+                                               self.auth0_defaults.get("auth_client_id"))
         auth_secret = self.security_cfg.get("auth_secret",
-                                            self.auth0_defaults.get("DEFAULT_AUTH0_CLIENT_SECRET"))
+                                            self.auth0_defaults.get("auth_secret"))
         auth_audience = self.security_cfg.get("auth_audience",
-                                              self.auth0_defaults.get("DEFAULT_AUTH0_AUDIENCE"))
+                                              self.auth0_defaults.get("auth_audience"))
         username = self.security_cfg.get("username")
         password = self.security_cfg.get("password")
-        scope = self.security_cfg.get("scope",
-                                      self.auth0_defaults.get("DEFAULT_AUTH0_PERMISSION"))
+        scope = self.security_cfg.get("scope", self.auth0_defaults.get("scope"))
 
         payload = "client_id={0}&" \
                   "client_secret={1}&" \
@@ -142,7 +141,8 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
         headers = {'content-type': "application/x-www-form-urlencoded"}
 
         # Connect to the auth_domain
-        auth_domain = self.security_cfg.get('auth_domain', None)
+        auth_domain = self.security_cfg.get("auth_domain",
+                                            "cognizant-ai.auth0.com")
         self.gave_help = False
 
         while not unverified_header and \
@@ -182,7 +182,8 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
         # authenticity
         rsa_key = {}
 
-        auth_domain = self.security_cfg.get('auth_domain', None)
+        auth_domain = self.security_cfg.get("auth_domain",
+                                            "cognizant-ai.auth0.com")
         self.gave_help = False
 
         # Empty dictionaries return False here
