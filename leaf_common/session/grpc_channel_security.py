@@ -120,6 +120,8 @@ class GrpcChannelSecurity():
             needed = True
         elif connection_type.lower() == "insecure":
             needed = False
+        elif self.service_accessor is None:
+            needed = False
 
         return needed
 
