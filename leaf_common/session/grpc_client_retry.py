@@ -111,7 +111,6 @@ class GrpcClientRetry():
             # potentially lasts as long as this class does.
             self.channel_security = \
                 GrpcChannelSecurity(security_cfg,
-                                    service_name,
                                     timeout_in_seconds,
                                     umbrella_timeout=umbrella_timeout)
         self.debug = False

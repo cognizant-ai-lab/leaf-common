@@ -40,7 +40,6 @@ class GrpcChannelSecurity():
     """
 
     def __init__(self, security_cfg: Dict[str, Any] = None,
-                 service_name: str = "service",
                  poll_interval_seconds: int = 15,
                  umbrella_timeout: Timeout = None):
         """
@@ -48,8 +47,6 @@ class GrpcChannelSecurity():
                         secure the TLS and the authentication of the gRPC
                         connection.  Supplying this implies use of a secure
                         GRPC Channel.  Default is None, uses insecure channel.
-        :param service_name: a string for the name of the service,
-                            used for logging
         :param poll_interval_seconds: length of time in seconds methods
                             on this class will wait before retrying connections
                             or specific gRPC calls. Default to 15 seconds.
@@ -73,7 +70,6 @@ class GrpcChannelSecurity():
         self.jwt_token = None
         self.service_accessor = GrpcChannelSecurityServiceAccessor(
                                     security_cfg=self.security_cfg,
-                                    service_name=service_name,
                                     poll_interval_seconds=poll_interval_seconds,
                                     umbrella_timeout=umbrella_timeout)
 

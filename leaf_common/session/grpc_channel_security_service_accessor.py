@@ -36,7 +36,6 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
     # pylint: disable=too-many-arguments
     def __init__(self, security_cfg: Dict[str, Any] = None,
                  auth0_defaults: Dict[str, Any] = None,
-                 service_name: str = "service",
                  poll_interval_seconds: int = 15,
                  umbrella_timeout: Timeout = None):
         """
@@ -46,8 +45,6 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
                         GRPC Channel.  Default is None, uses insecure channel.
         :param auth0_defaults: An optional dictionary containing defaults for
                 auth0 access. Primarily for ESP compatibility.
-        :param service_name: a string for the name of the service,
-                            used for logging
         :param poll_interval_seconds: length of time in seconds methods
                             on this class will wait before retrying connections
                             or specific gRPC calls. Default to 15 seconds.
@@ -63,6 +60,13 @@ class GrpcChannelSecurityServiceAccessor(ServiceAccessor):
         self.poll_interval_seconds = poll_interval_seconds
         self.gave_help = False
         self.umbrella_timeout = umbrella_timeout
+
+        auth_audience = auth0_defaults.get("auth_audience", "")
+        if security_cfg is not None:
+            auth_audience = security_cfg.get("auth_audience", auth_audience)
+        self.service_name = auth_audience.split("/")[-1]
+        if not self.service_name.endswith("-service"):
+            self.service_name = f"{service_name}-service"
 
     def get_auth_token(self) -> str:
         """
