@@ -81,12 +81,17 @@ class VaultDynamicTokenServiceAccessor(ServiceAccessor):
         # Get a default for the vault secret path together based on
         # the audience in the auth0 defaults.
         default_vault_secret = None
+
+        auth_audience = ""
         if auth0_defaults is not None:
-            auth_audience = auth0_defaults.get("auth_audience", "")
-            service_name = auth_audience.split("/")[-1]
-            if not service_name.endswith("-service"):
-                service_name = f"{service_name}-service"
-            default_vault_secret = f"oauth2/self/{service_name}"
+            auth_audience = auth0_defaults.get("auth_audience", auth_audience)
+        auth_audience = security_config.get("auth_audience", auth_audience)
+
+        service_name = auth_audience.split("/")[-1]
+        if not service_name.endswith("-service"):
+            service_name = f"{service_name}-service"
+
+        default_vault_secret = f"oauth2/self/{service_name}"
 
         self.vault_secret = security_config.get("vault_secret", default_vault_secret)
         self.logger = logging.getLogger(self.__class__.__name__)
