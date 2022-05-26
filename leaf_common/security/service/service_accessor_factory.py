@@ -25,6 +25,7 @@ from leaf_common.security.service.static_token_service_accessor \
     import StaticTokenServiceAccessor
 from leaf_common.security.service.vault_dynamic_token_service_accessor \
     import VaultDynamicTokenServiceAccessor
+from leaf_common.time.timeout import Timeout
 
 ACCESSOR_PRECEDENCE = [
     VaultDynamicTokenServiceAccessor,       # Prefer dynamic tokens
@@ -41,12 +42,24 @@ class ServiceAccessorFactory:
     """
 
     @staticmethod
-    def get_service_accessor(security_config: Dict[str, Any],
-                             auth0_defaults: Dict[str, Any] = None) -> ServiceAccessor:
+    def get_service_accessor(security_config: Dict[str, Any] = None,
+                             auth0_defaults: Dict[str, Any] = None,
+                             service_name: str = None,
+                             poll_interval_seconds: int = 15,
+                             umbrella_timeout: Timeout = None) -> ServiceAccessor:
         """
-        :param security_config: A LEAF-standard security config dictionary
-        :param auth0_defaults: A special dictionary with default auth0
-                    information. Largely used for ESP compatibility.
+        :param security_config: A LEAF-standard security config dictionary.
+                        Default is None, uses insecure channel.
+        :param auth0_defaults: An optional dictionary containing defaults for
+                auth0 access. Primarily for ESP compatibility.
+        :param service_name: An optional string to be used for error messages
+                when connecting to a service. If not given, we attempt to
+                get this from the security_cfg/auth0_defaults.
+        :param poll_interval_seconds: length of time in seconds methods
+                            on this class will wait before retrying connections
+                            or specific gRPC calls. Default to 15 seconds.
+        :param umbrella_timeout: A Timeout object under which the length of all
+                        looping and retries should be considered
         :return: A ServiceAccessor implementation befitting the config
         """
 
@@ -66,8 +79,12 @@ class ServiceAccessorFactory:
                 accessor = None
                 if accessor_class == Auth0DirectServiceAccessor:
                     # Special args
-                    accessor = Auth0DirectServiceAccessor(security_config,
-                                                          auth0_defaults)
+                    accessor = Auth0DirectServiceAccessor(
+                                            security_cfg=security_config,
+                                            auth0_defaults=auth0_defaults,
+                                            service_name=service_name,
+                                            poll_interval_seconds=poll_interval_seconds,
+                                            umbrella_timeout=umbrella_timeout)
                 elif accessor_class == VaultDynamicTokenServiceAccessor:
                     # Special args
                     accessor = VaultDynamicTokenServiceAccessor(security_config,

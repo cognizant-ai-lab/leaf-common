@@ -29,8 +29,8 @@ from grpc import composite_channel_credentials
 from grpc import ssl_channel_credentials
 
 from leaf_common.time.timeout import Timeout
-from leaf_common.session.grpc_channel_security_service_accessor \
-    import GrpcChannelSecurityServiceAccessor
+from leaf_common.security.service.service_accessor_factory \
+    import ServiceAccessorFactory
 
 
 class GrpcChannelSecurity():
@@ -40,6 +40,7 @@ class GrpcChannelSecurity():
     """
 
     def __init__(self, security_cfg: Dict[str, Any] = None,
+                 auth0_defaults: Dict[str, Any] = None,
                  service_name: str = None,
                  poll_interval_seconds: int = 15,
                  umbrella_timeout: Timeout = None):
@@ -48,8 +49,11 @@ class GrpcChannelSecurity():
                         secure the TLS and the authentication of the gRPC
                         connection.  Supplying this implies use of a secure
                         GRPC Channel.  Default is None, uses insecure channel.
-        :param service_name: No longer used string.  Argument is here for
-                        compatibility
+        :param auth0_defaults: An optional dictionary containing defaults for
+                auth0 access. Primarily for ESP compatibility.
+        :param service_name: An optional string to be used for error messages
+                when connecting to a service. If not given, we attempt to
+                get this from the security_cfg/auth0_defaults.
         :param poll_interval_seconds: length of time in seconds methods
                         on this class will wait before retrying connections
                         or specific gRPC calls. Default to 15 seconds.
@@ -71,8 +75,10 @@ class GrpcChannelSecurity():
             }
 
         self.jwt_token = None
-        self.service_accessor = GrpcChannelSecurityServiceAccessor(
-                                    security_cfg=self.security_cfg,
+        self.service_accessor = ServiceAccessorFactory.get_service_accessor(
+                                    security_config=self.security_cfg,
+                                    auth0_defaults=auth0_defaults,
+                                    service_name=service_name,
                                     poll_interval_seconds=poll_interval_seconds,
                                     umbrella_timeout=umbrella_timeout)
 
@@ -209,9 +215,14 @@ class GrpcChannelSecurity():
                 if no jwt_token yet exists.
         """
         if not self.has_token():
-            self.jwt_token = self.service_accessor.get_auth_token()
+            if self.service_accessor is not None:
+                self.jwt_token = self.service_accessor.get_auth_token()
 
-        call_creds = access_token_call_credentials(self.jwt_token)
-        composite_call_creds = composite_call_credentials(call_creds)
+        # Allow for no service accessor which means we have no way
+        # to get a token.
+        composite_call_creds = None
+        if self.has_token():
+            call_creds = access_token_call_credentials(self.jwt_token)
+            composite_call_creds = composite_call_credentials(call_creds)
 
         return composite_call_creds
