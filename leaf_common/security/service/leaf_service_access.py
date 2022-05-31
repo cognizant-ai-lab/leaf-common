@@ -159,6 +159,7 @@ class LeafServiceAccess:
 
                 if ServiceAccessorFactory.is_useful_config(server_config):
                     service_creds = copy.copy(server_config)
+                    service_creds["source_file_reference"] = source
                     break
 
             # End of loop for one security config file

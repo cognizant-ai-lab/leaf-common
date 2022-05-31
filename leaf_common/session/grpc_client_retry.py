@@ -110,9 +110,10 @@ class GrpcClientRetry():
             # If there is no channel_security, make one whose token
             # potentially lasts as long as this class does.
             self.channel_security = \
-                GrpcChannelSecurity(security_cfg,
-                                    service_name,
-                                    timeout_in_seconds,
+                GrpcChannelSecurity(security_cfg=security_cfg,
+                                    auth0_defaults=None,
+                                    service_name=service_name,
+                                    poll_interval_seconds=timeout_in_seconds,
                                     umbrella_timeout=umbrella_timeout)
         self.debug = False
         self.call_credentials = None
