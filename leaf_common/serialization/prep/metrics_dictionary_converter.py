@@ -61,7 +61,6 @@ class MetricsDictionaryConverter(PassThroughDictionaryConverter):
 
         return new_metrics
 
-    # pylint: disable=no-self-use
     def is_numpy_type(self, value):
         """
         :param value: The value to inspect

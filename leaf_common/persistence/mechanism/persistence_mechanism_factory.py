@@ -122,7 +122,6 @@ class PersistenceMechanismFactory():
 
         return use_persistence_mechanism
 
-    # pylint: disable=no-self-use
     def _find_persistence_mechanism(self, persistence_mechanism):
         """
         :param persistence_mechanism: The string name of the
