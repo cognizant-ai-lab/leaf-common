@@ -75,7 +75,20 @@ class GithubVaultLogin(VaultLogin):
         logger = logging.getLogger(self.__class__.__name__)
         logger.info("Using vault login method 'github'")
         use_token = config.get("token", None)
-        use_path = config.get("path", "github")
+
+        # If not specified, assume the vault server only has one organization
+        # registered for authentication under the vault-standard "github" path.
+        org_path = "github"
+
+        # If the config tells us the github organization, formulate an auth
+        # path that is leaf-standard, as we might want to have users coming
+        # in from multiple github organizations for authorization.
+        org = config.get("organization", None)
+        if org is not None:
+            org_path = f"github/orgs/{org}"
+
+        # If the full auth path is specified, use that as an override.
+        use_path = config.get("path", org_path)
 
         if use_token is None:
             logger.warning("GitHub token missing from security_config spec")
