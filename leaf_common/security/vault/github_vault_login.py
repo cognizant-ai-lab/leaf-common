@@ -75,12 +75,13 @@ class GithubVaultLogin(VaultLogin):
         logger = logging.getLogger(self.__class__.__name__)
         logger.info("Using vault login method 'github'")
         use_token = config.get("token", None)
+        use_path = config.get("path", "github")
 
         if use_token is None:
             logger.warning("GitHub token missing from security_config spec")
             return None
 
         vault_client = VaultClient(url=vault_url)
-        _ = vault_client.auth.github.login(token=use_token)
+        _ = vault_client.auth.github.login(token=use_token, mount_point=use_path)
 
         return vault_client

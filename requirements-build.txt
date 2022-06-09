@@ -9,15 +9,17 @@
 flake8==4.0.1
 
 # Full pylint dependencies to prevent infinite loops
-pylint==2.12.2
-astroid==2.9.3
+pylint==2.14.0
+astroid==2.11.5
+dill=0.3.5.1
 isort==5.10.1
 lazy-object-proxy==1.7.1
 mccabe==0.6.1
-platformdirs==2.5.0
-toml==0.10.2
-typing_extensions==4.1.1
-wrapt==1.13.3
+platformdirs==2.5.2
+tomli==2.0.1
+tomlkit==0.11.0
+typing_extensions==4.2.0
+wrapt==1.14.1
 
 # Special pylint extensions
 pylint-protobuf==0.20.2
