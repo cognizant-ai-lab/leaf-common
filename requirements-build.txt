@@ -11,7 +11,7 @@ flake8==4.0.1
 # Full pylint dependencies to prevent infinite loops
 pylint==2.14.0
 astroid==2.11.5
-dill=0.3.5.1
+dill==0.3.5.1
 isort==5.10.1
 lazy-object-proxy==1.7.1
 mccabe==0.6.1

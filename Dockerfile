@@ -1,7 +1,7 @@
 # AUTHOR: Darren Sargent
 # DESCRIPTION: Docker file for leaf-common.
 
-FROM python:3.6-stretch
+FROM python:3.8-slim
 
 ENV APP_HOME /usr/local/cognizant
 
