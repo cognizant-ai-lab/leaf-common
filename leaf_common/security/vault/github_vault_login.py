@@ -83,6 +83,8 @@ class GithubVaultLogin(VaultLogin):
         # If the config tells us the github organization, formulate an auth
         # path that is leaf-standard, as we might want to have users coming
         # in from multiple github organizations for authorization.
+        # See discussion about vault GitHub auth and orgs here:
+        # https://discuss.hashicorp.com/t/github-auth-with-a-personal-github-account/6407
         org = config.get("organization", None)
         if org is not None:
             org_path = f"github/orgs/{org}"
