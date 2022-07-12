@@ -187,7 +187,6 @@ class PersistenceFactory():
 
         return use_serialization_format
 
-    # pylint: disable=no-self-use
     def _find_serialization_format(self, serialization_format):
         """
         :param serialization_format: The string name of the
@@ -206,7 +205,6 @@ class PersistenceFactory():
 
         return found_serialization_format
 
-    # pylint: disable=no-self-use
     def _rearrange_components(self, persist_dir, persist_file,
                               file_extension, full_ref):
         """

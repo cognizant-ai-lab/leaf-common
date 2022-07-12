@@ -159,7 +159,6 @@ class FitnessObjectivesFromConfig():
 
         return builder
 
-    # pylint: disable=no-self-use
     def parse_into_list(self, fitness):
         """
         :param fitness: The raw value of the fitness field to parse.
@@ -209,7 +208,6 @@ class FitnessObjectivesFromConfig():
 
         return fitness
 
-    # pylint: disable=no-self-use
     def parse_list(self, fitness):
         """
         :param fitness: The list-normalized, not component-normalize
@@ -242,7 +240,6 @@ class FitnessObjectivesFromConfig():
 
         return objective_dictionary_list
 
-    # pylint: disable=no-self-use
     def alter_comparators(self, fitness_objectives):
         """
         Method to allow for alteration of the comparators to reflect

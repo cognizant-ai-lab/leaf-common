@@ -154,7 +154,6 @@ class FitnessObjectivesBuilder():
 
         return objectives
 
-    # pylint: disable=no-self-use
     def create_ranking_comparators(self, objectives):
         """
         Called from build().
