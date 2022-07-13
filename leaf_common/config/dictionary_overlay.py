@@ -126,7 +126,6 @@ class DictionaryOverlay():
 
         return result
 
-    # pylint: disable=no-self-use
     def _convert_overlay_value(self, basis_value, overlay_value):
         """
         Given basis value from configuration and overlay value

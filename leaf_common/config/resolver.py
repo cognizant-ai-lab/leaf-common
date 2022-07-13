@@ -77,7 +77,6 @@ class Resolver():
         my_class = getattr(found_module, class_name)
         return my_class
 
-    # pylint: disable=no-self-use
     def try_to_import_module(self, module, messages):
         """
         Makes a single attempt to load a module
@@ -110,7 +109,6 @@ class Resolver():
 
         return found_module
 
-    # pylint: disable=no-self-use
     def module_name_from_class_name(self, class_name):
         """
         :param class_name: The class name whose module name we are looking for

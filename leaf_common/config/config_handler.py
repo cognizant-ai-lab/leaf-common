@@ -138,7 +138,6 @@ class ConfigHandler():
         config = parser_method(filepath, must_exist)
         return config
 
-    # pylint: disable=no-self-use
     def parse_json(self, filepath, must_exist):
         """
         :param filepath: The json file to parse
@@ -153,7 +152,6 @@ class ConfigHandler():
         config = persistence.restore()
         return config
 
-    # pylint: disable=no-self-use
     def parse_hocon(self, filepath, must_exist):
         """
         :param filepath: The hocon file to parse
@@ -168,7 +166,6 @@ class ConfigHandler():
         config = persistence.restore()
         return config
 
-    # pylint: disable=no-self-use
     def parse_yaml(self, filepath, must_exist):
         """
         :param filepath: The yaml file to parse
