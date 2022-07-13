@@ -22,6 +22,8 @@ from leaf_common.representation.rule_based.data.rules_constants import RulesCons
 from leaf_common.representation.rule_based.evaluation.rule_evaluator \
     import RuleEvaluator
 
+CATEGORY_EXPLAINABLE_MARKER = "_is_category_"
+
 
 class RuleSetEvaluator(ComponentEvaluator):
     """
@@ -207,3 +209,64 @@ class RuleSetEvaluator(ComponentEvaluator):
 
         # It'd be nice if this MEM_FACTOR came from configuration
         self._observation_history_size = RulesConstants.MEM_FACTOR * len(self._actions)
+
+    @staticmethod
+    def get_states_and_actions(config):
+        """
+        Returns states and actions
+        :param config: Esp config
+        :return: states and actions
+        """
+        states = RuleSetEvaluator._read_config_shape_var(config['network']['inputs'])
+        actions = RuleSetEvaluator._read_config_shape_var(config['network']['outputs'])
+        return states, actions
+
+    @staticmethod
+    def _read_config_shape_var(config_vars) -> Dict[str, str]:
+        '''
+        This method handles the following two examples of defining network parameters into an enumerated list of them:
+        FIRST CASE EXAMPLE:
+        "network": {
+            "inputs": [
+                {
+                    "name": "context",
+                    "size": 21,
+                    "values": [
+                        "float"
+                    ]
+                }
+            ],
+
+        SECOND CASE EXAMPLE:
+        "network": {
+            "inputs": [
+                {
+                    "name": "param1",
+                    "size": 1,
+                    "values": [
+                        "float"
+                    ]
+                },
+                {
+                    "name": "param2",
+                    "size": 1,
+                    "values": [
+                        "float"
+                    ]
+                }, ... etc.
+
+        :param config_vars: A dictionary definition of input or output parameters of a domain
+        :return: A dictionary enumerating the parameter definition
+        '''
+
+        var_index = 0
+        var = {}
+        for var_item in config_vars:
+            if var_item['size'] > 1:
+                for i in range(var_item['size']):
+                    var[str(var_index)] = var_item['name'] + CATEGORY_EXPLAINABLE_MARKER + var_item['values'][i]
+                    var_index += 1
+            else:
+                var[str(var_index)] = var_item['name']
+                var_index += 1
+        return var
