@@ -20,7 +20,6 @@ from leaf_common.evaluation.component_evaluator import ComponentEvaluator
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 from leaf_common.representation.rule_based.evaluation.rule_evaluator import RuleEvaluator
-from leaf_common.representation.rule_based.config.rule_set_config_helper import RuleSetConfigHelper
 
 
 class RuleSetEvaluator(ComponentEvaluator):
