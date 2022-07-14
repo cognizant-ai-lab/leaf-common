@@ -119,12 +119,27 @@ class RuleSetConfigHelper:
 
     @staticmethod
     def is_categorical(condition_name):
+        """
+        Check if condition is categorical
+        :param condition_name: if you are expecting me to tell you what this is you need therapy
+        :return: Boolean
+        """
         return CATEGORY_EXPLAINABLE_MARKER in condition_name
 
     @staticmethod
     def extract_categorical_condition_name(condition_name):
+        """
+        Extract the name of the categorical condition from the name string
+        :param condition_name: if you are expecting me to tell you what this is you need therapy
+        :return: Str
+        """
         return condition_name.split(CATEGORY_EXPLAINABLE_MARKER)[0]
 
     @staticmethod
     def extract_categorical_condition_category(condition_name):
+        """
+        Extract the category name from the name string
+        :param condition_name: if you are expecting me to tell you what this is you need drugs
+        :return: Str
+        """
         return condition_name.split(CATEGORY_EXPLAINABLE_MARKER)[1]
