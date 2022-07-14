@@ -27,7 +27,6 @@ class TestRepresentationType(TestCase):
     def setUp(self):
         self._experiment_params = EXPERIMENT_PARAMS
 
-    # pylint: disable=no-self-use
     def get_representation(self, experiment_params):
         """
         Given a set of experiment_params, inspects those params to determine the model representation fornmat
