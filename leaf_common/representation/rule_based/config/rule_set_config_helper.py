@@ -124,3 +124,7 @@ class RuleSetConfigHelper:
     @staticmethod
     def extract_categorical_condition_name(condition_name):
         return condition_name.split(CATEGORY_EXPLAINABLE_MARKER)[0]
+
+    @staticmethod
+    def extract_categorical_condition_category(condition_name):
+        return condition_name.split(CATEGORY_EXPLAINABLE_MARKER)[1]

@@ -16,6 +16,8 @@ Base class for condition representation
 from typing import Dict
 
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
+from leaf_common.representation.rule_based.config.rule_set_config_helper import RuleSetConfigHelper
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants as LeafCommonConstants
 
 
 class Condition:  # pylint: disable-msg=R0902
@@ -32,13 +34,13 @@ class Condition:  # pylint: disable-msg=R0902
         self.first_state_lookback: int = None
         self.first_state_key: str = None
         self.first_state_coefficient: float = None
-        self.first_state_exponent = None
+        self.first_state_exponent: int = None
         self.operator: str = None
         self.second_state_lookback: int = None
         self.second_state_key: str = None
         self.second_state_value: float = None
         self.second_state_coefficient: float = None
-        self.second_state_exponent = None
+        self.second_state_exponent: int = None
 
     def __str__(self):
         return self.to_string()
@@ -50,41 +52,57 @@ class Condition:  # pylint: disable-msg=R0902
     def to_string(self, states: Dict[str, str] = None,
                   min_maxes: Dict[str, Dict[str, float]] = None) -> str:  # noqa: E252
         """
+        FOR EXAMPLE:(for categorical)
+        'race_is_category_Hispanic' becomes 'race is Hispanic'
+
         String representation for condition
         :param states: A dictionary of domain features
         :param min_maxes: A dictionary of domain features minimum and maximum values
         :return: condition.toString()
         """
 
-        # Prepare 1st condition string
-        first_condition = self._condition_part_to_string(self.first_state_coefficient,
-                                                         self.first_state_key,
-                                                         self.first_state_lookback,
-                                                         self.first_state_exponent,
-                                                         states)
-        # TODO: clean up tostring for categoricals
-        # Prepare 2nd condition string
-        # Note: None or empty dictionaries both evaluate to false
-        if states and self.second_state_key in states:
-            second_condition = self._condition_part_to_string(self.second_state_coefficient,
-                                                              self.second_state_key,
-                                                              self.second_state_lookback,
-                                                              self.second_state_exponent,
-                                                              states)
-        # Note: None or empty dictionaries both evaluate to false
-        elif min_maxes:
-            # Per evaluation code, min/max is based on the first_state_key
-            empty_dict = {}
-            state_dict = min_maxes.get(self.first_state_key, empty_dict)
-            min_value = state_dict.get(RulesConstants.MIN_KEY)
-            max_value = state_dict.get(RulesConstants.MAX_KEY)
-            second_condition_val = (min_value + self.second_state_value * (max_value - min_value))
-            second_condition = \
-                f'{second_condition_val:.{RulesConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
+        # Handle categorical conditions separately
+        if states and RuleSetConfigHelper.is_categorical(states[self.first_state_key]):
+            condition_name = states[self.first_state_key]
+            name = RuleSetConfigHelper.extract_categorical_condition_name(condition_name)
+            category = RuleSetConfigHelper.extract_categorical_condition_category(condition_name)
+            look_back = ''
+            if self.first_state_lookback > 0:
+                look_back = '[' + str(self.first_state_lookback) + ']'
+            operator = "is"
+            if self.operator == LeafCommonConstants.LESS_THAN:
+                operator = operator + " not"
+            the_string = f'{name}{look_back} {operator} {category}'
         else:
-            second_condition = f'{self.second_state_value:.{RulesConstants.DECIMAL_DIGITS}f}'
+            # Prepare 1st condition string
+            first_condition = self._condition_part_to_string(self.first_state_coefficient,
+                                                             self.first_state_key,
+                                                             self.first_state_lookback,
+                                                             self.first_state_exponent,
+                                                             states)
+            # Prepare 2nd condition string
+            # Note: None or empty dictionaries both evaluate to false
+            if states and self.second_state_key in states:
+                second_condition = self._condition_part_to_string(self.second_state_coefficient,
+                                                                  self.second_state_key,
+                                                                  self.second_state_lookback,
+                                                                  self.second_state_exponent,
+                                                                  states)
+            # Note: None or empty dictionaries both evaluate to false
+            elif min_maxes:
+                # Per evaluation code, min/max is based on the first_state_key
+                empty_dict = {}
+                state_dict = min_maxes.get(self.first_state_key, empty_dict)
+                min_value = state_dict.get(RulesConstants.MIN_KEY)
+                max_value = state_dict.get(RulesConstants.MAX_KEY)
+                second_condition_val = (min_value + self.second_state_value * (max_value - min_value))
+                second_condition = \
+                    f'{second_condition_val:.{RulesConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
+            else:
+                second_condition = f'{self.second_state_value:.{RulesConstants.DECIMAL_DIGITS}f}'
+            the_string = f'{first_condition} {self.operator} {second_condition}'
 
-        return f'{first_condition} {self.operator} {second_condition}'
+        return the_string
 
     # pylint: disable=too-many-arguments
     def _condition_part_to_string(self, coeff: float, key: str, lookback: int, exponent: int,
