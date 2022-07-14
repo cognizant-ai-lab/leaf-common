@@ -116,3 +116,11 @@ class RuleSetConfigHelper:
                 var[str(var_index)] = var_item['name']
                 var_index += 1
         return var
+
+    @staticmethod
+    def is_categorical(condition_name):
+        return CATEGORY_EXPLAINABLE_MARKER in condition_name
+
+    @staticmethod
+    def extract_categorical_condition_name(condition_name):
+        return condition_name.split(CATEGORY_EXPLAINABLE_MARKER)[0]

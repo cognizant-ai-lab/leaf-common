@@ -62,7 +62,7 @@ class Condition:  # pylint: disable-msg=R0902
                                                          self.first_state_lookback,
                                                          self.first_state_exponent,
                                                          states)
-
+        # TODO: clean up tostring for categoricals
         # Prepare 2nd condition string
         # Note: None or empty dictionaries both evaluate to false
         if states and self.second_state_key in states:
