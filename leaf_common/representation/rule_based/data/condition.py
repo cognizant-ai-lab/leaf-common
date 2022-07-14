@@ -15,7 +15,6 @@ Base class for condition representation
 
 from typing import Dict
 
-from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 from leaf_common.representation.rule_based.config.rule_set_config_helper import RuleSetConfigHelper
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants as LeafCommonConstants
 
@@ -63,9 +62,8 @@ class Condition:  # pylint: disable-msg=R0902
 
         # Handle categorical conditions separately
         if states and RuleSetConfigHelper.is_categorical(states[self.first_state_key]):
-            condition_name = states[self.first_state_key]
-            name = RuleSetConfigHelper.extract_categorical_condition_name(condition_name)
-            category = RuleSetConfigHelper.extract_categorical_condition_category(condition_name)
+            name = RuleSetConfigHelper.extract_categorical_condition_name(states[self.first_state_key])
+            category = RuleSetConfigHelper.extract_categorical_condition_category(states[self.first_state_key])
             look_back = ''
             if self.first_state_lookback > 0:
                 look_back = '[' + str(self.first_state_lookback) + ']'
@@ -93,13 +91,13 @@ class Condition:  # pylint: disable-msg=R0902
                 # Per evaluation code, min/max is based on the first_state_key
                 empty_dict = {}
                 state_dict = min_maxes.get(self.first_state_key, empty_dict)
-                min_value = state_dict.get(RulesConstants.MIN_KEY)
-                max_value = state_dict.get(RulesConstants.MAX_KEY)
+                min_value = state_dict.get(LeafCommonConstants.MIN_KEY)
+                max_value = state_dict.get(LeafCommonConstants.MAX_KEY)
                 second_condition_val = (min_value + self.second_state_value * (max_value - min_value))
                 second_condition = \
-                    f'{second_condition_val:.{RulesConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
+                    f'{second_condition_val:.{LeafCommonConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
             else:
-                second_condition = f'{self.second_state_value:.{RulesConstants.DECIMAL_DIGITS}f}'
+                second_condition = f'{self.second_state_value:.{LeafCommonConstants.DECIMAL_DIGITS}f}'
             the_string = f'{first_condition} {self.operator} {second_condition}'
 
         return the_string
@@ -117,7 +115,7 @@ class Condition:  # pylint: disable-msg=R0902
         if states is not None and key in states:
             use_key = states[key]
 
-        condition_part = f'{coeff:.{RulesConstants.DECIMAL_DIGITS}f}*{use_key}'
+        condition_part = f'{coeff:.{LeafCommonConstants.DECIMAL_DIGITS}f}*{use_key}'
         if lookback > 0:
             condition_part = f'{condition_part}[{lookback}]'
         if exponent > 1:
