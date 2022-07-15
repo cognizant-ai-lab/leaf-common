@@ -13,9 +13,9 @@
 See class comment for details
 """
 
-from leaf_common.representation.rule_based.data.rules_constants import RulesConstants as LeafCommonConstants
-
 from typing import Dict, Any
+
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants as LeafCommonConstants
 
 
 class RuleSetConfigHelper:

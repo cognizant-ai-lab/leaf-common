@@ -70,4 +70,3 @@ class RulesConstants:
 
     # marker added to categorical attribute names upon data flattening
     CATEGORY_EXPLAINABLE_MARKER = "_is_category_"
-
