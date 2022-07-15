@@ -32,13 +32,13 @@ class Condition:  # pylint: disable-msg=R0902
         self.first_state_lookback: int = None
         self.first_state_key: str = None
         self.first_state_coefficient: float = None
-        self.first_state_exponent = None
+        self.first_state_exponent: int = None
         self.operator: str = None
         self.second_state_lookback: int = None
         self.second_state_key: str = None
         self.second_state_value: float = None
         self.second_state_coefficient: float = None
-        self.second_state_exponent = None
+        self.second_state_exponent: int = None
 
     def __str__(self):
         return self.to_string()
@@ -50,19 +50,36 @@ class Condition:  # pylint: disable-msg=R0902
     def to_string(self, states: Dict[str, str] = None,
                   min_maxes: Dict[str, Dict[str, float]] = None) -> str:  # noqa: E252
         """
+        FOR EXAMPLE:(for categorical)
+        'race_is_category_Hispanic' becomes 'race is Hispanic'
+
         String representation for condition
         :param states: A dictionary of domain features
         :param min_maxes: A dictionary of domain features minimum and maximum values
         :return: condition.toString()
         """
 
+        # Handle categorical conditions separately
+        if states and Condition.is_categorical(states[self.first_state_key]):
+            the_string = self.categorical_to_string(states)
+        else:
+            the_string = self.continuous_to_string(min_maxes, states)
+
+        return the_string
+
+    def continuous_to_string(self, min_maxes, states):
+        """
+        String representation for continuous condition
+        :param states: A dictionary of domain features
+        :param min_maxes: A dictionary of domain features minimum and maximum values
+        :return: condition.toString()
+        """
         # Prepare 1st condition string
         first_condition = self._condition_part_to_string(self.first_state_coefficient,
                                                          self.first_state_key,
                                                          self.first_state_lookback,
                                                          self.first_state_exponent,
                                                          states)
-
         # Prepare 2nd condition string
         # Note: None or empty dictionaries both evaluate to false
         if states and self.second_state_key in states:
@@ -83,8 +100,32 @@ class Condition:  # pylint: disable-msg=R0902
                 f'{second_condition_val:.{RulesConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
         else:
             second_condition = f'{self.second_state_value:.{RulesConstants.DECIMAL_DIGITS}f}'
+        the_string = f'{first_condition} {self.operator} {second_condition}'
+        return the_string
 
-        return f'{first_condition} {self.operator} {second_condition}'
+    def categorical_to_string(self, states):
+        """
+        FOR EXAMPLE:(for categorical)
+        'race_is_category_Hispanic' becomes 'race is Hispanic'
+
+        String representation for categorical condition
+        :param states: A dictionary of domain features
+        :return: condition.toString()
+        """
+        name = Condition.extract_categorical_condition_name(states[self.first_state_key])
+        category = Condition.extract_categorical_condition_category(states[self.first_state_key])
+        look_back = ''
+        if self.first_state_lookback > 0:
+            look_back = '[' + str(self.first_state_lookback) + ']'
+        operator = "is"
+
+        # The categorical data are coming in as one-hot, and we put 1.0 as the value to be compared to,
+        # so LESS_THAN means "< 1" or zero (equivalent to False) and GREATER_THAN_EQUAL means ">= 1"
+        # which is equivalent to one (True).
+        if self.operator == RulesConstants.LESS_THAN:
+            operator = operator + " not"
+        the_string = f'{name}{look_back} {operator} {category}'
+        return the_string
 
     # pylint: disable=too-many-arguments
     def _condition_part_to_string(self, coeff: float, key: str, lookback: int, exponent: int,
@@ -106,3 +147,30 @@ class Condition:  # pylint: disable-msg=R0902
             condition_part = f'{condition_part}^{exponent}'
 
         return condition_part
+
+    @staticmethod
+    def is_categorical(condition_name):
+        """
+        Check if condition is categorical
+        :param condition_name: if you are expecting me to tell you what this is you need therapy
+        :return: Boolean
+        """
+        return RulesConstants.CATEGORY_EXPLAINABLE_MARKER in condition_name
+
+    @staticmethod
+    def extract_categorical_condition_name(condition_name):
+        """
+        Extract the name of the categorical condition from the name string
+        :param condition_name: if you are expecting me to tell you what this is you need therapy
+        :return: Str
+        """
+        return condition_name.split(RulesConstants.CATEGORY_EXPLAINABLE_MARKER)[0]
+
+    @staticmethod
+    def extract_categorical_condition_category(condition_name):
+        """
+        Extract the category name from the name string
+        :param condition_name: if you are expecting me to tell you what this is you need drugs
+        :return: Str
+        """
+        return condition_name.split(RulesConstants.CATEGORY_EXPLAINABLE_MARKER)[1]

@@ -16,7 +16,7 @@ See class comment
 import math
 
 
-class RulesConstants():
+class RulesConstants:
     """
     Constants for various aspects of the Rule-based representation
     """
@@ -67,3 +67,6 @@ class RulesConstants():
     # Evaluation Data dictionary keys
     OBSERVATION_HISTORY_KEY = "observation_history"
     STATE_MIN_MAXES_KEY = "min_maxes"
+
+    # marker added to categorical attribute names upon data flattening
+    CATEGORY_EXPLAINABLE_MARKER = "_is_category_"

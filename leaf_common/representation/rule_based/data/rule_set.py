@@ -61,6 +61,12 @@ class RuleSet:
     def to_string(self, states: Dict[str, str] = None, actions: Dict[str, str] = None) -> str:      # noqa: E252
         """
         String representation for rule
+        EXAMPLE:
+          <7315> (race is Hispanic)  -->  0.20*nateglinide_is_category_Yes
+          <100174> (diag_1 is circulatory)  -->  0.60*repaglinide_is_category_Yes
+          <154742> (gender is Male)  -->  0.44*insulin_is_category_Yes
+          <279049> Default Action: 0.76*glyburide_is_category_No
+
 
         :param states: An optional dictionary of state definitions seen during evaluation.
         :param actions: An optional dictionary of action definitions seen during evaluation.

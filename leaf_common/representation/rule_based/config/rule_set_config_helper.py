@@ -15,7 +15,7 @@ See class comment for details
 
 from typing import Dict, Any
 
-CATEGORY_EXPLAINABLE_MARKER = "_is_category_"
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 
 
 class RuleSetConfigHelper:
@@ -110,7 +110,8 @@ class RuleSetConfigHelper:
         for var_item in config_vars:
             if var_item['size'] > 1:
                 for i in range(var_item['size']):
-                    var[str(var_index)] = var_item['name'] + CATEGORY_EXPLAINABLE_MARKER + var_item['values'][i]
+                    var[str(var_index)] = \
+                        var_item['name'] + RulesConstants.CATEGORY_EXPLAINABLE_MARKER + var_item['values'][i]
                     var_index += 1
             else:
                 var[str(var_index)] = var_item['name']
