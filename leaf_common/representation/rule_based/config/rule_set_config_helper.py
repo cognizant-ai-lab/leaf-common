@@ -13,9 +13,9 @@
 See class comment for details
 """
 
-from typing import Dict, Any
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants as LeafCommonConstants
 
-CATEGORY_EXPLAINABLE_MARKER = "_is_category_"
+from typing import Dict, Any
 
 
 class RuleSetConfigHelper:
@@ -110,36 +110,10 @@ class RuleSetConfigHelper:
         for var_item in config_vars:
             if var_item['size'] > 1:
                 for i in range(var_item['size']):
-                    var[str(var_index)] = var_item['name'] + CATEGORY_EXPLAINABLE_MARKER + var_item['values'][i]
+                    var[str(var_index)] = \
+                        var_item['name'] + LeafCommonConstants.CATEGORY_EXPLAINABLE_MARKER + var_item['values'][i]
                     var_index += 1
             else:
                 var[str(var_index)] = var_item['name']
                 var_index += 1
         return var
-
-    @staticmethod
-    def is_categorical(condition_name):
-        """
-        Check if condition is categorical
-        :param condition_name: if you are expecting me to tell you what this is you need therapy
-        :return: Boolean
-        """
-        return CATEGORY_EXPLAINABLE_MARKER in condition_name
-
-    @staticmethod
-    def extract_categorical_condition_name(condition_name):
-        """
-        Extract the name of the categorical condition from the name string
-        :param condition_name: if you are expecting me to tell you what this is you need therapy
-        :return: Str
-        """
-        return condition_name.split(CATEGORY_EXPLAINABLE_MARKER)[0]
-
-    @staticmethod
-    def extract_categorical_condition_category(condition_name):
-        """
-        Extract the category name from the name string
-        :param condition_name: if you are expecting me to tell you what this is you need drugs
-        :return: Str
-        """
-        return condition_name.split(CATEGORY_EXPLAINABLE_MARKER)[1]

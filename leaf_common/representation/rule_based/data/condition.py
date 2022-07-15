@@ -15,7 +15,6 @@ Base class for condition representation
 
 from typing import Dict
 
-from leaf_common.representation.rule_based.config.rule_set_config_helper import RuleSetConfigHelper
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants as LeafCommonConstants
 
 
@@ -61,45 +60,71 @@ class Condition:  # pylint: disable-msg=R0902
         """
 
         # Handle categorical conditions separately
-        if states and RuleSetConfigHelper.is_categorical(states[self.first_state_key]):
-            name = RuleSetConfigHelper.extract_categorical_condition_name(states[self.first_state_key])
-            category = RuleSetConfigHelper.extract_categorical_condition_category(states[self.first_state_key])
-            look_back = ''
-            if self.first_state_lookback > 0:
-                look_back = '[' + str(self.first_state_lookback) + ']'
-            operator = "is"
-            if self.operator == LeafCommonConstants.LESS_THAN:
-                operator = operator + " not"
-            the_string = f'{name}{look_back} {operator} {category}'
+        if states and Condition.is_categorical(states[self.first_state_key]):
+            the_string = self.categorical_to_string(states)
         else:
-            # Prepare 1st condition string
-            first_condition = self._condition_part_to_string(self.first_state_coefficient,
-                                                             self.first_state_key,
-                                                             self.first_state_lookback,
-                                                             self.first_state_exponent,
-                                                             states)
-            # Prepare 2nd condition string
-            # Note: None or empty dictionaries both evaluate to false
-            if states and self.second_state_key in states:
-                second_condition = self._condition_part_to_string(self.second_state_coefficient,
-                                                                  self.second_state_key,
-                                                                  self.second_state_lookback,
-                                                                  self.second_state_exponent,
-                                                                  states)
-            # Note: None or empty dictionaries both evaluate to false
-            elif min_maxes:
-                # Per evaluation code, min/max is based on the first_state_key
-                empty_dict = {}
-                state_dict = min_maxes.get(self.first_state_key, empty_dict)
-                min_value = state_dict.get(LeafCommonConstants.MIN_KEY)
-                max_value = state_dict.get(LeafCommonConstants.MAX_KEY)
-                second_condition_val = (min_value + self.second_state_value * (max_value - min_value))
-                second_condition = \
-                    f'{second_condition_val:.{LeafCommonConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
-            else:
-                second_condition = f'{self.second_state_value:.{LeafCommonConstants.DECIMAL_DIGITS}f}'
-            the_string = f'{first_condition} {self.operator} {second_condition}'
+            the_string = self.continuous_to_string(min_maxes, states)
 
+        return the_string
+
+    def continuous_to_string(self, min_maxes, states):
+        """
+        String representation for continuous condition
+        :param states: A dictionary of domain features
+        :param min_maxes: A dictionary of domain features minimum and maximum values
+        :return: condition.toString()
+        """
+        # Prepare 1st condition string
+        first_condition = self._condition_part_to_string(self.first_state_coefficient,
+                                                         self.first_state_key,
+                                                         self.first_state_lookback,
+                                                         self.first_state_exponent,
+                                                         states)
+        # Prepare 2nd condition string
+        # Note: None or empty dictionaries both evaluate to false
+        if states and self.second_state_key in states:
+            second_condition = self._condition_part_to_string(self.second_state_coefficient,
+                                                              self.second_state_key,
+                                                              self.second_state_lookback,
+                                                              self.second_state_exponent,
+                                                              states)
+        # Note: None or empty dictionaries both evaluate to false
+        elif min_maxes:
+            # Per evaluation code, min/max is based on the first_state_key
+            empty_dict = {}
+            state_dict = min_maxes.get(self.first_state_key, empty_dict)
+            min_value = state_dict.get(LeafCommonConstants.MIN_KEY)
+            max_value = state_dict.get(LeafCommonConstants.MAX_KEY)
+            second_condition_val = (min_value + self.second_state_value * (max_value - min_value))
+            second_condition = \
+                f'{second_condition_val:.{LeafCommonConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
+        else:
+            second_condition = f'{self.second_state_value:.{LeafCommonConstants.DECIMAL_DIGITS}f}'
+        the_string = f'{first_condition} {self.operator} {second_condition}'
+        return the_string
+
+    def categorical_to_string(self, states):
+        """
+        FOR EXAMPLE:(for categorical)
+        'race_is_category_Hispanic' becomes 'race is Hispanic'
+
+        String representation for categorical condition
+        :param states: A dictionary of domain features
+        :return: condition.toString()
+        """
+        name = Condition.extract_categorical_condition_name(states[self.first_state_key])
+        category = Condition.extract_categorical_condition_category(states[self.first_state_key])
+        look_back = ''
+        if self.first_state_lookback > 0:
+            look_back = '[' + str(self.first_state_lookback) + ']'
+        operator = "is"
+
+        # The categorical data are coming in as one-hot, and we put 1.0 as the value to be compared to,
+        # so LESS_THAN means "< 1" or zero (equivalent to False) and GREATER_THAN_EQUAL means ">= 1"
+        # which is equivalent to one (True).
+        if self.operator == LeafCommonConstants.LESS_THAN:
+            operator = operator + " not"
+        the_string = f'{name}{look_back} {operator} {category}'
         return the_string
 
     # pylint: disable=too-many-arguments
@@ -122,3 +147,30 @@ class Condition:  # pylint: disable-msg=R0902
             condition_part = f'{condition_part}^{exponent}'
 
         return condition_part
+
+    @staticmethod
+    def is_categorical(condition_name):
+        """
+        Check if condition is categorical
+        :param condition_name: if you are expecting me to tell you what this is you need therapy
+        :return: Boolean
+        """
+        return LeafCommonConstants.CATEGORY_EXPLAINABLE_MARKER in condition_name
+
+    @staticmethod
+    def extract_categorical_condition_name(condition_name):
+        """
+        Extract the name of the categorical condition from the name string
+        :param condition_name: if you are expecting me to tell you what this is you need therapy
+        :return: Str
+        """
+        return condition_name.split(LeafCommonConstants.CATEGORY_EXPLAINABLE_MARKER)[0]
+
+    @staticmethod
+    def extract_categorical_condition_category(condition_name):
+        """
+        Extract the category name from the name string
+        :param condition_name: if you are expecting me to tell you what this is you need drugs
+        :return: Str
+        """
+        return condition_name.split(LeafCommonConstants.CATEGORY_EXPLAINABLE_MARKER)[1]
