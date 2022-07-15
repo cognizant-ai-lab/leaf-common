@@ -15,7 +15,7 @@ Base class for condition representation
 
 from typing import Dict
 
-from leaf_common.representation.rule_based.data.rules_constants import RulesConstants as LeafCommonConstants
+from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 
 
 class Condition:  # pylint: disable-msg=R0902
@@ -93,13 +93,13 @@ class Condition:  # pylint: disable-msg=R0902
             # Per evaluation code, min/max is based on the first_state_key
             empty_dict = {}
             state_dict = min_maxes.get(self.first_state_key, empty_dict)
-            min_value = state_dict.get(LeafCommonConstants.MIN_KEY)
-            max_value = state_dict.get(LeafCommonConstants.MAX_KEY)
+            min_value = state_dict.get(RulesConstants.MIN_KEY)
+            max_value = state_dict.get(RulesConstants.MAX_KEY)
             second_condition_val = (min_value + self.second_state_value * (max_value - min_value))
             second_condition = \
-                f'{second_condition_val:.{LeafCommonConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
+                f'{second_condition_val:.{RulesConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
         else:
-            second_condition = f'{self.second_state_value:.{LeafCommonConstants.DECIMAL_DIGITS}f}'
+            second_condition = f'{self.second_state_value:.{RulesConstants.DECIMAL_DIGITS}f}'
         the_string = f'{first_condition} {self.operator} {second_condition}'
         return the_string
 
@@ -122,7 +122,7 @@ class Condition:  # pylint: disable-msg=R0902
         # The categorical data are coming in as one-hot, and we put 1.0 as the value to be compared to,
         # so LESS_THAN means "< 1" or zero (equivalent to False) and GREATER_THAN_EQUAL means ">= 1"
         # which is equivalent to one (True).
-        if self.operator == LeafCommonConstants.LESS_THAN:
+        if self.operator == RulesConstants.LESS_THAN:
             operator = operator + " not"
         the_string = f'{name}{look_back} {operator} {category}'
         return the_string
@@ -140,7 +140,7 @@ class Condition:  # pylint: disable-msg=R0902
         if states is not None and key in states:
             use_key = states[key]
 
-        condition_part = f'{coeff:.{LeafCommonConstants.DECIMAL_DIGITS}f}*{use_key}'
+        condition_part = f'{coeff:.{RulesConstants.DECIMAL_DIGITS}f}*{use_key}'
         if lookback > 0:
             condition_part = f'{condition_part}[{lookback}]'
         if exponent > 1:
@@ -155,7 +155,7 @@ class Condition:  # pylint: disable-msg=R0902
         :param condition_name: if you are expecting me to tell you what this is you need therapy
         :return: Boolean
         """
-        return LeafCommonConstants.CATEGORY_EXPLAINABLE_MARKER in condition_name
+        return RulesConstants.CATEGORY_EXPLAINABLE_MARKER in condition_name
 
     @staticmethod
     def extract_categorical_condition_name(condition_name):
@@ -164,7 +164,7 @@ class Condition:  # pylint: disable-msg=R0902
         :param condition_name: if you are expecting me to tell you what this is you need therapy
         :return: Str
         """
-        return condition_name.split(LeafCommonConstants.CATEGORY_EXPLAINABLE_MARKER)[0]
+        return condition_name.split(RulesConstants.CATEGORY_EXPLAINABLE_MARKER)[0]
 
     @staticmethod
     def extract_categorical_condition_category(condition_name):
@@ -173,4 +173,4 @@ class Condition:  # pylint: disable-msg=R0902
         :param condition_name: if you are expecting me to tell you what this is you need drugs
         :return: Str
         """
-        return condition_name.split(LeafCommonConstants.CATEGORY_EXPLAINABLE_MARKER)[1]
+        return condition_name.split(RulesConstants.CATEGORY_EXPLAINABLE_MARKER)[1]
