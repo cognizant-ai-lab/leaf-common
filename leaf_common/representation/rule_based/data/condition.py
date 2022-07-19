@@ -14,6 +14,7 @@ Base class for condition representation
 """
 
 from typing import Dict
+from deprecated.classic import deprecated
 
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 from leaf_common.representation.rule_based.data.states import States
@@ -113,8 +114,8 @@ class Condition:  # pylint: disable=too-many-instance-attributes
         :param states: A dictionary of domain features
         :return: condition.toString()
         """
-        name = States.extract_categorical_condition_name(states[self.first_state_key])
-        category = States.extract_categorical_condition_category(states[self.first_state_key])
+        name = States.extract_categorical_feature_name(states[self.first_state_key])
+        category = States.extract_categorical_feature_category(states[self.first_state_key])
         look_back = ''
         if self.first_state_lookback > 0:
             look_back = '[' + str(self.first_state_lookback) + ']'
