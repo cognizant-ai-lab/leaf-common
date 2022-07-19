@@ -16,10 +16,33 @@ Utilities for states (features)
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 
 
-class States:
+class Features:
     """
     A class that encapsulates some utilities surrounding the parsing of
-    states (features/columns).
+    features (columns).
+
+    Since categorical conditions/features will be converted to one-hot encoded,
+    they will be divided into some booleans (to the number of categories they
+    have) and we name them by the following component conventions:
+
+    A) The feature name    followed by
+    B) RulesConstants.CATEGORY_EXPLAINABLE_MARKER   followed by
+    C) the category name.
+
+    As an example:
+        {
+            '0': 'admission_source_id_is_category_Court/Law Enforcement',
+            '1': 'admission_source_id_is_category_Emergency Room',
+            '2': 'admission_source_id_is_category_Medical Healthcare Professional Referral',
+            '3': 'admission_source_id_is_category_Not Availaible',
+            '4': 'admission_source_id_is_category_Pregnancy',
+            '5': 'admission_source_id_is_category_Transfer from another Medical Facility',
+            ... etc.
+        }
+
+    Therefore, the is_categorical() and the other functions here are presented
+    to determine if a feature is a categorical feature, or to determine which
+    category the feature belongs to.
     """
 
     @staticmethod
