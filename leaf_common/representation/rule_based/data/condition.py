@@ -16,9 +16,10 @@ Base class for condition representation
 from typing import Dict
 
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
+from leaf_common.representation.rule_based.data.states import States
 
 
-class Condition:  # pylint: disable-msg=R0902
+class Condition:  # pylint: disable=too-many-instance-attributes
     """
     A class that encapsulates a binary condition with two operands (self.first_state and self.second_state)
     The operands used by the condition are randomly chosen at construction time from the list of states supplied
@@ -60,7 +61,7 @@ class Condition:  # pylint: disable-msg=R0902
         """
 
         # Handle categorical conditions separately
-        if states and Condition.is_categorical(states[self.first_state_key]):
+        if states and States.is_categorical(states[self.first_state_key]):
             the_string = self.categorical_to_string(states)
         else:
             the_string = self.continuous_to_string(min_maxes, states)
@@ -112,8 +113,8 @@ class Condition:  # pylint: disable-msg=R0902
         :param states: A dictionary of domain features
         :return: condition.toString()
         """
-        name = Condition.extract_categorical_condition_name(states[self.first_state_key])
-        category = Condition.extract_categorical_condition_category(states[self.first_state_key])
+        name = States.extract_categorical_condition_name(states[self.first_state_key])
+        category = States.extract_categorical_condition_category(states[self.first_state_key])
         look_back = ''
         if self.first_state_lookback > 0:
             look_back = '[' + str(self.first_state_lookback) + ']'
@@ -148,6 +149,7 @@ class Condition:  # pylint: disable-msg=R0902
 
         return condition_part
 
+    @deprecated(reason="Use States.is_categorical()")
     @staticmethod
     def is_categorical(condition_name):
         """
@@ -155,8 +157,9 @@ class Condition:  # pylint: disable-msg=R0902
         :param condition_name: if you are expecting me to tell you what this is you need therapy
         :return: Boolean
         """
-        return RulesConstants.CATEGORY_EXPLAINABLE_MARKER in condition_name
+        return States.is_categorical(condition_name)
 
+    @deprecated(reason="Use States.extract_categorical_feature_name()")
     @staticmethod
     def extract_categorical_condition_name(condition_name):
         """
@@ -164,8 +167,9 @@ class Condition:  # pylint: disable-msg=R0902
         :param condition_name: if you are expecting me to tell you what this is you need therapy
         :return: Str
         """
-        return condition_name.split(RulesConstants.CATEGORY_EXPLAINABLE_MARKER)[0]
+        return States.extract_categorical_feature_name(condition_name)
 
+    @deprecated(reason="Use States.extract_categorical_feature_category()")
     @staticmethod
     def extract_categorical_condition_category(condition_name):
         """
@@ -173,4 +177,4 @@ class Condition:  # pylint: disable-msg=R0902
         :param condition_name: if you are expecting me to tell you what this is you need drugs
         :return: Str
         """
-        return condition_name.split(RulesConstants.CATEGORY_EXPLAINABLE_MARKER)[1]
+        return States.extract_categorical_feature_category(condition_name)
