@@ -38,6 +38,7 @@ setup(
         # Specifically use >= to specify a base version we know works
         # while allowing code that depends on this library to upgrade
         # versions as they see fit.
+        "Deprecated>=1.2.13",
         "grpcio>=1.38.1",
         "hvac>=0.11.2",
         "pyhocon>=0.3.59",
