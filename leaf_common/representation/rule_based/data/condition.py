@@ -155,7 +155,7 @@ class Condition:  # pylint: disable=too-many-instance-attributes
     def is_categorical(condition_name: str) -> bool:
         """
         Check if condition is categorical
-        :param condition_name: if you are expecting me to tell you what this is you need therapy
+        :param condition_name: Value string per the example in the Feature class comments.
         :return: Boolean
         """
         return Features.is_categorical(condition_name)
@@ -165,7 +165,7 @@ class Condition:  # pylint: disable=too-many-instance-attributes
     def extract_categorical_condition_name(condition_name: str) -> str:
         """
         Extract the name of the categorical condition from the name string
-        :param condition_name: if you are expecting me to tell you what this is you need therapy
+        :param condition_name: Value string per the example in the Feature class comments.
         :return: Str
         """
         return Features.extract_categorical_feature_name(condition_name)
@@ -175,7 +175,7 @@ class Condition:  # pylint: disable=too-many-instance-attributes
     def extract_categorical_condition_category(condition_name: str) -> str:
         """
         Extract the category name from the name string
-        :param condition_name: if you are expecting me to tell you what this is you need drugs
+        :param condition_name: Value string per the example in the Feature class comments.
         :return: Str
         """
         return Features.extract_categorical_feature_category(condition_name)
