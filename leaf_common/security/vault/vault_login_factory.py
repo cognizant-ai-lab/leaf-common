@@ -19,6 +19,7 @@ import logging
 from hvac import Client as VaultClient
 
 from leaf_common.security.vault.github_vault_login import GithubVaultLogin
+from leaf_common.security.vault.kubernetes_vault_login import KubernetesVaultLogin
 from leaf_common.security.vault.token_vault_login import TokenVaultLogin
 from leaf_common.security.vault.vault_login import VaultLogin
 
@@ -87,6 +88,9 @@ class VaultLoginFactory(VaultLogin):
 
                 elif normalized_method == "github":
                     vault_login = GithubVaultLogin()
+
+                elif normalized_method == "kubernetes":
+                    vault_login = KubernetesVaultLogin()
 
                 else:
                     logger.warning("vault_login dictionary method is unknown.")
