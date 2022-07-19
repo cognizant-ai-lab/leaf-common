@@ -150,8 +150,8 @@ class Condition:  # pylint: disable=too-many-instance-attributes
 
         return condition_part
 
-    @deprecated(reason="Use States.is_categorical()")
     @staticmethod
+    @deprecated(reason="Use States.is_categorical()")
     def is_categorical(condition_name: str) -> bool:
         """
         Check if condition is categorical
@@ -160,8 +160,8 @@ class Condition:  # pylint: disable=too-many-instance-attributes
         """
         return States.is_categorical(condition_name)
 
-    @deprecated(reason="Use States.extract_categorical_feature_name()")
     @staticmethod
+    @deprecated(reason="Use States.extract_categorical_feature_name()")
     def extract_categorical_condition_name(condition_name: str) -> str:
         """
         Extract the name of the categorical condition from the name string
@@ -170,8 +170,8 @@ class Condition:  # pylint: disable=too-many-instance-attributes
         """
         return States.extract_categorical_feature_name(condition_name)
 
-    @deprecated(reason="Use States.extract_categorical_feature_category()")
     @staticmethod
+    @deprecated(reason="Use States.extract_categorical_feature_category()")
     def extract_categorical_condition_category(condition_name: str) -> str:
         """
         Extract the category name from the name string
