@@ -50,10 +50,7 @@ class Features:
         """
         Check if condition is categorical
 
-        DEF: Hormoz: I need some therapy.  Some docs as to the conventions of the
-                    formatting of categorical features is in order here.
-
-        :param feature_name: if you are expecting me to tell you what this is you need therapy
+        :param feature_name: Value string per the example in the class comments.
         :return: Boolean
         """
         return RulesConstants.CATEGORY_EXPLAINABLE_MARKER in feature_name
@@ -62,7 +59,7 @@ class Features:
     def extract_categorical_feature_name(feature_name: str) -> str:
         """
         Extract the name of the categorical condition from the name string
-        :param feature_name: if you are expecting me to tell you what this is you need therapy
+        :param feature_name: Value string per the example in the class comments.
         :return: Str
         """
         return feature_name.split(RulesConstants.CATEGORY_EXPLAINABLE_MARKER)[0]
@@ -71,7 +68,7 @@ class Features:
     def extract_categorical_feature_category(feature_name: str) -> str:
         """
         Extract the category name from the name string
-        :param feature_name: if you are expecting me to tell you what this is you need drugs
+        :param feature_name: Value string per the example in the class comments.
         :return: Str
         """
         return feature_name.split(RulesConstants.CATEGORY_EXPLAINABLE_MARKER)[1]
