@@ -14,6 +14,10 @@ See class comment for details.
 from typing import Any
 from typing import Dict
 
+from os import access
+from os import R_OK
+from os.path import isfile
+
 import logging
 
 from hvac import Client as VaultClient
@@ -71,6 +75,14 @@ class KubernetesVaultLogin(VaultLogin):
         logger = logging.getLogger(self.__class__.__name__)
         logger.info("Using vault login method 'kubernetes'")
 
+        # Get the role that defines what permissions the vault client
+        # will have after authenticating via kubernetes.
+        # See https://www.vaultproject.io/docs/auth/kubernetes#configuration
+        role = config.get("role", None)
+        if role is None:
+            logger.warning("Kubernetes role missing from security_config spec")
+            return None
+
         # From https://www.vaultproject.io/docs/auth/kubernetes#code-example
         # Kubernetes will store its service account JWT token in this
         # mounted location. This can be configured differently, so this
@@ -82,23 +94,20 @@ class KubernetesVaultLogin(VaultLogin):
         # If an actual JWT was specified in the config, use that.
         jwt = config.get("jwt", None)
         if jwt is None:
-            with open(jwt_path) as jwt_file:
-                jwt = jwt_file.read()
-
-        # Get the role that defines what permissions the vault client
-        # will have after authenticating via kubernetes.
-        # See https://www.vaultproject.io/docs/auth/kubernetes#configuration
-        role = config.get("role", None)
-        if role is None:
-            logger.warning("Kubernetes role missing from security_config spec")
-            return None
+            if isfile(jwt_path) and access(jwt_path, R_OK):
+                with open(jwt_path, "r", encoding="utf-8") as jwt_file:
+                    jwt = jwt_file.read()
+            else:
+                logger.warning("Kubernetes jwt_path %s cannot be read",
+                               jwt_path)
+                return None
 
         # If the full auth path is specified, use that as an override.
-        use_path = config.get("path", "kubernetes")
+        mount_point = config.get("path", "kubernetes")
 
         vault_client = VaultClient(url=vault_url)
         _ = vault_client.auth.kubernetes.login(role=role,
                                                jwt=jwt,
-                                               mount_point=use_path)
+                                               mount_point=mount_point)
 
         return vault_client
