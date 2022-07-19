@@ -23,7 +23,7 @@ class States:
     """
 
     @staticmethod
-    def is_categorical(feature_name):
+    def is_categorical(feature_name: str) -> bool:
         """
         Check if condition is categorical
 
@@ -36,7 +36,7 @@ class States:
         return RulesConstants.CATEGORY_EXPLAINABLE_MARKER in feature_name
 
     @staticmethod
-    def extract_categorical_feature_name(feature_name):
+    def extract_categorical_feature_name(feature_name: str) -> str:
         """
         Extract the name of the categorical condition from the name string
         :param feature_name: if you are expecting me to tell you what this is you need therapy
@@ -45,7 +45,7 @@ class States:
         return feature_name.split(RulesConstants.CATEGORY_EXPLAINABLE_MARKER)[0]
 
     @staticmethod
-    def extract_categorical_feature_category(feature_name):
+    def extract_categorical_feature_category(feature_name: str) -> str:
         """
         Extract the category name from the name string
         :param feature_name: if you are expecting me to tell you what this is you need drugs

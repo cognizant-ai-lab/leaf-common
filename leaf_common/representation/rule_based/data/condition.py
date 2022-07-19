@@ -151,7 +151,7 @@ class Condition:  # pylint: disable=too-many-instance-attributes
 
     @deprecated(reason="Use States.is_categorical()")
     @staticmethod
-    def is_categorical(condition_name):
+    def is_categorical(condition_name: str) -> bool:
         """
         Check if condition is categorical
         :param condition_name: if you are expecting me to tell you what this is you need therapy
@@ -161,7 +161,7 @@ class Condition:  # pylint: disable=too-many-instance-attributes
 
     @deprecated(reason="Use States.extract_categorical_feature_name()")
     @staticmethod
-    def extract_categorical_condition_name(condition_name):
+    def extract_categorical_condition_name(condition_name: str) -> str:
         """
         Extract the name of the categorical condition from the name string
         :param condition_name: if you are expecting me to tell you what this is you need therapy
@@ -171,7 +171,7 @@ class Condition:  # pylint: disable=too-many-instance-attributes
 
     @deprecated(reason="Use States.extract_categorical_feature_category()")
     @staticmethod
-    def extract_categorical_condition_category(condition_name):
+    def extract_categorical_condition_category(condition_name: str) -> str:
         """
         Extract the category name from the name string
         :param condition_name: if you are expecting me to tell you what this is you need drugs
