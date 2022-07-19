@@ -14,7 +14,7 @@ Base class for condition representation
 """
 
 from typing import Dict
-from deprecated.classic import deprecated
+from deprecated import deprecated
 
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 from leaf_common.representation.rule_based.data.states import States
