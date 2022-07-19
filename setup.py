@@ -7,7 +7,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-LIBRARY_VERSION = "1.1.41"
+LIBRARY_VERSION = "1.1.42"
 
 CURRENT_PYTHON = sys.version_info[:2]
 REQUIRED_PYTHON = (3, 6)
@@ -38,6 +38,7 @@ setup(
         # Specifically use >= to specify a base version we know works
         # while allowing code that depends on this library to upgrade
         # versions as they see fit.
+        "Deprecated>=1.2.13",
         "grpcio>=1.38.1",
         "hvac>=0.11.2",
         "pyhocon>=0.3.59",
