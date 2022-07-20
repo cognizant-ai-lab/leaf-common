@@ -105,7 +105,7 @@ class Condition:  # pylint: disable=too-many-instance-attributes
         the_string = f'{first_condition} {self.operator} {second_condition}'
         return the_string
 
-    def categorical_to_string(self, states: Dict[str, str]) ->:
+    def categorical_to_string(self, states: Dict[str, str]) -> str:
         """
         FOR EXAMPLE:(for categorical)
         'race_is_category_Hispanic' becomes 'race is Hispanic'
