@@ -14,7 +14,6 @@ Base class for condition representation
 """
 
 from typing import Dict
-from deprecated import deprecated
 
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 from leaf_common.representation.rule_based.data.features import Features
@@ -69,11 +68,12 @@ class Condition:  # pylint: disable=too-many-instance-attributes
 
         return the_string
 
-    def continuous_to_string(self, min_maxes, states):
+    def continuous_to_string(self, min_maxes: Dict[str, Dict[str, float]],
+                             states: Dict[str, str]) -> str:
         """
         String representation for continuous condition
-        :param states: A dictionary of domain features
         :param min_maxes: A dictionary of domain features minimum and maximum values
+        :param states: A dictionary of domain features
         :return: condition.toString()
         """
         # Prepare 1st condition string
@@ -105,7 +105,7 @@ class Condition:  # pylint: disable=too-many-instance-attributes
         the_string = f'{first_condition} {self.operator} {second_condition}'
         return the_string
 
-    def categorical_to_string(self, states):
+    def categorical_to_string(self, states: Dict[str, str]) -> str:
         """
         FOR EXAMPLE:(for categorical)
         'race_is_category_Hispanic' becomes 'race is Hispanic'
@@ -149,33 +149,3 @@ class Condition:  # pylint: disable=too-many-instance-attributes
             condition_part = f'{condition_part}^{exponent}'
 
         return condition_part
-
-    @staticmethod
-    @deprecated(reason="Use Features.is_categorical()")
-    def is_categorical(condition_name: str) -> bool:
-        """
-        Check if condition is categorical
-        :param condition_name: Value string per the example in the Feature class comments.
-        :return: Boolean
-        """
-        return Features.is_categorical(condition_name)
-
-    @staticmethod
-    @deprecated(reason="Use Features.extract_categorical_feature_name()")
-    def extract_categorical_condition_name(condition_name: str) -> str:
-        """
-        Extract the name of the categorical condition from the name string
-        :param condition_name: Value string per the example in the Feature class comments.
-        :return: Str
-        """
-        return Features.extract_categorical_feature_name(condition_name)
-
-    @staticmethod
-    @deprecated(reason="Use Features.extract_categorical_feature_category()")
-    def extract_categorical_condition_category(condition_name: str) -> str:
-        """
-        Extract the category name from the name string
-        :param condition_name: Value string per the example in the Feature class comments.
-        :return: Str
-        """
-        return Features.extract_categorical_feature_category(condition_name)
