@@ -108,7 +108,7 @@ class RuleSetConfigHelper:
         var_index = 0
         var = {}
         for var_item in config_vars:
-            if var_item['size'] > 1:
+            if var_item['size'] > 1 and len(var_item['values']) > 1:
                 for i in range(var_item['size']):
                     var[str(var_index)] = \
                         var_item['name'] + RulesConstants.CATEGORY_EXPLAINABLE_MARKER + var_item['values'][i]

@@ -1,4 +1,3 @@
-
 # Copyright (C) 2019-2021 Cognizant Digital Business, Evolutionary AI.
 # All Rights Reserved.
 # Issued under the Academic Public License.
@@ -19,6 +18,7 @@ from unittest.mock import MagicMock
 from unittest.mock import Mock
 from unittest.mock import patch
 
+from leaf_common.representation.rule_based.config.rule_set_config_helper import RuleSetConfigHelper
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
 from leaf_common.representation.rule_based.evaluation.rule_set_evaluator \
     import RuleSetEvaluator
@@ -44,6 +44,89 @@ class TestRuleSet(TestCase):
             'action1': 'action_value1',
             'action2': 'action_value2'
         }
+
+    def test_rule_set_config_helper(self):
+        """
+        Verify extracting states and actions from config
+        """
+        config = {"network": {"inputs": [
+            {
+                "name": "observations",
+                "size": 4,
+                "values": [
+                    "float"
+                ]
+            }], "argmax_on_outputs": True,
+            "hidden_layers": [
+                {"layer_name": "hidden_1",
+                 "layer_type": "Dense",
+                 "layer_params": {
+                     "units": 32,
+                     "activation": "tanh",
+                     "use_bias": True
+                 }
+                 }
+            ],
+            "outputs": [
+                {
+                    "name": "Action",
+                    "size": 2,
+                    "activation": "softmax",
+                    "use_bias": True,
+                    "values": [
+                        "Push cart to the left",
+                        "Push cart to the right"
+                    ]
+                }
+            ]
+        },
+            "evolution": {
+                "nb_generations": 160,
+                "early_stop": True,
+                "population_size": 50,
+                "nb_elites": 5,
+                "parent_selection": "tournament",
+                "fitness": [
+                    {"metric_name": "score", "maximize": True, "target": 195}
+                ],
+                "remove_population_pct": 0.8,
+                "mutation_type": "gaussian_noise_percentage",
+                "mutation_probability": 0.1,
+                "mutation_factor": 0.1,
+                "initialization_distribution": "orthogonal",
+                "initialization_range": 1
+            },
+            "esp_rl_loop": {
+                "domain_name": "OpenAIGym.CartPole-v0",
+                "predictor_type": "NN",
+                "nb_predictor_eval_gens": -1,
+                "nb_episodes": 5,
+                "nb_episodes_to_consider_solved": 100,
+                "max_nb_frames": 200,
+                "record_video": False,
+                "random_agent_init": True,
+                "nb_rf_estimators": 100,
+                "data_cutoff_rows": 1000000,
+                "decay": 0.9
+            },
+            "LEAF": {
+                "esp_host_official": "v1.esp.evolution.ml",
+                "esp_host": "localhost",
+                "esp_port": 50051,
+                "representation": "NNWeights",
+                "experiment_id": "ESP-CartPole-Olivier-DE",
+                "reevaluate_elites": True,
+                "version": "0.0.1",
+                "persistence_dir": "trained_agents/",
+                "candidates_to_persist": "elites"
+            }
+        }
+        states = RuleSetConfigHelper.get_states(config)
+        self.assertEqual(len(states), 1)
+        self.assertEqual(states['0'], 'observations')
+        actions = RuleSetConfigHelper.get_actions(config)
+        self.assertEqual(len(actions), 2)
+        self.assertEqual(actions['1'], 'Action_is_category_Push cart to the right')
 
     def test_serialize_roundtrip(self):
         """
