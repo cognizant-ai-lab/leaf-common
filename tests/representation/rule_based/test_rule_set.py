@@ -45,9 +45,9 @@ class TestRuleSet(TestCase):
             'action2': 'action_value2'
         }
 
-    def test_rule_set_config_helper_weird_values(self):
+    def test_rule_set_config_helper(self):
         """
-        Verify extracting states and actions from config when values do not correspond with size
+        Verify extracting states and actions from config
         """
         config = {"network": {"inputs": [
             {
@@ -122,80 +122,11 @@ class TestRuleSet(TestCase):
             }
         }
         states = RuleSetConfigHelper.get_states(config)
-        self.assertEqual(len(states), 4)
-        self.assertEqual(states['0'], 'observations_is_category_io_0')
+        self.assertEqual(len(states), 1)
+        self.assertEqual(states['0'], 'observations')
         actions = RuleSetConfigHelper.get_actions(config)
         self.assertEqual(len(actions), 2)
         self.assertEqual(actions['1'], 'Action_is_category_Push cart to the right')
-
-    def test_rule_set_config_helper_no_inputs(self):
-        """
-        Verify extracting states and actions from config when values is missing
-        This config is similar to what we construct based on OpenAI Gym envs
-        """
-        config = {"network": {"inputs": [
-            {
-                "name": "observations",
-                "size": 4,
-            }],
-         "hidden_layers": [
-            {"layer_name": "hidden_1",
-             "layer_type": "Dense",
-             "layer_params": {
-                 "units": 128,
-                 "activation": "tanh",
-                 "use_bias": True
-                 }
-             }], "outputs": [
-            {
-                "name": "Action",
-                "activation": "softmax",
-                "size": 3,
-                "use_bias": True
-            }], }, "evolution": {
-            "nb_generations": 9,
-            "early_stop": True,
-            "population_size": 20,
-            "nb_elites": 1,
-            "parent_selection": "tournament",
-            "fitness": [
-                {"metric_name": "score", "maximize": True, "target": 195}],
-            "remove_population_pct": 0.8,
-            "mutation_type": "gaussian_noise_percentage",
-            "mutation_probability": 0.8,
-            "mutation_factor": 0.1,
-            "initialization_distribution": "orthogonal",
-            "initialization_range": 1
-        },
-            "esp_rl_loop": {
-            "domain_name": "OpenAIGym.CartPole-v0",
-            "nb_esp_loop_iterations": 100,
-            "predictor_type": "RFR",
-            "nb_predictor_eval_gens": 3,
-            "nb_rf_estimators": 100,
-            "nb_episodes": 2,
-            "nb_episodes_to_consider_solved": 1,
-            "max_nb_frames": 200,
-            "data_cutoff_rows": 10000,
-            "decay": 0.9,
-            "random_agent_init": True,
-            "record_video": False
-        },
-            "LEAF": {
-                "esp_port": 50051,
-                "representation": "RuleBased",
-                "reevaluate_elites": True,
-                "version": "0.0.1",
-                "persistence_dir": "trained_agents/",
-                "candidates_to_persist": "elites"
-            }
-        }
-        states = RuleSetConfigHelper.get_states(config)
-        self.assertEqual(len(states), 4)
-        self.assertEqual(states['3'], 'observations_is_category_io_3')
-        actions = RuleSetConfigHelper.get_actions(config)
-        self.assertEqual(len(actions), 3)
-        self.assertEqual(actions['1'], 'Action_is_category_io_1')
 
     def test_serialize_roundtrip(self):
         """

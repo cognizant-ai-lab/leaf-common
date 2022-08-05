@@ -108,18 +108,11 @@ class RuleSetConfigHelper:
         var_index = 0
         var = {}
         for var_item in config_vars:
-            the_size = int(var_item['size'])
-            if the_size > 1:
-                if 'values' in var_item and len(var_item['values']) == the_size:
-                    for i in range(the_size):
-                        var[str(var_index)] = \
-                            var_item['name'] + RulesConstants.CATEGORY_EXPLAINABLE_MARKER + var_item['values'][i]
-                        var_index += 1
-                else:
-                    for i in range(the_size):
-                        var[str(var_index)] = \
-                            var_item['name'] + RulesConstants.CATEGORY_EXPLAINABLE_MARKER + 'io_' + str(i)
-                        var_index += 1
+            if var_item['size'] > 1 and len(var_item['values']) > 1:
+                for i in range(var_item['size']):
+                    var[str(var_index)] = \
+                        var_item['name'] + RulesConstants.CATEGORY_EXPLAINABLE_MARKER + var_item['values'][i]
+                    var_index += 1
             else:
                 var[str(var_index)] = var_item['name']
                 var_index += 1
