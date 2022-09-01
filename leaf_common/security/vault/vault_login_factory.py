@@ -69,6 +69,7 @@ class VaultLoginFactory(VaultLogin):
                 # Try each vault config in the list via _login_one()
                 vault_client = self._login_one(vault_url, try_config, vault_cacert)
 
+            # pylint: disable=broad-except
             except Exception as caught:
                 # If there was a problem, catch the exception and save it for
                 # later. The next config in the list might break through.
@@ -155,6 +156,7 @@ class VaultLoginFactory(VaultLogin):
                 else:
                     logger.warning("vault_login dictionary method is unknown.")
 
+        _ = vault_cacert
         vault_client = vault_login.login(vault_url, config=use_config)
         return vault_client
 
