@@ -13,6 +13,7 @@ See class comment for details.
 """
 from typing import Any
 from typing import Dict
+from typing import Union
 
 import logging
 
@@ -32,13 +33,71 @@ class VaultLoginFactory(VaultLogin):
     client whose authentication/login is up to the implementation.
     """
 
-    def login(self, vault_url: str, config: Dict[str, Any]) -> VaultClient:
+    def login(self, vault_url: str,
+              config: Union[Dict[str, Any], List[Dict[str, Any]]],
+              vault_cacert: str = None) -> VaultClient:
+        """
+        This method can raise an exception if authentication with the
+        Vault server fails in any way.
+
+        :param vault_url: A url to the vault server we are trying to connect to
+        :param config: Either:
+                * A config dictionary with vault login parameters
+                * An ordered list of config dictionaries to try.
+        :param vault_cacert: A string containing either a local file path to
+                the cert or the actual cert itself.  Default value is None,
+                indicating that the vault of the VAULT_CACERT environment
+                variable should be used (vault default).
+        :return: A VaultClient that may or may not have authenticated to the
+                Vault server at the specified vault_url.
+                Can also be None if the config Dict was not specific enough
+                to even attempt a login.
+
+                Clients of this code are encouraged to call is_authenticated()
+                on the return value to be sure all is good with the connection.
+        """
+        config_list = config
+        if isinstance(config, dict):
+            config_list = [config]
+
+        vault_client = None
+        throw_me = None
+        for try_config in config_list:
+
+            try:
+                # Try each vault config in the list via _login_one()
+                vault_client = self._login_one(vault_url, try_config, vault_cacert)
+
+            except Exception caught:
+                # If there was a problem, catch the exception and save it for
+                # later. The next config in the list might break through.
+                throw_me = caught
+
+            # If we have a valid connection, no need to loop through any more
+            # in the list.
+            if self.is_connection_valid(vault_client):
+                break
+
+        # If we still don't have a client but we had some exception along the
+        # way, throw that exception.
+        if vault_client is None and throw_me is not None:
+            raise throw_me
+
+        return vault_client
+
+    def _login_one(self, vault_url: str,
+                   config: Dict[str, Any],
+                   vault_cacert: str = None) -> VaultClient:
         """
         This method can raise an exception if authentication with the
         Vault server fails in any way.
 
         :param vault_url: A url to the vault server we are trying to connect to
         :param config: A config dictionary with vault login parameters
+        :param vault_cacert: A string containing either a local file path to
+                the cert or the actual cert itself.  Default value is None,
+                indicating that the vault of the VAULT_CACERT environment
+                variable should be used (vault default).
         :return: A VaultClient that may or may not have authenticated to the
                 Vault server at the specified vault_url.
                 Can also be None if the config Dict was not specific enough
