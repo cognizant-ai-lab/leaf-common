@@ -110,7 +110,7 @@ class KubernetesVaultLogin(VaultLogin):
         # If the full auth path is specified, use that as an override.
         mount_point = config.get("path", "kubernetes")
 
-        vault_client = VaultClient(url=vault_url)
+        vault_client = VaultClient(url=vault_url, verify=vault_cacert)
         _ = vault_client.auth.kubernetes.login(role=role,
                                                jwt=jwt,
                                                mount_point=mount_point)

@@ -61,5 +61,5 @@ class TokenVaultLogin(VaultLogin):
             logger.info("vault_login token missing. Using VAULT_TOKEN.")
             use_token = os.environ.get("VAULT_TOKEN", None)
 
-        vault_client = VaultClient(url=vault_url, token=use_token)
+        vault_client = VaultClient(url=vault_url, token=use_token, verify=vault_cacert)
         return vault_client

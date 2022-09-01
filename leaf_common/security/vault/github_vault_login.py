@@ -101,7 +101,7 @@ class GithubVaultLogin(VaultLogin):
             logger.warning("GitHub token missing from security_config spec")
             return None
 
-        vault_client = VaultClient(url=vault_url)
+        vault_client = VaultClient(url=vault_url, verify=vault_cacert)
         _ = vault_client.auth.github.login(token=use_token, mount_point=use_path)
 
         return vault_client

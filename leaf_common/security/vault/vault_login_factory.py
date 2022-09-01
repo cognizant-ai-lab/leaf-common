@@ -156,8 +156,8 @@ class VaultLoginFactory(VaultLogin):
                 else:
                     logger.warning("vault_login dictionary method is unknown.")
 
-        _ = vault_cacert
-        vault_client = vault_login.login(vault_url, config=use_config)
+        verify = self._determine_verify(vault_cacert)
+        vault_client = vault_login.login(vault_url, config=use_config, vault_cacert=verify)
         return vault_client
 
     def is_connection_valid(self, vault_client: VaultClient,
@@ -184,3 +184,31 @@ class VaultLoginFactory(VaultLogin):
             return False
 
         return True
+
+    def _determine_verify(self, vault_cacert: str) -> str:
+        """
+        :param vault_cacert: The string value for vault_cacert.
+                Can be None, a path to a cacert file,
+                or the contents of a cacert file.
+        :return: The vault to use for VaultClient constructor's verify parameter.
+        """
+
+        if vault_cacert is None:
+            return None
+
+        if vault_cacert.startswith("/"):
+            # Assume we have a valid absolute path
+            return vault_cacert
+
+        if not vault_cacert.contains("-BEGIN CERTIFICATE-") or \
+                not vault_cacert.contains("-END CERTIFICATE-"):
+            # String is not contents of a cert file.
+            # Assume we were given a valid path that may be relative.
+            return vault_cacert
+
+        # From this point on we assume we have the contents of a cacert.pem file
+        verify = "/tmp/vault_cacert.pem"
+        with open(verify, "w") as text_file:
+            text_file.write(vault_cacert)
+
+        return verify
