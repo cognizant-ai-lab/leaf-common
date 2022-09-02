@@ -196,6 +196,9 @@ class VaultLoginFactory(VaultLogin):
         if vault_cacert is None:
             return None
 
+        if not isinstance(vault_cacert, str):
+            return None
+
         if vault_cacert.startswith("/"):
             # Assume we have a valid absolute path
             return vault_cacert
