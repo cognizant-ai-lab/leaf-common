@@ -200,8 +200,8 @@ class VaultLoginFactory(VaultLogin):
             # Assume we have a valid absolute path
             return vault_cacert
 
-        if not vault_cacert.contains("-BEGIN CERTIFICATE-") or \
-                not vault_cacert.contains("-END CERTIFICATE-"):
+        if "-BEGIN CERTIFICATE-" not in vault_cacert or \
+                "-END CERTIFICATE-" not in vault_cacert:
             # String is not contents of a cert file.
             # Assume we were given a valid path that may be relative.
             return vault_cacert
