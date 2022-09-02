@@ -57,10 +57,14 @@ class VaultLoginFactory(VaultLogin):
                 Clients of this code are encouraged to call is_authenticated()
                 on the return value to be sure all is good with the connection.
         """
+
+        # Always work with a list.
+        # If we had a single config dict come in as an arg, then list-ify that.
         config_list = config
         if isinstance(config, dict):
             config_list = [config]
 
+        # Initialize some variables before looping through the config_list.
         vault_client = None
         throw_me = None
         for try_config in config_list:
