@@ -92,7 +92,7 @@ class GithubVaultLogin(VaultLogin):
         # https://discuss.hashicorp.com/t/github-auth-with-a-personal-github-account/6407
         org = config.get("organization", None)
         if org is not None:
-            org_path = f"github/orgs/{org}"
+            org_path = f"github-orgs/{org}"
 
         # If the full auth path is specified, use that as an override.
         use_path = config.get("path", org_path)
