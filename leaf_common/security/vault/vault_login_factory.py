@@ -208,7 +208,7 @@ class VaultLoginFactory(VaultLogin):
 
         # From this point on we assume we have the contents of a cacert.pem file
         verify = "/tmp/vault_cacert.pem"
-        with open(verify, "w") as text_file:
+        with open(verify, "w", encoding="utf-8") as text_file:
             text_file.write(vault_cacert)
 
         return verify
