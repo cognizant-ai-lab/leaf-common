@@ -197,7 +197,10 @@ class VaultLoginFactory(VaultLogin):
         :param vault_cacert: The string value for vault_cacert.
                 Can be None, a path to a cacert file,
                 or the contents of a cacert file.
-        :return: The vault to use for VaultClient constructor's verify parameter.
+        :return: The argument to use for VaultClient constructor's verify
+                parameter.  This will either be the vault_cacert value itself
+                if that was a full path, or if vault_cacert contained actual
+                certificate values, then a path to a temp file is returned.
         """
 
         if vault_cacert is None:
