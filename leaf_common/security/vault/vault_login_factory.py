@@ -191,6 +191,9 @@ class VaultLoginFactory(VaultLogin):
 
     def _determine_verify(self, vault_cacert: str) -> str:
         """
+        Determine what to pass as hvac VaultClient's verify argument which
+        carries cert chain information.
+
         :param vault_cacert: The string value for vault_cacert.
                 Can be None, a path to a cacert file,
                 or the contents of a cacert file.
