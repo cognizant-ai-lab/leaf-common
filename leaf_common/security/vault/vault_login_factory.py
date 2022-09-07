@@ -26,6 +26,8 @@ from leaf_common.security.vault.token_vault_login import TokenVaultLogin
 from leaf_common.security.vault.vault_login import VaultLogin
 
 
+DEFAULT_TEMP_PEM_FILE = "/tmp/vault_cacert.pem"
+
 class VaultLoginFactory(VaultLogin):
     """
     Factory-ish class which returns a VaultClient based on
@@ -36,7 +38,8 @@ class VaultLoginFactory(VaultLogin):
 
     def login(self, vault_url: str,
               config: Union[Dict[str, Any], List[Dict[str, Any]]],
-              vault_cacert: str = None) -> VaultClient:
+              vault_cacert: str = None,
+              cacert_temp_pem_file: str = DEFAULT_TEMP_PEM_FILE) -> VaultClient:
         """
         This method can raise an exception if authentication with the
         Vault server fails in any way.
@@ -49,6 +52,10 @@ class VaultLoginFactory(VaultLogin):
                 the cert or the actual cert itself.  Default value is None,
                 indicating that the vault of the VAULT_CACERT environment
                 variable should be used (vault default).
+        :param cacert_temp_pem_file: A optional string containing a local path
+                to a pem file if one needs to be created given the config.
+                Default is DEFAULT_CACERT_PEM_FILE. It's the responsibility of
+                the caller to clean up this file if it is created.
         :return: A VaultClient that may or may not have authenticated to the
                 Vault server at the specified vault_url.
                 Can also be None if the config Dict was not specific enough
@@ -71,7 +78,9 @@ class VaultLoginFactory(VaultLogin):
 
             try:
                 # Try each vault config in the list via _login_one()
-                vault_client = self._login_one(vault_url, try_config, vault_cacert)
+                vault_client = self._login_one(vault_url, try_config,
+                                               cacert_temp_pem_file,
+                                               vault_cacert)
 
             # pylint: disable=broad-except
             except Exception as caught:
@@ -93,6 +102,7 @@ class VaultLoginFactory(VaultLogin):
 
     def _login_one(self, vault_url: str,
                    config: Dict[str, Any],
+                   cacert_temp_pem_file: str,
                    vault_cacert: str = None) -> VaultClient:
         """
         This method can raise an exception if authentication with the
@@ -104,6 +114,8 @@ class VaultLoginFactory(VaultLogin):
                 the cert or the actual cert itself.  Default value is None,
                 indicating that the vault of the VAULT_CACERT environment
                 variable should be used (vault default).
+        :param cacert_temp_pem_file: A optional string containing a local path
+                to a pem file if one needs to be created given the config.
         :return: A VaultClient that may or may not have authenticated to the
                 Vault server at the specified vault_url.
                 Can also be None if the config Dict was not specific enough
@@ -160,7 +172,7 @@ class VaultLoginFactory(VaultLogin):
                 else:
                     logger.warning("vault_login dictionary method is unknown.")
 
-        verify = self._determine_verify(vault_cacert)
+        verify = self._determine_verify(vault_cacert, cacert_temp_pem_file)
         vault_client = vault_login.login(vault_url, config=use_config, vault_cacert=verify)
         return vault_client
 
@@ -189,7 +201,8 @@ class VaultLoginFactory(VaultLogin):
 
         return True
 
-    def _determine_verify(self, vault_cacert: str) -> str:
+    def _determine_verify(self, vault_cacert: str,
+                          cacert_temp_pem_file: str) -> str:
         """
         Determine what to pass as hvac VaultClient's verify argument which
         carries cert chain information.
@@ -197,6 +210,8 @@ class VaultLoginFactory(VaultLogin):
         :param vault_cacert: The string value for vault_cacert.
                 Can be None, a path to a cacert file,
                 or the contents of a cacert file.
+        :param cacert_temp_pem_file: A optional string containing a local path
+                to a pem file if one needs to be created given the config.
         :return: The argument to use for VaultClient constructor's verify
                 parameter.  This will either be the vault_cacert value itself
                 if that was a full path, or if vault_cacert contained actual
@@ -220,8 +235,7 @@ class VaultLoginFactory(VaultLogin):
             return vault_cacert
 
         # From this point on we assume we have the contents of a cacert.pem file
-        verify = "/tmp/vault_cacert.pem"
-        with open(verify, "w", encoding="utf-8") as text_file:
+        with open(cacert_temp_pem_file, "w", encoding="utf-8") as text_file:
             text_file.write(vault_cacert)
 
         return verify
