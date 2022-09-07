@@ -28,6 +28,7 @@ from leaf_common.security.vault.vault_login import VaultLogin
 
 DEFAULT_TEMP_PEM_FILE = "/tmp/vault_cacert.pem"
 
+
 class VaultLoginFactory(VaultLogin):
     """
     Factory-ish class which returns a VaultClient based on
@@ -238,4 +239,4 @@ class VaultLoginFactory(VaultLogin):
         with open(cacert_temp_pem_file, "w", encoding="utf-8") as text_file:
             text_file.write(vault_cacert)
 
-        return verify
+        return cacert_temp_pem_file
