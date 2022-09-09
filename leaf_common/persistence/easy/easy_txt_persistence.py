@@ -28,7 +28,7 @@ class EasyTxtPersistence(AbstractEasyPersistence):
     """
 
     def __init__(self, base_name=None, folder=".", must_exist=False,
-                 object_type="string"):
+                 object_type="string", use_file_extension=None):
         """
         Constructor.
 
@@ -41,10 +41,15 @@ class EasyTxtPersistence(AbstractEasyPersistence):
                 ignored and a dictionary value of None is returned
         :param object_type: A string indicating the type of object to be
                 persisted. "string" by default.
+        :param use_file_extension: Use the provided string instead of the
+                standard file extension for the format. Default is None,
+                indicating the standard file extension for the format should
+                be used.
         """
 
         super().__init__(SerializationFormats.TEXT,
                          base_name=base_name,
                          folder=folder,
                          must_exist=must_exist,
-                         object_type=object_type)
+                         object_type=object_type,
+                         use_file_extension=use_file_extension)
