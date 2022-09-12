@@ -27,6 +27,7 @@ class EasyTxtPersistence(AbstractEasyPersistence):
     extra behaviors on persist() and restore() are implemented.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(self, base_name=None, folder=".", must_exist=False,
                  object_type="string", use_file_extension=None):
         """
