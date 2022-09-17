@@ -32,5 +32,8 @@ class RepresentationType(str, Enum):
     # The rule set representation.
     RuleBased = 'RuleBased'
 
+    # The rules model representation.
+    RulesModel = 'RulesModel'
+
     # Evolved dictionary representation.
     Structure = 'Structure'
