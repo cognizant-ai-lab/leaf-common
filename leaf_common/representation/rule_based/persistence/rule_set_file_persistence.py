@@ -31,4 +31,5 @@ class RuleSetFilePersistence(EasyJsonPersistence):
         """
         converter = RuleSetDictionaryConverter()
         super().__init__(object_type=RepresentationType.RuleBased.value,
+                         use_file_extension=".rules",
                          dictionary_converter=converter)

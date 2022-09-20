@@ -30,6 +30,7 @@ class EasyJsonPersistence(AbstractEasyPersistence):
     # pylint: disable=too-many-arguments
     def __init__(self, base_name=None, folder=".", must_exist=False,
                  object_type="dict", dictionary_converter=None,
+                 use_file_extension=None,
                  full_ref=None):
         """
         Constructor.
@@ -48,6 +49,10 @@ class EasyJsonPersistence(AbstractEasyPersistence):
                 Default value of None implies that a
                 PassThroughDictionaryConverter will be used, which does not
                 modify the dictionary at all.
+        :param use_file_extension: Use the provided string instead of the
+                standard file extension for the format. Default is None,
+                indicating the standard file extension for the format should
+                be used.
         :param full_ref: A full file reference to be broken apart into
                 consituent pieces for purposes of persistence.
         """
@@ -58,4 +63,5 @@ class EasyJsonPersistence(AbstractEasyPersistence):
                          must_exist=must_exist,
                          object_type=object_type,
                          dictionary_converter=dictionary_converter,
+                         use_file_extension=use_file_extension,
                          full_ref=full_ref)
