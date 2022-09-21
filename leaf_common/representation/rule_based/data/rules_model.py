@@ -2,13 +2,14 @@
 Code relating to evaluation of Rule_based prescriptor.
 It has been implemented  to mitigate the high level of dependancy our current domain has on Keras models
 """
-import copy
-from typing import Dict, List
-import numpy as np
+from typing import Dict, List, Any
 
-from leaf_common.representation.rule_based.evaluation.rule_set_evaluator import RuleSetEvaluator
+from leaf_common.representation.rule_based.evaluation.rule_set_evaluator \
+    import RuleSetEvaluator
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
+from leaf_common.representation.rule_based.config.rule_set_config_helper \
+    import RuleSetConfigHelper
 
 class RulesModel:
     """
@@ -24,18 +25,18 @@ class RulesModel:
         :param actions: model actions
         """
         self.candidate = candidate
-        self.states = copy.deepcopy(states)
-        self.actions = copy.deepcopy(actions)
+        self.states = RuleSetConfigHelper.read_config_shape_var(states)
+        self.actions = RuleSetConfigHelper.read_config_shape_var(actions)
 
-    def predict(self, data: np.array) -> np.array:
+    def predict(self, data: List[List[Any]]) -> List[Any]:
         """
         Evaluates the model against data and computes the decisions
-        :param data: a multidimensional numpy array containing the samples
+        :param data: a multidimensional array containing the samples
         :return: actions
         """
         evaluator = RuleSetEvaluator(self.states, self.actions)
         sample_actions = []
-        for data_index in range(data.shape[1]):
+        for data_index in range(len(data[0])):
             data_dictionary = dict(self.states)
             keys = data_dictionary.keys()
             for key in keys:
@@ -49,8 +50,7 @@ class RulesModel:
                 else:
                     actions.append(0.0)
             sample_actions.append(actions)
-        return_actions = np.array(sample_actions)
-        return return_actions
+        return sample_actions
 
     def to_string(self) -> str:
         """
