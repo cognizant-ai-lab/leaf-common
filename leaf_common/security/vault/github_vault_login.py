@@ -57,13 +57,18 @@ class GithubVaultLogin(VaultLogin):
     of the http headers.
     """
 
-    def login(self, vault_url: str, config: Dict[str, Any]) -> VaultClient:
+    def login(self, vault_url: str, config: Dict[str, Any],
+              vault_cacert: str = None) -> VaultClient:
         """
         This method can raise an exception if authentication with the
         Vault server fails in any way.
 
         :param vault_url: A url to the vault server we are trying to connect to
         :param config: A config dictionary with vault login parameters
+        :param vault_cacert: A string containing either a local file path to
+                the cert or the actual cert itself.  Default value is None,
+                indicating that the vault of the VAULT_CACERT environment
+                variable should be used (vault default).
         :return: A VaultClient that may or may not have authenticated to the
                 Vault server at the specified vault_url.
                 Can also be None if the config Dict was not specific enough
@@ -87,7 +92,7 @@ class GithubVaultLogin(VaultLogin):
         # https://discuss.hashicorp.com/t/github-auth-with-a-personal-github-account/6407
         org = config.get("organization", None)
         if org is not None:
-            org_path = f"github/orgs/{org}"
+            org_path = f"github-orgs/{org}"
 
         # If the full auth path is specified, use that as an override.
         use_path = config.get("path", org_path)
@@ -96,7 +101,7 @@ class GithubVaultLogin(VaultLogin):
             logger.warning("GitHub token missing from security_config spec")
             return None
 
-        vault_client = VaultClient(url=vault_url)
+        vault_client = VaultClient(url=vault_url, verify=vault_cacert)
         _ = vault_client.auth.github.login(token=use_token, mount_point=use_path)
 
         return vault_client

@@ -77,6 +77,7 @@ class VaultDynamicTokenServiceAccessor(ServiceAccessor):
         """
         self.vault_url = security_config.get("vault_url", None)
         self.vault_login = security_config.get("vault_login", None)
+        self.vault_cacert = security_config.get("vault_cacert", None)
 
         # Get a default for the vault secret path together based on
         # the audience in the auth0 defaults.
@@ -103,7 +104,8 @@ class VaultDynamicTokenServiceAccessor(ServiceAccessor):
         """
         login_factory = VaultLoginFactory()
         vault_client: VaultClient = login_factory.login(self.vault_url,
-                                                        config=self.vault_login)
+                                                        config=self.vault_login,
+                                                        vault_cacert=self.vault_cacert)
         if not login_factory.is_connection_valid(vault_client, verbose=True):
             return None
 

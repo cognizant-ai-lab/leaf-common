@@ -29,13 +29,18 @@ class TokenVaultLogin(VaultLogin):
     the given vault server.
     """
 
-    def login(self, vault_url: str, config: Dict[str, Any]) -> VaultClient:
+    def login(self, vault_url: str, config: Dict[str, Any],
+              vault_cacert: str = None) -> VaultClient:
         """
         This method can raise an exception if authentication with the
         Vault server fails in any way.
 
         :param vault_url: A url to the vault server we are trying to connect to
         :param config: A config dictionary with vault login parameters
+        :param vault_cacert: A string containing either a local file path to
+                the cert or the actual cert itself.  Default value is None,
+                indicating that the vault of the VAULT_CACERT environment
+                variable should be used (vault default).
         :return: A VaultClient that may or may not have authenticated to the
                 Vault server at the specified vault_url.
                 Can also be None if the config Dict was not specific enough
@@ -56,5 +61,5 @@ class TokenVaultLogin(VaultLogin):
             logger.info("vault_login token missing. Using VAULT_TOKEN.")
             use_token = os.environ.get("VAULT_TOKEN", None)
 
-        vault_client = VaultClient(url=vault_url, token=use_token)
+        vault_client = VaultClient(url=vault_url, token=use_token, verify=vault_cacert)
         return vault_client
