@@ -28,7 +28,7 @@ class RulesModel:
         self.states = RuleSetConfigHelper.read_config_shape_var(states)
         self.actions = RuleSetConfigHelper.read_config_shape_var(actions)
 
-    def predict(self, data: List[List[Any]]) -> List[Any]:
+    def predict(self, data: List[List[Any]]) -> List[List[float]]:
         """
         Evaluates the model against data and computes the decisions
         :param data: a multidimensional array containing the samples
