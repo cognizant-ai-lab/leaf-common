@@ -31,17 +31,6 @@ class RulesModelDictionaryConverter(DictionaryConverter):
     DictionaryConverter implementation for RuleModel objects.
     """
 
-    def __init__(self, verify_representation_type: bool = True):
-        """
-        Constructor
-
-        :param verify_representation_type: When True, from_dict() will raise
-                an error if the representation_type key does not match what we
-                are expecting.  When False, no such error is raised.
-                Default is True.
-        """
-        self._verify_representation_type = verify_representation_type
-
     def to_dict(self, obj: RulesModel) -> Dict[str, object]:
         """
         :param obj: The object of type RulesModel to be converted into a dictionary
@@ -59,11 +48,6 @@ class RulesModelDictionaryConverter(DictionaryConverter):
         pass_through = PassThroughDictionaryConverter()
 
         obj_dict = {
-            # This key allows for self-identifying representations
-            # when a common serialization format (like JSON) is shared
-            # between multiple representations.
-            "representation_type": RepresentationType.RulesModel.value,
-
             "rules": rules_converter.to_dict(obj.candidate),
             "states": {
                 "elements": pass_through.to_dict(obj.model_states)
@@ -83,12 +67,6 @@ class RulesModelDictionaryConverter(DictionaryConverter):
                 If obj_dict is not the correct type, it is also reasonable
                 to return None.
         """
-        if self._verify_representation_type:
-            representation_type = obj_dict.get("representation_type", None)
-            if representation_type != RepresentationType.RulesModel.value:
-                raise SelfIdentifyingRepresentationError(RepresentationType.RulesModel,
-                                                         representation_type)
-
         rules_converter = RuleSetDictionaryConverter()
         pass_through = PassThroughDictionaryConverter()
 

@@ -30,6 +30,5 @@ class RulesModelFilePersistence(EasyJsonPersistence):
         Constructor.
         """
         converter = RulesModelDictionaryConverter()
-        super().__init__(object_type=RepresentationType.RulesModel.value,
-                         use_file_extension=".rulemodel",
+        super().__init__(use_file_extension=".rulemodel",
                          dictionary_converter=converter)
