@@ -18,8 +18,8 @@ class RulesModel:
     A wrapper for rule_set to do predictions
     """
     def __init__(self, candidate: RuleSet,
-                    states: List[Dict[str, object]],
-                    actions: List[Dict[str, object]]):
+                 states: List[Dict[str, object]],
+                 actions: List[Dict[str, object]]):
         """
         Creates a RulesModel
         :param candidate: rule set
