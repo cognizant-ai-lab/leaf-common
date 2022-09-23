@@ -2,6 +2,7 @@
 Code relating to evaluation of Rule_based prescriptor.
 It has been implemented  to mitigate the high level of dependancy our current domain has on Keras models
 """
+import copy
 from typing import Dict, List, Any
 
 from leaf_common.representation.rule_based.evaluation.rule_set_evaluator \
@@ -11,13 +12,14 @@ from leaf_common.representation.rule_based.data.rules_constants import RulesCons
 from leaf_common.representation.rule_based.config.rule_set_config_helper \
     import RuleSetConfigHelper
 
+
 class RulesModel:
     """
     A wrapper for rule_set to do predictions
     """
     def __init__(self, candidate: RuleSet,
-                       states: List[Dict[str, object]],
-                       actions: List[Dict[str, object]]):
+                    states: List[Dict[str, object]],
+                    actions: List[Dict[str, object]]):
         """
         Creates a RulesModel
         :param candidate: rule set
@@ -25,8 +27,10 @@ class RulesModel:
         :param actions: model actions
         """
         self.candidate = candidate
-        self.states = RuleSetConfigHelper.read_config_shape_var(states)
-        self.actions = RuleSetConfigHelper.read_config_shape_var(actions)
+        self.model_states = copy.deepcopy(states)
+        self.model_actions = copy.deepcopy(actions)
+        self.states = RuleSetConfigHelper.read_config_shape_var(self.model_states)
+        self.actions = RuleSetConfigHelper.read_config_shape_var(self.model_actions)
 
     def predict(self, data: List[List[Any]]) -> List[List[float]]:
         """

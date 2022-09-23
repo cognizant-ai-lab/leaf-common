@@ -31,7 +31,7 @@ class RulesModelDictionaryConverter(DictionaryConverter):
     DictionaryConverter implementation for RuleModel objects.
     """
 
-    def  __init__(self, verify_representation_type: bool = True):
+    def __init__(self, verify_representation_type: bool = True):
         """
         Constructor
 
@@ -65,8 +65,12 @@ class RulesModelDictionaryConverter(DictionaryConverter):
             "representation_type": RepresentationType.RulesModel.value,
 
             "rules": rules_converter.to_dict(obj.candidate),
-            "states": pass_through.to_dict(obj.states),
-            "actions": pass_through.to_dict(obj.actions)
+            "states": {
+                "elements": pass_through.to_dict(obj.model_states)
+            },
+            "actions": {
+                "elements": pass_through.to_dict(obj.model_actions)
+            }
         }
 
         return obj_dict
@@ -90,6 +94,10 @@ class RulesModelDictionaryConverter(DictionaryConverter):
 
         rules: RuleSet = rules_converter.from_dict(obj_dict.get("rules", None))
         actions = pass_through.from_dict(obj_dict.get("actions", None))
+        if actions is not None:
+            actions = actions.get("elements", None)
         states = pass_through.from_dict(obj_dict.get("states", None))
+        if states is not None:
+            states = states.get("elements", None)
         obj: RulesModel = RulesModel(rules, states, actions)
         return obj

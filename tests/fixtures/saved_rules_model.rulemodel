@@ -1,5 +1,92 @@
 {
   "representation_type": "RulesModel",
+  "states": { "elements": [
+          {
+              "name": "age",
+              "size": 1,
+              "values": [
+                  "float"
+              ]
+          },
+          {
+              "name": "anaemia",
+              "size": 1,
+              "values": [
+                  "float"
+              ]
+          },
+          {
+              "name": "creatinine_phosphokinase",
+              "size": 1,
+              "values": [
+                  "float"
+              ]
+          },
+          {
+              "name": "diabetes",
+              "size": 1,
+              "values": [
+                  "float"
+              ]
+          },
+          {
+              "name": "high_blood_pressure",
+              "size": 1,
+              "values": [
+                  "float"
+              ]
+          },
+          {
+              "name": "platelets",
+              "size": 1,
+              "values": [
+                  "float"
+              ]
+          },
+          {
+              "name": "serum_sodium",
+              "size": 1,
+              "values": [
+                  "float"
+              ]
+          },
+          {
+              "name": "sex",
+              "size": 1,
+              "values": [
+                  "float"
+              ]
+          },
+          {
+              "name": "smoking",
+              "size": 1,
+              "values": [
+                  "float"
+              ]
+          }
+  ]},
+
+  "actions": { "elements": [
+            {
+                "name": "ejection_fraction",
+                "size": 1,
+                "activation": "sigmoid",
+                "use_bias": true,
+                "values": [
+                    "float"
+                ]
+            },
+            {
+                "name": "serum_creatinine",
+                "size": 1,
+                "activation": "sigmoid",
+                "use_bias": true,
+                "values": [
+                    "float"
+                ]
+            }
+  ]},
+
   "rules": {
   "representation_type": "RuleBased",
   "actions": {
@@ -9384,90 +9471,5 @@
   },
   "times_applied": 13328,
   "uid": "rule_based"
-  },
-  "states": [
-            {
-                "name": "age",
-                "size": 1,
-                "values": [
-                    "float"
-                ]
-            },
-            {
-                "name": "anaemia",
-                "size": 1,
-                "values": [
-                    "float"
-                ]
-            },
-            {
-                "name": "creatinine_phosphokinase",
-                "size": 1,
-                "values": [
-                    "float"
-                ]
-            },
-            {
-                "name": "diabetes",
-                "size": 1,
-                "values": [
-                    "float"
-                ]
-            },
-            {
-                "name": "high_blood_pressure",
-                "size": 1,
-                "values": [
-                    "float"
-                ]
-            },
-            {
-                "name": "platelets",
-                "size": 1,
-                "values": [
-                    "float"
-                ]
-            },
-            {
-                "name": "serum_sodium",
-                "size": 1,
-                "values": [
-                    "float"
-                ]
-            },
-            {
-                "name": "sex",
-                "size": 1,
-                "values": [
-                    "float"
-                ]
-            },
-            {
-                "name": "smoking",
-                "size": 1,
-                "values": [
-                    "float"
-                ]
-            }
-  ],
-  "actions": [
-            {
-                "name": "ejection_fraction",
-                "size": 1,
-                "activation": "sigmoid",
-                "use_bias": true,
-                "values": [
-                    "float"
-                ]
-            },
-            {
-                "name": "serum_creatinine",
-                "size": 1,
-                "activation": "sigmoid",
-                "use_bias": true,
-                "values": [
-                    "float"
-                ]
-            }
-  ]
+  }
 }
