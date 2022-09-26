@@ -18,9 +18,12 @@ from unittest.mock import MagicMock
 from unittest.mock import Mock
 from unittest.mock import patch
 
-from leaf_common.representation.rule_based.config.rule_set_config_helper import RuleSetConfigHelper
+from leaf_common.representation.rule_based.config.rule_set_config_helper \
+    import RuleSetConfigHelper
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
-from leaf_common.representation.rule_based.data.rules_model import RulesModel
+from leaf_common.representation.rule_based.data.rule_set_binding \
+    import RuleSetBinding
+from leaf_common.representation.rule_based.data.rule_model import RuleModel
 from leaf_common.representation.rule_based.evaluation.rule_set_evaluator \
     import RuleSetEvaluator
 from leaf_common.representation.rule_based.persistence.rule_set_file_persistence \
@@ -217,7 +220,7 @@ class TestRuleSet(TestCase):
         """
         Verify simple roundtrip with rules model serializer
         """
-        rules_model = RulesModel(RuleSet(), [], [])
+        rules_model = RuleModel(RuleSet(), RuleSetBinding([], []))
 
         with tempfile.NamedTemporaryFile('w') as saved_rules_model_file:
             persistence = RulesModelFilePersistence()

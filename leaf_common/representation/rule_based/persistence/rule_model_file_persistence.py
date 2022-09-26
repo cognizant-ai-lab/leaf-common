@@ -13,10 +13,9 @@
 See class comment for details.
 """
 
-from leaf_common.candidates.representation_types import RepresentationType
 from leaf_common.persistence.easy.easy_json_persistence import EasyJsonPersistence
 from leaf_common.representation.rule_based.serialization.rule_model_dictionary_converter \
-    import RulesModelDictionaryConverter
+    import RuleModelDictionaryConverter
 
 
 class RulesModelFilePersistence(EasyJsonPersistence):
@@ -29,6 +28,5 @@ class RulesModelFilePersistence(EasyJsonPersistence):
         """
         Constructor.
         """
-        converter = RulesModelDictionaryConverter()
-        super().__init__(use_file_extension=".rulemodel",
-                         dictionary_converter=converter)
+        converter = RuleModelDictionaryConverter()
+        super().__init__(dictionary_converter=converter)

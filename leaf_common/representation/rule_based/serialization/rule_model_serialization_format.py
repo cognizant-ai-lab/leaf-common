@@ -15,10 +15,10 @@ See class comment for details.
 
 from leaf_common.serialization.format.json_serialization_format import JsonSerializationFormat
 from leaf_common.representation.rule_based.serialization.rule_model_dictionary_converter \
-    import RulesModelDictionaryConverter
+    import RuleModelDictionaryConverter
 
 
-class RulesModelSerializationFormat(JsonSerializationFormat):
+class RuleModelSerializationFormat(JsonSerializationFormat):
     """
     Class for serialization policy for RulesModel.
     """
@@ -35,6 +35,6 @@ class RulesModelSerializationFormat(JsonSerializationFormat):
                  are expecting.  When False, no such error is raised.
                  Default is True.
         """
-        converter = RulesModelDictionaryConverter(
-            verify_representation_type=verify_representation_type)
+        converter = RuleModelDictionaryConverter(
+            verify_representation_type=False)
         super().__init__(dictionary_converter=converter, pretty=pretty)
