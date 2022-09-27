@@ -18,7 +18,7 @@ from leaf_common.representation.rule_based.serialization.rule_model_dictionary_c
     import RuleModelDictionaryConverter
 
 
-class RulesModelFilePersistence(EasyJsonPersistence):
+class RuleModelFilePersistence(EasyJsonPersistence):
     """
     Implementation of the leaf-common Persistence interface which
     saves/restores a RuleSet to a file.

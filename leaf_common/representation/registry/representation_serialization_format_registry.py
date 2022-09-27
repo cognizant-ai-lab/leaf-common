@@ -20,8 +20,6 @@ from leaf_common.representation.registry.representation_file_extension_provider_
     import RepresentationFileExtensionProviderRegistry
 from leaf_common.representation.rule_based.serialization.rule_set_serialization_format \
     import RuleSetSerializationFormat
-from leaf_common.representation.rule_based.serialization.rule_model_serialization_format \
-    import RulesModelSerializationFormat
 
 
 class RepresentationSerializationFormatRegistry(RepresentationFileExtensionProviderRegistry):
@@ -40,7 +38,6 @@ class RepresentationSerializationFormatRegistry(RepresentationFileExtensionProvi
         # Do some simple registrations
         self.register(RepresentationType.Structure, JsonSerializationFormat())
         self.register(RepresentationType.RuleBased, RuleSetSerializationFormat())
-        self.register(RepresentationType.RulesModel, RulesModelSerializationFormat())
 
     def register(self, rep_type: RepresentationType, file_extension_provider: SerializationFormat):
         """
