@@ -39,12 +39,21 @@ class RuleModel:
     RuleModelKey = "RuleModel-1.0"
 
     def get_rules(self):
+        """
+        Getter for rules component of RuleModel
+        """
         return self.rules
 
     def get_binding(self):
+        """
+        Getter for rules binding component of RuleModel
+        """
         return self.rules_binding
 
     def to_string(self) -> str:
+        """
+        String representation for RuleModel instance.
+        """
         rules_str: str = self.rules.to_string(
             self.rules_binding.states,
             self.rules_binding.actions)

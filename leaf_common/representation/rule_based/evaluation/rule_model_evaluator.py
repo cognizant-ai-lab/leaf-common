@@ -32,7 +32,6 @@ class RuleModelEvaluator(ComponentEvaluator):
         # our input data is actually a list of lists of some values
         data: List[List[Any]] = evaluation_data
         binding: RuleSetBinding = model.get_binding()
-        rules: RuleSet = model.get_rules()
 
         evaluator: RuleSetEvaluator = RuleSetEvaluator(binding.states, binding.actions)
         sample_actions = []
@@ -41,7 +40,7 @@ class RuleModelEvaluator(ComponentEvaluator):
             keys = data_dictionary.keys()
             for key in keys:
                 data_dictionary[key] = data[int(key)][data_index]
-            actions_dict = evaluator.choose_action(rules, data_dictionary)
+            actions_dict = evaluator.choose_action(model.get_rules(), data_dictionary)
             actions = []
             for action in actions_dict.values():
                 if action[RulesConstants.ACTION_COUNT_KEY] > 0:
