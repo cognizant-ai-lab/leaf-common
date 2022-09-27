@@ -28,8 +28,8 @@ from leaf_common.representation.rule_based.evaluation.rule_set_evaluator \
     import RuleSetEvaluator
 from leaf_common.representation.rule_based.persistence.rule_set_file_persistence \
     import RuleSetFilePersistence
-from leaf_common.representation.rule_based.persistence.rule_model_file_persistence \
-    import RuleModelFilePersistence
+from leaf_common.representation.rule_based.persistence.rule_set_binding_file_persistence \
+    import RuleSetBindingFilePersistence
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 
 
@@ -220,10 +220,10 @@ class TestRuleSet(TestCase):
         """
         Verify simple roundtrip with rules model serializer
         """
-        rules_model = RuleModel(RuleSet(), RuleSetBinding([], []))
+        rules_model = RuleSetBinding(RuleSet(), [], [])
 
         with tempfile.NamedTemporaryFile('w') as saved_rules_model_file:
-            persistence = RuleModelFilePersistence()
+            persistence = RuleSetBindingFilePersistence()
             persistence.persist(rules_model, saved_rules_model_file.name)
             reloaded_rules_model = persistence.restore(saved_rules_model_file.name)
 
@@ -249,11 +249,11 @@ class TestRuleSet(TestCase):
         Verify roundtrip with persisted rules model "from the field"
         """
         rules_model_path = os.path.join(self.fixtures_path, 'saved_rules_model')
-        persistence = RuleModelFilePersistence()
+        persistence = RuleSetBindingFilePersistence()
         rules_model = persistence.restore(rules_model_path)
 
         with tempfile.NamedTemporaryFile('w') as saved_rules_model_file:
-            persistence = RuleModelFilePersistence()
+            persistence = RuleSetBindingFilePersistence()
             persistence.persist(rules_model, saved_rules_model_file.name)
             reloaded_rules_model = persistence.restore(saved_rules_model_file.name)
 

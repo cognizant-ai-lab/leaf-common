@@ -1,5 +1,5 @@
 {
-  "key": "RuleModel-1.0",
+  "key": "RuleSetBinding-1.0",
   "states": { "elements": [
           {
               "name": "age",

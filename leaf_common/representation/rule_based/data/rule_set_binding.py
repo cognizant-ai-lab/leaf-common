@@ -8,13 +8,11 @@
 # leaf-common SDK Software in commercial settings.
 #
 # END COPYRIGHT
-""" Domain-specific binding for RuleModel context and actions."""
+""" Domain-specific binding for RuleSet context and actions."""
 
 import copy
 from typing import Dict, List
-
-from leaf_common.representation.rule_based.config.rule_set_config_helper \
-    import RuleSetConfigHelper
+from leaf_common.representation.rule_based.data.rule_set import RuleSet
 
 
 class RuleSetBinding:
@@ -24,24 +22,35 @@ class RuleSetBinding:
     to some general model to perform model inference.
     """
     def __init__(self,
+                 rules: RuleSet,
                  states: List[Dict[str, object]],
                  actions: List[Dict[str, object]]):
         """
-        Creates a RulesModel
+        Creates a binding for given RuleSet
         :param states: model features
         :param actions: model actions
         """
-        self.model_states = copy.deepcopy(states)
-        self.model_actions = copy.deepcopy(actions)
-        # Internally, "one-hot" encode our inputs and outputs
-        # for use in model evaluator
-        self.states = RuleSetConfigHelper.read_config_shape_var(self.model_states)
-        self.actions = RuleSetConfigHelper.read_config_shape_var(self.model_actions)
+        self.rules = copy.deepcopy(rules)
+        self.states = copy.deepcopy(states)
+        self.actions = copy.deepcopy(actions)
+        self.key = RuleSetBinding.RuleSetBindingKey
+
+    # Class-specific key for verification of persist/restore operations
+    RuleSetBindingKey = "RuleSetBinding-1.0"
 
     def to_string(self) -> str:
         """
-        Returns string representing these states and actions
-        :return: string representing this set of rules
+        Returns string representing rules together with bound states and actions
+        :return: string representing this RuleSetBinding instance
         """
-        return f"states: {repr(self.model_states)}\n" + \
-               f"actions: {repr(self.model_actions)}\n"
+        rules_str: str = self.rules.to_string(self.states, self.actions)
+        return f"rules: {rules_str}\n states: {repr(self.states)}\n" + \
+               f"actions: {repr(self.actions)}\n"
+
+    def __str__(self):
+        return self.to_string()
+
+    def __repr__(self):
+        # For now, just use __str__ for __repr__ output, even though
+        # they would generally be for different uses
+        return self.__str__()

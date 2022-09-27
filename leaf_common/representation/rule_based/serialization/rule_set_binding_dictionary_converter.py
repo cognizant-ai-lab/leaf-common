@@ -17,7 +17,6 @@ from typing import Dict
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
 from leaf_common.representation.rule_based.data.rule_set_binding \
     import RuleSetBinding
-from leaf_common.representation.rule_based.data.rule_model import RuleModel
 from leaf_common.representation.rule_based.serialization.rule_set_dictionary_converter \
     import RuleSetDictionaryConverter
 from leaf_common.serialization.interface.dictionary_converter import DictionaryConverter
@@ -25,14 +24,14 @@ from leaf_common.serialization.prep.pass_through_dictionary_converter \
     import PassThroughDictionaryConverter
 
 
-class RuleModelDictionaryConverter(DictionaryConverter):
+class RuleSetBindingDictionaryConverter(DictionaryConverter):
     """
     DictionaryConverter implementation for RuleModel objects.
     """
 
-    def to_dict(self, obj: RuleModel) -> Dict[str, object]:
+    def to_dict(self, obj: RuleSetBinding) -> Dict[str, object]:
         """
-        :param obj: The object of type RuleModel to be converted into a dictionary
+        :param obj: The object of type RuleSetBinding to be converted into a dictionary
         :return: A data-only dictionary that represents all the data for
                 the given object, either in primitives
                 (booleans, ints, floats, strings), arrays, or dictionaries.
@@ -42,25 +41,24 @@ class RuleModelDictionaryConverter(DictionaryConverter):
         """
         if obj is None:
             return None
-        binding: RuleSetBinding = obj.get_binding()
 
         rules_converter = RuleSetDictionaryConverter()
         pass_through = PassThroughDictionaryConverter()
 
         obj_dict = {
-            "key": RuleModel.RuleModelKey,
-            "rules": rules_converter.to_dict(obj.get_rules()),
+            "key": RuleSetBinding.RuleSetBindingKey,
+            "rules": rules_converter.to_dict(obj.rules),
             "states": {
-                "elements": pass_through.to_dict(binding.model_states)
+                "elements": pass_through.to_dict(obj.states)
             },
             "actions": {
-                "elements": pass_through.to_dict(binding.model_actions)
+                "elements": pass_through.to_dict(obj.actions)
             }
         }
 
         return obj_dict
 
-    def from_dict(self, obj_dict: Dict[str, object]) -> RuleModel:
+    def from_dict(self, obj_dict: Dict[str, object]) -> RuleSetBinding:
         """
         :param obj_dict: The data-only dictionary to be converted into an object
         :return: An object instance created from the given dictionary.
@@ -69,8 +67,8 @@ class RuleModelDictionaryConverter(DictionaryConverter):
                 to return None.
         """
         format_key = obj_dict.get("key", None)
-        if format_key != RuleModel.RuleModelKey:
-            msg: str = f"Expected object format {RuleModel.RuleModelKey} got {format_key}"
+        if format_key != RuleSetBinding.RuleSetBindingKey:
+            msg: str = f"Expected object format {RuleSetBinding.RuleSetBindingKey} got {format_key}"
             raise ValueError(msg)
 
         rules_converter = RuleSetDictionaryConverter()
@@ -83,5 +81,5 @@ class RuleModelDictionaryConverter(DictionaryConverter):
         states = pass_through.from_dict(obj_dict.get("states", None))
         if states is not None:
             states = states.get("elements", None)
-        obj: RuleModel = RuleModel(rules, RuleSetBinding(states, actions))
+        obj: RuleSetBinding = RuleSetBinding(rules, states, actions)
         return obj

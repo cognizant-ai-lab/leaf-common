@@ -14,11 +14,11 @@ See class comment for details.
 """
 
 from leaf_common.persistence.easy.easy_json_persistence import EasyJsonPersistence
-from leaf_common.representation.rule_based.serialization.rule_model_dictionary_converter \
-    import RuleModelDictionaryConverter
+from leaf_common.representation.rule_based.serialization.rule_set_binding_dictionary_converter \
+    import RuleSetBindingDictionaryConverter
 
 
-class RuleModelFilePersistence(EasyJsonPersistence):
+class RuleSetBindingFilePersistence(EasyJsonPersistence):
     """
     Implementation of the leaf-common Persistence interface which
     saves/restores a RuleSet to a file.
@@ -28,5 +28,5 @@ class RuleModelFilePersistence(EasyJsonPersistence):
         """
         Constructor.
         """
-        converter = RuleModelDictionaryConverter()
+        converter = RuleSetBindingDictionaryConverter()
         super().__init__(dictionary_converter=converter)
