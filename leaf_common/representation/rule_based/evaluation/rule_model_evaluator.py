@@ -4,7 +4,6 @@ Code relating to evaluation of Rule_based model.
 from typing import List, Any
 
 from leaf_common.evaluation.component_evaluator import ComponentEvaluator
-from leaf_common.representation.rule_based.data.rule_set import RuleSet
 from leaf_common.representation.rule_based.data.rule_model import RuleModel
 from leaf_common.representation.rule_based.data.rule_set_binding \
     import RuleSetBinding
