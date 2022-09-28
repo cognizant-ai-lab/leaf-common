@@ -25,6 +25,7 @@ class RuleSetBindingEvaluator(ComponentEvaluator):
         :param evaluation_data: a multidimensional array containing the samples
         :return: actions as List[List[float]]
         """
+        # pylint: disable=too-many-locals
         if component is None or not isinstance(component, RuleSetBinding):
             return None
         model: RuleSetBinding = component

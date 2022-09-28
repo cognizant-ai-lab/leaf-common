@@ -23,7 +23,6 @@ from leaf_common.representation.rule_based.config.rule_set_config_helper \
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
 from leaf_common.representation.rule_based.data.rule_set_binding \
     import RuleSetBinding
-from leaf_common.representation.rule_based.data.rule_model import RuleModel
 from leaf_common.representation.rule_based.evaluation.rule_set_evaluator \
     import RuleSetEvaluator
 from leaf_common.representation.rule_based.persistence.rule_set_file_persistence \
