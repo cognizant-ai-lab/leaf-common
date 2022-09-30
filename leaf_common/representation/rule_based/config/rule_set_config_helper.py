@@ -13,7 +13,7 @@
 See class comment for details
 """
 
-from typing import Dict, Any
+from typing import Dict, List, Any
 
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 
@@ -30,7 +30,7 @@ class RuleSetConfigHelper:
         :param config: Esp config
         :return: states
         """
-        states = RuleSetConfigHelper._read_config_shape_var(config['network']['inputs'])
+        states = RuleSetConfigHelper.read_config_shape_var(config['network']['inputs'])
         return states
 
     @staticmethod
@@ -40,11 +40,11 @@ class RuleSetConfigHelper:
         :param config: Esp config
         :return: actions
         """
-        actions = RuleSetConfigHelper._read_config_shape_var(config['network']['outputs'])
+        actions = RuleSetConfigHelper.read_config_shape_var(config['network']['outputs'])
         return actions
 
     @staticmethod
-    def _read_config_shape_var(config_vars: Dict[str, Any]) -> Dict[str, str]:
+    def read_config_shape_var(config_vars: List[Dict[str, Any]]) -> Dict[str, str]:
         """
         This method handles the following two examples of defining network parameters into an enumerated list of them:
         FIRST CASE EXAMPLE:
