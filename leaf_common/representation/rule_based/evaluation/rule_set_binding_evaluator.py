@@ -4,8 +4,6 @@ Code relating to evaluation of RuleSet bound to domain-specific context/actions.
 from typing import List, Any
 
 from leaf_common.evaluation.component_evaluator import ComponentEvaluator
-from leaf_common.representation.rule_based.config.rule_set_config_helper \
-    import RuleSetConfigHelper
 from leaf_common.representation.rule_based.data.rule_set_binding \
     import RuleSetBinding
 from leaf_common.representation.rule_based.evaluation.rule_set_evaluator \
@@ -33,10 +31,10 @@ class RuleSetBindingEvaluator(ComponentEvaluator):
         # our input data is actually a list of lists of some values
         data: List[List[Any]] = evaluation_data
 
-        # "one-hot" encode our inputs and outputs
+        # Our inputs and outputs are "one-hot" encoded
         # for use in RuleSet evaluator
-        encoded_states = RuleSetConfigHelper.read_config_shape_var(model.states)
-        encoded_actions = RuleSetConfigHelper.read_config_shape_var(model.actions)
+        encoded_states = model.states
+        encoded_actions = model.actions
 
         evaluator: RuleSetEvaluator = RuleSetEvaluator(encoded_states, encoded_actions)
         sample_actions = []

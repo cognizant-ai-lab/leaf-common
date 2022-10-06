@@ -48,12 +48,8 @@ class RuleSetBindingDictionaryConverter(DictionaryConverter):
         obj_dict = {
             "key": RuleSetBinding.RuleSetBindingKey,
             "rules": rules_converter.to_dict(obj.rules),
-            "states": {
-                "elements": pass_through.to_dict(obj.states)
-            },
-            "actions": {
-                "elements": pass_through.to_dict(obj.actions)
-            }
+            "states": pass_through.to_dict(obj.states),
+            "actions": pass_through.to_dict(obj.actions)
         }
 
         return obj_dict
@@ -76,10 +72,6 @@ class RuleSetBindingDictionaryConverter(DictionaryConverter):
 
         rules: RuleSet = rules_converter.from_dict(obj_dict.get("rules", None))
         actions = pass_through.from_dict(obj_dict.get("actions", None))
-        if actions is not None:
-            actions = actions.get("elements", None)
         states = pass_through.from_dict(obj_dict.get("states", None))
-        if states is not None:
-            states = states.get("elements", None)
         obj: RuleSetBinding = RuleSetBinding(rules, states, actions)
         return obj
