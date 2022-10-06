@@ -1,92 +1,26 @@
 {
   "key": "RuleSetBinding-1.0",
-  "states": { "elements": [
-          {
-              "name": "age",
-              "size": 1,
-              "values": [
-                  "float"
-              ]
-          },
-          {
-              "name": "anaemia",
-              "size": 1,
-              "values": [
-                  "float"
-              ]
-          },
-          {
-              "name": "creatinine_phosphokinase",
-              "size": 1,
-              "values": [
-                  "float"
-              ]
-          },
-          {
-              "name": "diabetes",
-              "size": 1,
-              "values": [
-                  "float"
-              ]
-          },
-          {
-              "name": "high_blood_pressure",
-              "size": 1,
-              "values": [
-                  "float"
-              ]
-          },
-          {
-              "name": "platelets",
-              "size": 1,
-              "values": [
-                  "float"
-              ]
-          },
-          {
-              "name": "serum_sodium",
-              "size": 1,
-              "values": [
-                  "float"
-              ]
-          },
-          {
-              "name": "sex",
-              "size": 1,
-              "values": [
-                  "float"
-              ]
-          },
-          {
-              "name": "smoking",
-              "size": 1,
-              "values": [
-                  "float"
-              ]
-          }
-  ]},
-
-  "actions": { "elements": [
-            {
-                "name": "ejection_fraction",
-                "size": 1,
-                "activation": "sigmoid",
-                "use_bias": true,
-                "values": [
-                    "float"
-                ]
-            },
-            {
-                "name": "serum_creatinine",
-                "size": 1,
-                "activation": "sigmoid",
-                "use_bias": true,
-                "values": [
-                    "float"
-                ]
-            }
-  ]},
-
+  "states": { 
+      "0": "age",
+      "1": "anaemia",
+      "2": "creatinine_phosphokinase",
+      "3": "diabetes",
+      "4": "high_blood_pressure",
+      "5": "platelets",
+      "6": "serum_sodium",
+      "7": "sex_is_category_Male",
+      "8": "sex_is_category_Female",
+      "9": "race_is_category_AfricanAmerican",
+      "10": "race_is_category_Asian",
+      "11": "race_is_category_Caucasian",
+      "12": "race_is_category_Hispanic",
+      "13": "race_is_category_Other",
+      "14": "smoking"
+  },
+  "actions": {
+      "0": "ejection_fraction",
+      "1": "serum_creatinine"
+  },
   "rules": {
   "representation_type": "RuleBased",
   "actions": {

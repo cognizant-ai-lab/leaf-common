@@ -23,12 +23,12 @@ class RuleSetBinding:
     """
     def __init__(self,
                  rules: RuleSet,
-                 states: List[Dict[str, object]],
-                 actions: List[Dict[str, object]]):
+                 states: Dict[str, str],
+                 actions: Dict[str, str]):
         """
         Creates a binding for given RuleSet
-        :param states: model features
-        :param actions: model actions
+        :param states: model features encoded w.r.t. categorical values
+        :param actions: model actions encoded w.r.t. categorical values
         """
         self.rules = copy.deepcopy(rules)
         self.states = copy.deepcopy(states)
