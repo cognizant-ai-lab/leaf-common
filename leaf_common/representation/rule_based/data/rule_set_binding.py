@@ -11,7 +11,7 @@
 """ Domain-specific binding for RuleSet context and actions."""
 
 import copy
-from typing import Dict, List
+from typing import Dict
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
 
 
