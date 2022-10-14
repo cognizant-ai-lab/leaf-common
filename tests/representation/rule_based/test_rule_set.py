@@ -18,12 +18,17 @@ from unittest.mock import MagicMock
 from unittest.mock import Mock
 from unittest.mock import patch
 
-from leaf_common.representation.rule_based.config.rule_set_config_helper import RuleSetConfigHelper
+from leaf_common.representation.rule_based.config.rule_set_config_helper \
+    import RuleSetConfigHelper
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
+from leaf_common.representation.rule_based.data.rule_set_binding \
+    import RuleSetBinding
 from leaf_common.representation.rule_based.evaluation.rule_set_evaluator \
     import RuleSetEvaluator
 from leaf_common.representation.rule_based.persistence.rule_set_file_persistence \
     import RuleSetFilePersistence
+from leaf_common.representation.rule_based.persistence.rule_set_binding_file_persistence \
+    import RuleSetBindingFilePersistence
 from leaf_common.representation.rule_based.data.rules_constants import RulesConstants
 
 
@@ -210,6 +215,19 @@ class TestRuleSet(TestCase):
 
         self.assertIsNot(rule_set, reloaded_rule_set)
 
+    def test_rulesmodel_serialize_roundtrip(self):
+        """
+        Verify simple roundtrip with rules model serializer
+        """
+        rules_model = RuleSetBinding(RuleSet(), [], [])
+
+        with tempfile.NamedTemporaryFile('w') as saved_rules_model_file:
+            persistence = RuleSetBindingFilePersistence()
+            persistence.persist(rules_model, saved_rules_model_file.name)
+            reloaded_rules_model = persistence.restore(saved_rules_model_file.name)
+
+        self.assertIsNot(rules_model, reloaded_rules_model)
+
     def test_complex_rule_set_roundtrip(self):
         """
         Verify roundtrip with persisted rule_set "from the field" (gen 50 Flappy Bird)
@@ -224,6 +242,21 @@ class TestRuleSet(TestCase):
             reloaded_rule_set = persistence.restore(saved_rule_set_file.name)
 
         self.assertIsNot(rule_set, reloaded_rule_set)
+
+    def test_complex_rules_model_roundtrip(self):
+        """
+        Verify roundtrip with persisted rules model "from the field"
+        """
+        rules_model_path = os.path.join(self.fixtures_path, 'saved_rules_model')
+        persistence = RuleSetBindingFilePersistence()
+        rules_model = persistence.restore(rules_model_path)
+
+        with tempfile.NamedTemporaryFile('w') as saved_rules_model_file:
+            persistence = RuleSetBindingFilePersistence()
+            persistence.persist(rules_model, saved_rules_model_file.name)
+            reloaded_rules_model = persistence.restore(saved_rules_model_file.name)
+
+        self.assertIsNot(rules_model, reloaded_rules_model)
 
     @patch("leaf_common.representation.rule_based.evaluation.rule_set_evaluator.RuleEvaluator.evaluate",
            return_value=Mock())
