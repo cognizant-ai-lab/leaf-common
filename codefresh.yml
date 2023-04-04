@@ -75,7 +75,7 @@ steps:
                 title: Run unit tests
                 image: python:3.8-buster
                 shell: bash
-                description: Run unit tests (nosetests)
+                description: Run unit tests (pytests)
                 commands:
                     - export VENV=./venv/codefresh
                     - source $VENV/bin/activate
@@ -83,9 +83,9 @@ steps:
                     - git status
                     - export PYTHONPATH=$PWD
                     - echo "PYTHONPATH=$PYTHONPATH"
-                    - export NOSETESTS_CMD=`which nosetests`
-                    - echo "NOSETESTS=$NOSETESTS_CMD"
-                    - $NOSETESTS_CMD -v --nocapture --with-ignore-docstrings --with-timer --timer-top-n 10 --timer-ok 30s --timer-warning 60s .
+                    - export PYTEST_CMD=`which pytest`
+                    - echo "PYTEST=$PYTEST_CMD"
+                    - $PYTEST_CMD --verbose -m "not integration" --timer-top-n 10
 
     all_test_status:
         title: Check For Failed Tests
