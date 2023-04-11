@@ -19,6 +19,8 @@ import copy
 import logging
 import os
 
+from pathlib import Path
+
 from leaf_common.config.config_handler import ConfigHandler
 from leaf_common.security.service.service_accessor_factory import ServiceAccessorFactory
 
@@ -118,13 +120,17 @@ class LeafServiceAccess:
         if server is None:
             use_server = self.default_server
 
+        # Per https://stackoverflow.com/questions/4028904/what-is-a-cross-platform-way-to-get-the-home-directory
+        # This is a cross-platform way of getting a HOME directory - Linux or Windows.
+        home = str(Path.home())
+
         # Try a security_config.hocon
         # Search the hidden directory for the specified service_prefix first,
         # followed by a precedence order of other known services.
         security_config_files = [
-            os.path.join(os.getenv("HOME"), "." + self.service_prefix.lower(), "security_config.hocon"),
-            os.path.join(os.getenv("HOME"), ".esp", "security_config.hocon"),
-            os.path.join(os.getenv("HOME"), ".enn", "security_config.hocon")
+            os.path.join(home, "." + self.service_prefix.lower(), "security_config.hocon"),
+            os.path.join(home, ".esp", "security_config.hocon"),
+            os.path.join(home, ".enn", "security_config.hocon")
         ]
         config_reader = ConfigHandler()
         for security_config_file in security_config_files:
