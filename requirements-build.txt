@@ -7,9 +7,6 @@
 
 # Code analysis
 flake8==6.0.0
-mccabe==0.7.0
-pycodestyle==2.10.0
-pyflakes==3.0.1
 
 # Full pylint dependencies to prevent infinite loops
 pylint==2.17.2
@@ -29,21 +26,7 @@ pylint-protobuf==0.20.2
 
 # Tests
 pytest==7.2.2
-attrs==22.2.0
-exceptiongroup==1.1.1
-iniconfig==2.0.0
-packaging==23.0
-pluggy==1.0.0
-tomli==2.0.1
-
 pytest-timer==0.0.11
-attrs==22.2.0
-exceptiongroup==1.1.1
-iniconfig==2.0.0
-packaging==23.0
-pluggy==1.0.0
-pytest==7.2.2
-tomli==2.0.1
 
 # Packaging
 setuptools==67.6.1
