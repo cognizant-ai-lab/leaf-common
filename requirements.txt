@@ -20,19 +20,19 @@
 #       ... or at least very little.
 
 # For secure communications with LEAF Services
-grpcio>=1.38.1
-pyOpenSSL>=21.0.0
+grpcio>=1.48.2
+pyOpenSSL>=23.1.1
 python-jose>=3.3.0
 
 # For vault access
-hvac>=0.11.2
+hvac>=1.1.0
 
 # For time_util stuff
-pytz>=2021.3
+pytz>=2023.3
 
 # For serialization
-ruamel.yaml>=0.17.20
-pyhocon>=0.3.59
+ruamel.yaml>=0.17.21
+pyhocon>=0.3.60
 
 # For deprecated decorator use
 Deprecated>=1.2.13

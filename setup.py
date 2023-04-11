@@ -7,10 +7,10 @@ import sys
 
 from setuptools import setup, find_packages
 
-LIBRARY_VERSION = "1.1.50"
+LIBRARY_VERSION = "1.1.51"
 
 CURRENT_PYTHON = sys.version_info[:2]
-REQUIRED_PYTHON = (3, 6)
+REQUIRED_PYTHON = (3, 10)
 
 if CURRENT_PYTHON < REQUIRED_PYTHON:
     # pylint: disable=consider-using-f-string
@@ -39,13 +39,13 @@ setup(
         # while allowing code that depends on this library to upgrade
         # versions as they see fit.
         "Deprecated>=1.2.13",
-        "grpcio>=1.38.1",
-        "hvac>=0.11.2",
-        "pyhocon>=0.3.59",
-        "pyOpenSSL>=21.0.0",
+        "grpcio>=1.48.2",
+        "hvac>=1.1.0",
+        "pyhocon>=0.3.60",
+        "pyOpenSSL>=23.1.1",
         "python-jose>=3.3.0",
-        "pytz>=2021.3",
-        "ruamel.yaml>=0.17.20"
+        "pytz>=2023.3",
+        "ruamel.yaml>=0.17.21"
     ],
     description='LEAF team common code library',
     long_description=_read('README.md'),
