@@ -26,7 +26,7 @@ class Timeout:
     Class providing basic timeout functionality.
     """
 
-    def __init__(self, name: str = "", limit_in_seconds: float = (-1)):
+    def __init__(self, name: str = "", limit_in_seconds: float = -1):
         """
         Constructor.
 
@@ -39,7 +39,7 @@ class Timeout:
         self.limit_in_seconds: float = limit_in_seconds
         # start time in seconds since epoch - time when timeout was started
         #                                     (this value < 0 if timeout is not set)
-        self.start_time: float = (-1)
+        self.start_time: float = -1
 
     def is_reached(self) -> bool:
         """
