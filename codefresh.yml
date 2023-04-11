@@ -3,7 +3,7 @@ steps:
     start_clean:
         title: Clean up CodeFresh volume
         # Images come from hierarchy at: https://github.com/docker-library/python
-        image: python:3.8-buster
+        image: python:3.10-slim
         commands:
             - rm -rf '${{CF_REPO_NAME}}' venv
 
@@ -16,7 +16,7 @@ steps:
 
     install_dependencies_and_setup:
         title: Install dependencies and setup security
-        image: python:3.8-buster
+        image: python:3.10-slim
         shell: bash
         description: >-
             1. Create a virtualenv inside the CodeFresh workspace
@@ -25,15 +25,14 @@ steps:
         commands:
             - export VENV=./venv/codefresh
             - mkdir -p $VENV
-            - pip install pip==22.1
-            - pip install virtualenv==20.14.1
+            - pip install pip==23.0.1
+            - pip install virtualenv==20.21.0
             - export VENV_CMD=`which virtualenv`
             - $VENV_CMD $VENV
             - source $VENV/bin/activate
-            - pip install pip==22.1
-            - pip install virtualenv==20.14.1
+            - pip install pip==23.0.1
+            - pip install virtualenv==20.21.0
             - cd '${{CF_REPO_NAME}}'
-            - git status
             - pip --no-cache-dir install -r requirements.txt
             - pip --no-cache-dir install -r requirements-build.txt
             - pip -V
@@ -44,7 +43,7 @@ steps:
         steps:
             run_pylint:
                 title: Run pylint
-                image: python:3.8-buster
+                image: python:3.10-slim
                 description: "Run Pylint"
                 # Allow the pipeline to continue if this step fails
                 fail_fast: false
@@ -54,12 +53,11 @@ steps:
                     - source $VENV/bin/activate
                     - echo "PATH=$PATH"
                     - cd '${{CF_REPO_NAME}}'
-                    - git status
                     - build_scripts/run_pylint.sh
 
             run_flake8:
                 title: Run flake8
-                image: python:3.8-buster
+                image: python:3.10-slim
                 description: Run Flake8
                 fail_fast: false
                 shell: bash
@@ -68,19 +66,17 @@ steps:
                     - source $VENV/bin/activate
                     - echo "PATH=$PATH"
                     - cd '${{CF_REPO_NAME}}'
-                    - git status
                     - build_scripts/run_flake8.sh
 
             run_unit_tests:
                 title: Run unit tests
-                image: python:3.8-buster
+                image: python:3.10-slim
                 shell: bash
                 description: Run unit tests (pytests)
                 commands:
                     - export VENV=./venv/codefresh
                     - source $VENV/bin/activate
                     - cd '${{CF_REPO_NAME}}'
-                    - git status
                     - export PYTHONPATH=$PWD
                     - echo "PYTHONPATH=$PYTHONPATH"
                     - export PYTEST_CMD=`which pytest`
@@ -104,6 +100,6 @@ steps:
 
     end_clean:
         title: Clean up CodeFresh volume
-        image: python:3.8-buster
+        image: python:3.10-slim
         commands:
             - rm -rf '${{CF_REPO_NAME}}' venv

@@ -97,7 +97,7 @@ class Condition:  # pylint: disable=too-many-instance-attributes
             state_dict = min_maxes.get(self.first_state_key, empty_dict)
             min_value = state_dict.get(RulesConstants.MIN_KEY)
             max_value = state_dict.get(RulesConstants.MAX_KEY)
-            second_condition_val = (min_value + self.second_state_value * (max_value - min_value))
+            second_condition_val = min_value + self.second_state_value * (max_value - min_value)
             second_condition = \
                 f'{second_condition_val:.{RulesConstants.DECIMAL_DIGITS}f} {{{min_value}..{max_value}}}'
         else:

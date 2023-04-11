@@ -89,7 +89,7 @@ class GrpcChannelSecurity():
         """
         :return: True when we alrady have a JWT token
         """
-        has = (self.jwt_token is not None)
+        has = self.jwt_token is not None
         return has
 
     def reset_token(self) -> None:
