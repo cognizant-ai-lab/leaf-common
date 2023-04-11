@@ -42,7 +42,7 @@ class RedactorDictionaryConverterTest(TestCase):
         :return: True if the value for the key in the dictionary is redacted
         """
         value = safe_dict.get(key, None)
-        is_redacted = (value == "<redacted>")
+        is_redacted = value == "<redacted>"
         return is_redacted
 
     def test_none(self):
