@@ -33,7 +33,6 @@ steps:
             - pip install pip==23.0.1
             - pip install virtualenv==20.21.0
             - cd '${{CF_REPO_NAME}}'
-            - git status
             - pip --no-cache-dir install -r requirements.txt
             - pip --no-cache-dir install -r requirements-build.txt
             - pip -V
