@@ -53,7 +53,6 @@ steps:
                     - source $VENV/bin/activate
                     - echo "PATH=$PATH"
                     - cd '${{CF_REPO_NAME}}'
-                    - git status
                     - build_scripts/run_pylint.sh
 
             run_flake8:
@@ -67,7 +66,6 @@ steps:
                     - source $VENV/bin/activate
                     - echo "PATH=$PATH"
                     - cd '${{CF_REPO_NAME}}'
-                    - git status
                     - build_scripts/run_flake8.sh
 
             run_unit_tests:
@@ -79,7 +77,6 @@ steps:
                     - export VENV=./venv/codefresh
                     - source $VENV/bin/activate
                     - cd '${{CF_REPO_NAME}}'
-                    - git status
                     - export PYTHONPATH=$PWD
                     - echo "PYTHONPATH=$PYTHONPATH"
                     - export PYTEST_CMD=`which pytest`
