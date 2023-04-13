@@ -7,7 +7,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-LIBRARY_VERSION = "1.2.0"
+LIBRARY_VERSION = "1.2.1"
 
 CURRENT_PYTHON = sys.version_info[:2]
 REQUIRED_PYTHON = (3, 10)
@@ -44,7 +44,7 @@ setup(
         "pyhocon>=0.3.60",
         "pyOpenSSL>=23.1.1",
         "python-jose>=3.3.0",
-        "pytz>=2023.3",
+        "pytz>=2022.7.1",
         "ruamel.yaml>=0.17.21"
     ],
     description='LEAF team common code library',
