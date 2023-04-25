@@ -109,15 +109,16 @@ steps:
             - pip install build wheel
             - cd '${{CF_REPO_NAME}}'
             - python -m build --wheel
-            - >- 
-              curl -L
-              -X PATCH
-              -H "Accept: application/vnd.github+json"
-              -H "Authorization: Bearer ${{ENN_GIT_TOKEN}}"
-              -H "X-GitHub-Api-Version: 2022-11-28"
-              https://api.github.com/repos/OWNER/REPO/releases/assets/ASSET_ID 
-              -d '{"name":"leaf_common-1.2.1-py3-none-any.whl","label":"Wheel file"}'
+            - export TEMP_DIR_OUTSIDE_CONTAINER=${{CF_VOLUME_PATH}}/tmp/${{CF_BUILD_ID}}
+            - mkdir -p ${TEMP_DIR_OUTSIDE_CONTAINER}
+            - mv dist/leaf_common*.whl ${{TEMP_DIR_OUTSIDE_CONTAINER}}
 
+    push_wheel_to_release:
+        title: Push wheel file to Release archive
+        image: alpine:3.13.1
+        commands:
+            - ls ${{TEMP_DIR_OUTSIDE_CONTAINER}}
+        
     end_clean:
         title: Clean up CodeFresh volume
         image: python:3.10-slim
