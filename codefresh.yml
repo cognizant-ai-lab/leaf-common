@@ -111,7 +111,7 @@ steps:
             - python -m build --wheel
             - export TEMP_DIR_OUTSIDE_CONTAINER=${{CF_VOLUME_PATH}}/tmp/${{CF_BUILD_ID}}
             - mkdir -p ${TEMP_DIR_OUTSIDE_CONTAINER}
-            - mv dist/leaf_common*.whl ${{TEMP_DIR_OUTSIDE_CONTAINER}}
+            - mv dist/leaf_common*.whl ${TEMP_DIR_OUTSIDE_CONTAINER}
 
     push_wheel_to_release:
         title: Push wheel file to Release archive
