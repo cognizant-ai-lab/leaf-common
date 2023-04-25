@@ -97,6 +97,17 @@ steps:
                         steps.run_flake8.result == 'failure' ||
                         steps.run_unit_tests == 'failure' ||
                         steps.run_all_tests == 'failure'
+    
+    build_wheel:
+        title: Build wheel file
+        image: python:3.10-slim
+        shell: bash
+        description: Build wheel file for distribution
+        commands:
+            - export VENV=./venv/codefresh
+            - source $VENV/bin/activate
+            - cd '${{CF_REPO_NAME}}'
+            - python -m build wheel
 
     end_clean:
         title: Clean up CodeFresh volume
