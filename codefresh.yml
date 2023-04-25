@@ -117,7 +117,7 @@ steps:
         title: Push wheel file to Release archive
         image: alpine:3.13.1
         commands:
-            - ls ${{TEMP_DIR_OUTSIDE_CONTAINER}}
+            - ls ${TEMP_DIR_OUTSIDE_CONTAINER}
         
     end_clean:
         title: Clean up CodeFresh volume
