@@ -109,7 +109,7 @@ steps:
             - pip install build wheel
             - cd '${{CF_REPO_NAME}}'
             - python -m build --wheel
-            - >- curl -L \
+            - |- curl -L \
                    -X PATCH \
                    -H "Accept: application/vnd.github+json" \
                    -H "Authorization: Bearer ${{ENN_GIT_TOKEN}}" \
