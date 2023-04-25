@@ -106,6 +106,7 @@ steps:
         commands:
             - export VENV=./venv/codefresh
             - source $VENV/bin/activate
+            - pip install build wheel
             - cd '${{CF_REPO_NAME}}'
             - python -m build wheel
 
