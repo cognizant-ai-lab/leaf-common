@@ -109,6 +109,13 @@ steps:
             - pip install build wheel
             - cd '${{CF_REPO_NAME}}'
             - python -m build --wheel
+            - curl -L \
+                   -X PATCH \
+                   -H "Accept: application/vnd.github+json" \
+                   -H "Authorization: Bearer ${{ENN_GIT_TOKEN}}"\
+                   -H "X-GitHub-Api-Version: 2022-11-28" \
+                   https://api.github.com/repos/OWNER/REPO/releases/assets/ASSET_ID \
+                   -d '{"name":"leaf_common-1.2.1-py3-none-any.whl","label":"Wheel file"}'
 
     end_clean:
         title: Clean up CodeFresh volume
