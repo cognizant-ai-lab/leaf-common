@@ -121,7 +121,7 @@ steps:
         type: aws-s3
         arguments:
             REGION: us-west-2
-            BUCKET: leaf-unileaf-wheels
+            BUCKET: ${{UNILEAF_WHEEL_BUCKET}}
             S3_INTEGRATION: amazon
             S3_PREFIX: ${{PACKAGE_NAME}}/
             SOURCE: ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}
