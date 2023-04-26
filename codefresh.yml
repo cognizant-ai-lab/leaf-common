@@ -135,7 +135,7 @@ steps:
             BUCKET: leaf-unileaf-wheels
             S3_INTEGRATION: amazon
             S3_PREFIX: leaf_common/
-            SOURCE: $${{CF_VOLUME_PATH}}/{{CF_BUILD_ID}}
+            SOURCE: ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}
 
     #upload_to_S3:
     #    description: "Upload video to s3"
