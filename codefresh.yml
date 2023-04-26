@@ -9,7 +9,7 @@ steps:
             - rm -rf '${{CF_REPO_NAME}}' venv
             # set the wheel package name which is the
             # the repo name, but with underscores instead of dashes
-            - cf_export PACKAGE_NAME=`${{CF_REPO_NAME}} | sed s/-/_/`
+            - cf_export PACKAGE_NAME=`echo ${{CF_REPO_NAME}} | sed s/-/_/`
  
     clone_leaf-common:
         type: git-clone
