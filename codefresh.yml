@@ -123,7 +123,7 @@ steps:
             REGION: us-west-2
             BUCKET: leaf-unileaf-wheels
             S3_INTEGRATION: amazon
-            S3_PREFIX: ${PACKAGE_NAME}/
+            S3_PREFIX: ${{PACKAGE_NAME}}/
             SOURCE: ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}
 
     end_clean:
