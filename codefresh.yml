@@ -7,7 +7,7 @@ steps:
         commands:
             - rm -rf '${{CF_REPO_NAME}}' venv
 
-     setup_s3_creds:
+    setup_s3_creds:
         description: "Set up aws credentials to upload video to s3"
         image: python:3.11.1-buster
         commands:
