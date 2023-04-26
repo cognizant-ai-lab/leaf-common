@@ -112,11 +112,14 @@ steps:
             - mkdir -p ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}
             - cd dist && mv leaf_common*.whl ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}
 
-    push_wheel_to_release:
-        title: Push wheel file to Release archive
-        image: alpine:3.13.1
-        commands:
-            - ls ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}
+    uploadToS3:
+        title: Upload Wheel to S3
+        type: aws-s3
+        arguments:
+            REGION: us-west-2
+            BUCKET: leaf-unileaf-wheels
+            S3_INTEGRATION: amazon
+            SOURCE: ${{CF_BUILD_ID}}
         
     end_clean:
         title: Clean up CodeFresh volume
