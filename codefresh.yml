@@ -7,20 +7,20 @@ steps:
         commands:
             - rm -rf '${{CF_REPO_NAME}}' venv
 
-    setup_s3_creds:
-        description: "Set up aws credentials to upload video to s3"
-        image: python:3.11.1-buster
-        commands:
-            - pip3 install -q awscli --cache-dir=${{CF_VOLUME_PATH}}/pip-cache
-            - |
-              cat << EOF > ${{CF_VOLUME_PATH}}/credentials
-              [login]
-              aws_access_key_id = ${AWS_ACCESS_KEY_ID}
-              aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
-              [LeafCI]
-              role_arn = arn:aws:iam::613076437200:role/LeafCI
-              source_profile = login
-              EOF
+    #setup_s3_creds:
+    #    description: "Set up aws credentials to upload video to s3"
+    #    image: python:3.11.1-buster
+    #    commands:
+    #        - pip3 install -q awscli --cache-dir=${{CF_VOLUME_PATH}}/pip-cache
+    #        - |
+    #          cat << EOF > ${{CF_VOLUME_PATH}}/credentials
+    #          [login]
+    #          aws_access_key_id = ${AWS_ACCESS_KEY_ID}
+    #          aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
+    #          [LeafCI]
+    #          role_arn = arn:aws:iam::613076437200:role/LeafCI
+    #          source_profile = login
+    #          EOF
  
     clone_leaf-common:
         type: git-clone
@@ -127,22 +127,23 @@ steps:
             - mkdir -p ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}
             - cd dist && mv leaf_common*.whl ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}
 
-    #uploadToS3:
-    #    title: Upload Wheel to S3
-    #    type: aws-s3
-    #    arguments:
-    #        REGION: us-west-2
-    #        BUCKET: leaf-unileaf-wheels
-    #        S3_INTEGRATION: amazon
-    #        S3_PREFIX: leaf-common/
-    #        SOURCE: ${{CF_BUILD_ID}}
-    upload_to_S3:
-        description: "Upload video to s3"
-        image: python:3.11.1-buster
-        commands:
-            - export AWS_SHARED_CREDENTIALS_FILE=${{CF_VOLUME_PATH}}/credentials
-            - pip3 install -q awscli --cache-dir=${{CF_VOLUME_PATH}}/pip-cache
-            - aws s3 sync ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}} s3://leaf-unileaf-wheels/leaf-common/ --region us-west-2 --profile LeafCI
+    upload-to-S3:
+        title: Upload Wheel to S3
+        type: aws-s3
+        arguments:
+            REGION: us-west-2
+            BUCKET: leaf-unileaf-wheels
+            S3_INTEGRATION: amazon
+            S3_PREFIX: leaf_common/
+            SOURCE: $${{CF_VOLUME_PATH}}/{{CF_BUILD_ID}}
+
+    #upload_to_S3:
+    #    description: "Upload video to s3"
+    #    image: python:3.11.1-buster
+    #    commands:
+    #        - export AWS_SHARED_CREDENTIALS_FILE=${{CF_VOLUME_PATH}}/credentials
+    #        - pip3 install -q awscli --cache-dir=${{CF_VOLUME_PATH}}/pip-cache
+    #        - aws s3 sync ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}} s3://leaf-unileaf-wheels/leaf-common/ --region us-west-2 --profile LeafCI
 
     end_clean:
         title: Clean up CodeFresh volume
