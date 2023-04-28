@@ -1,12 +1,16 @@
 version: '1.0'
 steps:
-    start_clean:
-        title: Clean up CodeFresh volume
+    prepare_for_build:
+        title: Housekeeping tasks to prepare for build
         # Images come from hierarchy at: https://github.com/docker-library/python
-        image: python:3.10-slim
+        image: alpine:3.13.1
         commands:
+            # make sure there is no venv in place
             - rm -rf '${{CF_REPO_NAME}}' venv
-
+            # set the wheel package name which is the
+            # the repo name, but with underscores instead of dashes
+            - cf_export PACKAGE_NAME=`echo ${{CF_REPO_NAME}} | sed s/-/_/`
+ 
     clone_leaf-common:
         type: git-clone
         title: Clone leaf-common
@@ -97,9 +101,34 @@ steps:
                         steps.run_flake8.result == 'failure' ||
                         steps.run_unit_tests == 'failure' ||
                         steps.run_all_tests == 'failure'
+    
+    build_wheel:
+        title: Build wheel file
+        image: python:3.10-slim
+        shell: bash
+        description: Build wheel file for distribution
+        commands:
+            - export VENV=./venv/codefresh
+            - source $VENV/bin/activate
+            - pip install build wheel
+            - cd '${{CF_REPO_NAME}}'
+            - python -m build --wheel
+            - mkdir -p ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}
+            - cd dist && mv ${PACKAGE_NAME}*.whl ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}
+
+    upload-to-S3:
+        title: Upload Wheel to S3
+        type: aws-s3
+        arguments:
+            REGION: us-west-2
+            BUCKET: ${{UNILEAF_WHEEL_BUCKET}}
+            S3_INTEGRATION: amazon
+            S3_PREFIX: ${{PACKAGE_NAME}}/
+            SOURCE: ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}
 
     end_clean:
         title: Clean up CodeFresh volume
         image: python:3.10-slim
         commands:
             - rm -rf '${{CF_REPO_NAME}}' venv
+            - rm -rf ${{CF_VOLUME_PATH}}/${{CF_BUILD_ID}}
