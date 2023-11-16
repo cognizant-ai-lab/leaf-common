@@ -9,6 +9,9 @@
 # leaf-distributed SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comment for details.
+"""
 
 from unittest import TestCase
 
@@ -21,17 +24,29 @@ class DictionaryRedactorTest(TestCase):
     """
 
     def setUp(self):
+        """
+        Test setup
+        """
         self.redactor = DictionaryRedactor()
 
     def test_assumptions(self):
+        """
+        Test basic assumption
+        """
         self.assertIsNotNone(self.redactor)
 
     def is_redacted(self, safe_dict, key):
+        """
+        Checks if key is redacted in dictionary.
+        """
         value = safe_dict.get(key, None)
         is_redacted = value == "<redacted>"
         return is_redacted
 
     def test_redact_dictionary(self):
+        """
+        Test redacting Python dictionary
+        """
 
         unsafe_dict = {
             "unredacted": "value in the clear",
@@ -60,6 +75,9 @@ class DictionaryRedactorTest(TestCase):
         self.assertTrue(self.is_redacted(safe_dict, "COMPLETION_SERVICE_SOURCE_CREDENTIALS"))
 
     def test_redact_tree(self):
+        """
+        Test redacting general Python tree
+        """
 
         unsafe_tree = {
             "unredacted": "value in the clear",
@@ -100,5 +118,3 @@ class DictionaryRedactorTest(TestCase):
         self.assertTrue(self.is_redacted(safe_tree, "AWS_ACCESS_KEY_ID"))
         self.assertTrue(self.is_redacted(safe_tree, "AWS_SECRET_ACCESS_KEY"))
         self.assertTrue(self.is_redacted(safe_tree, "COMPLETION_SERVICE_SOURCE_CREDENTIALS"))
-
-        
