@@ -83,7 +83,7 @@ class DictionaryRedactorTest(TestCase):
             "unredacted": "value in the clear",
             "part1": [
                 {"ENN_AUTH_CLIENT_ID": "oh this is sooo secret",
-                "ENN_AUTH_CLIENT_PASS": "oh this is sooo secret"}
+                 "ENN_AUTH_CLIENT_PASS": "oh this is sooo secret"}
             ],
             "ENN_LOGIN_USER": "oh this is sooo secret",
             "ENN_USERNAME": "oh this is sooo secret",
