@@ -25,6 +25,11 @@ from leaf_common.representation.rule_based.data.rules_constants import RulesCons
 class RuleSetBindingEvaluator(ComponentEvaluator):
     """
     A wrapper for rules-based model predictions computation
+
+    Also worth noting that invocation of the evaluate() method
+    can result in the following fields on RuleSet being changed:
+        * times_applied
+    Also each Rule's times_applied and age_state can change.
     """
 
     def evaluate(self, component: object, evaluation_data: object) -> object:
