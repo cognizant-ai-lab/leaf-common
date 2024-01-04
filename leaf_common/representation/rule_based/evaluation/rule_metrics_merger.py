@@ -9,6 +9,9 @@
 # Cognizant Digital Business EAI organization.
 #
 # END COPYRIGHT
+"""
+See class comment for details
+"""
 
 from copy import deepcopy
 
