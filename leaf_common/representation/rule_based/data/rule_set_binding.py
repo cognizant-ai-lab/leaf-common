@@ -32,6 +32,8 @@ class RuleSetBinding:
         :param rules: The RuleSet to bind to states and actions.
                 Note: If you care about immutability during evaluation,
                       consider doing a deepcopy() before passing in this argument.
+                      If you go this route, consider using the RuleSetMetricsMerger
+                      to properly update metrics during evaluation.
         :param states: model features encoded w.r.t. categorical values
         :param actions: model actions encoded w.r.t. categorical values
         """
