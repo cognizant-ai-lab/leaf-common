@@ -11,8 +11,8 @@
 # END COPYRIGHT
 """ Domain-specific binding for RuleSet context and actions."""
 
-import copy
 from typing import Dict
+
 from leaf_common.representation.rule_based.data.rule_set import RuleSet
 
 
@@ -28,12 +28,16 @@ class RuleSetBinding:
                  actions: Dict[str, str]):
         """
         Creates a binding for given RuleSet
+
+        :param rules: The RuleSet to bind to states and actions.
+                Note: If you care about immutability during evaluation,
+                      consider doing a deepcopy() before passing in this argument.
         :param states: model features encoded w.r.t. categorical values
         :param actions: model actions encoded w.r.t. categorical values
         """
-        self.rules = copy.deepcopy(rules)
-        self.states = copy.deepcopy(states)
-        self.actions = copy.deepcopy(actions)
+        self.rules = rules
+        self.states = states
+        self.actions = actions
         self.key = RuleSetBinding.RuleSetBindingKey
 
     # Class-specific key for verification of persist/restore operations
