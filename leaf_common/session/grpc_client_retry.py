@@ -308,7 +308,14 @@ class GrpcClientRetry():
                 # Always close the channel
                 # We do not necessarily want a new token just
                 # because there is a retry situation.
-                self.close_channel()
+                #
+                # However, we don't want to close the channel if the response
+                # is a Future (stream handle) because the response needs the
+                # channel open in order to get any remaining results.
+                # In these cases it is the responsibility of the caller
+                # to call close_channel() when they are done with the Future.
+                if not isinstance(response, grpc.Future):
+                    self.close_channel()
 
         return response
 
