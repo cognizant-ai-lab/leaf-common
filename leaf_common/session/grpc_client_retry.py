@@ -273,6 +273,7 @@ class GrpcClientRetry():
                             raise
 
                 elif isinstance(exception, KeyError):
+                    # Checkmarx: Not Exploitable
                     # Checkmarx flags this as a "Filtering Sensitive Logs" Risk
                     # This is a false positive.   No actual user information is
                     # output in the log message. In fact, it's a helpful message
@@ -345,6 +346,7 @@ class GrpcClientRetry():
                 # Consider a case where we were not authenticated
                 # and never had a token in the first place.
 
+                # Checkmarx: Not Exploitable
                 # Checkmarx flags this as a "Filtering Sensitive Logs" Risk
                 # This is a false positive.   No actual user information is
                 # output in the log message. In fact, it's a helpful message
