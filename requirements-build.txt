@@ -29,5 +29,5 @@ pytest==7.2.2
 pytest-timer==0.0.11
 
 # Packaging
-setuptools==67.6.1
+setuptools==70.0.0
 
