@@ -218,6 +218,8 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
     def _get_rsa_key(self, unverified_header: str) -> str:
         """
         Opens an HTTP connection to the auth_domain to get the rsa_key
+        and returns it as a PEM formatted string.
+
         :param unverified_header:  The unverified_header from a previous call
                     to _get_unverified_header() above.
         :returns: A pem-formatted version of the rsa key
