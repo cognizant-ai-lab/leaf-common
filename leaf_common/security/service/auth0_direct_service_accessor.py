@@ -88,7 +88,8 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         # See https://auth0.com/blog/how-to-handle-jwt-in-python/#How-to-Verify-a-JWT
         unverified_header, token = self._get_unverified_header_and_token()
 
-        rsa_key = self._get_rsa_key(unverified_header)
+        # This comes back as a string with the key in PEM format
+        rsa_key: str = self._get_rsa_key(unverified_header)
 
         # Will raise an exception on any validation failures
         alg = unverified_header.get("alg", None)
@@ -102,6 +103,7 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
                                                  self.auth0_defaults.get("auth_audience"))
 
         # If we can do this without an exception, then it's verified
+        # Hence, we don't really care about the output.
         _ = jwt.decode(token, key=rsa_key, algorithms=alg, audience=auth_audience)
 
         return token
