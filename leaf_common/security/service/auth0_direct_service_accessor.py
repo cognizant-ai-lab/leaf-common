@@ -201,12 +201,14 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         """
         Riffed from: https://github.com/jpf/okta-jwks-to-pem/blob/master/jwks_to_pem.py
         """
+        # Honestly have no idea what's happening here, but per the riff source, it works.
         return int(''.join(["%02x" % byte for byte in arr]), 16)
 
     def base64_to_long(self, data):
         """
         Riffed from: https://github.com/jpf/okta-jwks-to-pem/blob/master/jwks_to_pem.py
         """
+        # Honestly have no idea what's happening here, but per the riff source, it works.
         mybytes = bytearray(data, "utf-8")
         mybytes += b'=='
         _d = base64.urlsafe_b64decode(mybytes)
