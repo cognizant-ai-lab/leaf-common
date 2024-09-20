@@ -20,8 +20,7 @@ import json
 import logging
 import threading
 
-from jose import jwt
-from jose import jws
+import jwt
 
 from leaf_common.security.service.service_accessor import ServiceAccessor
 from leaf_common.time.timeout import Timeout
@@ -80,6 +79,8 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         the gRPC interface in use.
         :return: The token.
         """
+        # See https://auth0.com/blog/how-to-handle-jwt-in-python/#How-to-Verify-a-JWT
+
         unverified_header, token = self._get_unverified_header_and_token()
 
         rsa_key = self._get_rsa_key(unverified_header)
@@ -88,7 +89,11 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         alg = rsa_key.get("alg", None)
         if not alg:
             token = None
-        jws.verify(token, rsa_key, alg)
+        else:
+            alg = [alg]
+
+        # If we can do this without an exception, then it's verified
+        _ = jwt.decode(token, key=rsa_key, algorithms=alg)
 
         return token
 

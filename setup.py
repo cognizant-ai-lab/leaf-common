@@ -7,7 +7,7 @@ import sys
 
 from setuptools import setup, find_packages
 
-LIBRARY_VERSION = "1.2.4"
+LIBRARY_VERSION = "1.2.5"
 
 CURRENT_PYTHON = sys.version_info[:2]
 REQUIRED_PYTHON = (3, 10)
@@ -43,7 +43,7 @@ setup(
         "hvac>=1.1.0",
         "pyhocon>=0.3.60",
         "pyOpenSSL>=23.1.1",
-        "python-jose>=3.3.0",
+        "PyJWT>=2.9.0",
         "pytz>=2022.7.1",
         "ruamel.yaml>=0.17.21"
     ],
