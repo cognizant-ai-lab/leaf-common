@@ -15,13 +15,18 @@ See class comment for details.
 from typing import Any
 from typing import Dict
 
+import base64
 import http.client
 import json
 import logging
+import struct
 import threading
 
-from jose import jwt
-from jose import jws
+import jwt
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicNumbers
 
 from leaf_common.security.service.service_accessor import ServiceAccessor
 from leaf_common.time.timeout import Timeout
@@ -80,15 +85,26 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         the gRPC interface in use.
         :return: The token.
         """
+        # See https://auth0.com/blog/how-to-handle-jwt-in-python/#How-to-Verify-a-JWT
         unverified_header, token = self._get_unverified_header_and_token()
 
-        rsa_key = self._get_rsa_key(unverified_header)
+        # This comes back as a string with the key in PEM format
+        rsa_key: str = self._get_rsa_key(unverified_header)
 
         # Will raise an exception on any validation failures
-        alg = rsa_key.get("alg", None)
+        alg = unverified_header.get("alg", None)
         if not alg:
             token = None
-        jws.verify(token, rsa_key, alg)
+        else:
+            alg = [alg]
+
+        # Need proper audience otherwise we get errors
+        auth_audience = self.security_config.get("auth_audience",
+                                                 self.auth0_defaults.get("auth_audience"))
+
+        # If we can do this without an exception, then it's verified
+        # Hence, we don't really care about the output.
+        _ = jwt.decode(token, key=rsa_key, algorithms=alg, audience=auth_audience)
 
         return token
 
@@ -180,7 +196,52 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
 
         return unverified_header, token
 
+    @staticmethod
+    def intarr2long(arr):
+        """
+        Riffed from: https://github.com/jpf/okta-jwks-to-pem/blob/master/jwks_to_pem.py
+        """
+        # Honestly have no idea what's happening here, but per the riff source, it works.
+        # pylint: disable=consider-using-f-string
+        return int(''.join(["%02x" % byte for byte in arr]), 16)
+
+    def base64_to_long(self, data):
+        """
+        Riffed from: https://github.com/jpf/okta-jwks-to-pem/blob/master/jwks_to_pem.py
+        """
+        # Honestly have no idea what's happening here, but per the riff source, it works.
+        mybytes = bytearray(data, "utf-8")
+        mybytes += b'=='
+        _d = base64.urlsafe_b64decode(mybytes)
+        # pylint: disable=consider-using-f-string
+        mylong = self.intarr2long(struct.unpack('%sB' % len(_d), _d))
+        return mylong
+
     def _get_rsa_key(self, unverified_header: str) -> str:
+        """
+        Opens an HTTP connection to the auth_domain to get the rsa_key
+        and returns it as a PEM formatted string.
+
+        :param unverified_header:  The unverified_header from a previous call
+                    to _get_unverified_header() above.
+        :returns: A pem-formatted version of the rsa key
+        """
+        rsa_key_dict: Dict[str, Any] = self._get_rsa_key_dict(unverified_header)
+
+        # Riffed from: https://github.com/jpf/okta-jwks-to-pem/blob/master/jwks_to_pem.py
+        raw_exp = rsa_key_dict['e']
+        exponent = self.base64_to_long(raw_exp)
+
+        raw_mod = rsa_key_dict['n']
+        modulus = self.base64_to_long(raw_mod)
+
+        numbers = RSAPublicNumbers(exponent, modulus)
+        public_key = numbers.public_key(backend=default_backend())
+        pem = public_key.public_bytes(encoding=serialization.Encoding.PEM,
+                                      format=serialization.PublicFormat.SubjectPublicKeyInfo)
+        return pem
+
+    def _get_rsa_key_dict(self, unverified_header: str) -> Dict[str, Any]:
         """
         Opens an HTTP connection to the auth_domain to get the rsa_key
         :param unverified_header:  The unverified_header from a previous call
