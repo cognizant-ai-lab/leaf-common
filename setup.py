@@ -38,6 +38,7 @@ setup(
         # Specifically use >= to specify a base version we know works
         # while allowing code that depends on this library to upgrade
         # versions as they see fit.
+        "cryptography>=42.0.8",
         "Deprecated>=1.2.13",
         "grpcio>=1.48.2",
         "hvac>=1.1.0",
