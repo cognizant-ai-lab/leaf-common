@@ -202,6 +202,7 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         Riffed from: https://github.com/jpf/okta-jwks-to-pem/blob/master/jwks_to_pem.py
         """
         # Honestly have no idea what's happening here, but per the riff source, it works.
+        # pylint: disable=consider-using-f-string
         return int(''.join(["%02x" % byte for byte in arr]), 16)
 
     def base64_to_long(self, data):
@@ -212,6 +213,7 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
         mybytes = bytearray(data, "utf-8")
         mybytes += b'=='
         _d = base64.urlsafe_b64decode(mybytes)
+        # pylint: disable=consider-using-f-string
         mylong = self.intarr2long(struct.unpack('%sB' % len(_d), _d))
         return mylong
 
