@@ -43,5 +43,5 @@ class DictionaryExtractor():
         :return: the value of the field in the dictionary or
             None if the field did not exist.
         """
-        return self.extractor(self.my_dict, field_name, default_value=default_value,
-                              delimiter=self.delimiter)
+        return self.extractor.get_field(self.my_dict, field_name, default_value=default_value,
+                                        delimiter=self.delimiter)
