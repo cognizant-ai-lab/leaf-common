@@ -32,6 +32,7 @@ class DictionaryExtractor():
         :param delimiter: a delimiting character for splitting deep-dictionary keys
         """
         self.my_dict: Dict[str, Any] = dictionary
+        self.delimiter: str = delimiter
         self.extractor = FieldExtractor()
 
     def get(self, field_name, default_value=None):
