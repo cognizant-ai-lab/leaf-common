@@ -61,7 +61,6 @@ class RuleSetBindingEvaluator(ComponentEvaluator):
                 data_dictionary[key] = data[int(key)][data_index]
             actions_dict = evaluator.choose_action(model.rules, data_dictionary)
             actions = []
-            actions_dict = dict(sorted(actions_dict.items(), key=lambda x: int(x[0])))
             for action in actions_dict.values():
                 if action[RulesConstants.ACTION_COUNT_KEY] > 0:
                     actions.append(action[RulesConstants.ACTION_COEFFICIENT_KEY] /

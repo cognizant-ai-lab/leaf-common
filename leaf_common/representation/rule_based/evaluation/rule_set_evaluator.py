@@ -196,6 +196,11 @@ class RuleSetEvaluator(ComponentEvaluator):
         action_to_perform = self.parse_rules(rule_set)
         self._set_action_in_state(action_to_perform,
                                   self._observation_history[len(self._observation_history) - 1])
+        # Make sure the dict keys are sorted based on their numeric (and not string) values
+        # E.g., we don't want a case where the keys are in this order: '1','10','2'
+        # They should be in this order: '1', '2', '10', as, unfortunately, some upstream
+        # logic relies on the numeric ordering
+        action_to_perform = dict(sorted(action_to_perform.items(), key=lambda x: int(x[0])))
         return action_to_perform
 
     def reset(self) -> None:
