@@ -60,6 +60,6 @@ class ConfigFilterChain(ConfigFilter):
 
         # Go through the filter chain
         for one_filter in self._filters:
-            filtered = one_filter.filter(filtered)
+            filtered = one_filter.filter_config(filtered)
 
         return filtered
