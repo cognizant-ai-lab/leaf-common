@@ -1,14 +1,15 @@
+"""
+Copyright (C) 2021-2023 Cognizant Digital Business, Evolutionary AI.
+All Rights Reserved.
+Issued under the Academic Public License.
 
-# Copyright (C) 2021-2023 Cognizant Digital Business, Evolutionary AI.
-# All Rights Reserved.
-# Issued under the Academic Public License.
-#
-# You can be released from the terms, and requirements of the Academic Public
-# License by purchasing a commercial license.
-# Purchase of a commercial license is mandatory for any use of the
-# unileaf-util SDK Software in commercial settings.
-#
-# END COPYRIGHT
+You can be released from the terms, and requirements of the Academic Public
+License by purchasing a commercial license.
+Purchase of a commercial license is mandatory for any use of the
+unileaf-util SDK Software in commercial settings.
+
+END COPYRIGHT
+"""
 
 from leaf_common.filters.inclusionary_replacement_string_filter import InclusionaryReplacementStringFilter
 from leaf_common.filters.composite_string_filter import CompositeStringFilter
