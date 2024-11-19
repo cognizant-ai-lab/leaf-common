@@ -38,5 +38,8 @@ pyhocon>=0.3.60
 # For deprecated decorator use
 Deprecated>=1.2.13
 
+# Other dependencies
+numpy==1.24.4
+
 # Keep pandas at 1.5.3 for pandasai 1.5.21 compatibility
 pandas==1.5.3
