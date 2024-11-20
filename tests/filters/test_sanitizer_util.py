@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from leaf_common.data.util.sanitizer_util import SanitizeUtil
+from leaf_common.filters.sanitizer_util import SanitizeUtil
 
 
 class TestSanitizerUtil(TestCase):
@@ -47,30 +47,3 @@ class TestSanitizerUtil(TestCase):
         sanitized_input_dict = SanitizeUtil.sanitize_dict_keys(input_dict)
         print(f"sanitized_input_dict: {sanitized_input_dict}")
         self.assertDictEqual(expected_output_dict, sanitized_input_dict)
-
-    def test_sanitize_cao_mapping_no_sanitization(self):
-        """
-        Test case where no sanitization happens in a cao mapping
-        """
-
-        input_cao_mapping = {"context": ["PassengerId", "Pclass", "Name", "Sex", "Age"],
-                             "actions": ["Fare"],
-                             "outcomes": ["Survived"]}
-
-        sanitized_input_cao_mapping = SanitizeUtil.sanitize_cao_mapping(input_cao_mapping)
-        self.assertDictEqual(input_cao_mapping, sanitized_input_cao_mapping)
-
-    def test_sanitize_cao_mapping_with_sanitization(self):
-        """
-        Test case where sanitization happens in a cao mapping
-        """
-
-        input_cao_mapping = {"context": ["Passenger/Id", "@Pclass#", "Name", "Sex", "Age"],
-                             "actions": ["!Fare!"],
-                             "outcomes": [" Sur vived "]}
-        expected_output_cao_mapping = {"context": ["PassengersolId", "commatPclassnum", "Name", "Sex", "Age"],
-                                       "actions": ["notFarenot"],
-                                       "outcomes": ["Sur_vived"]}
-
-        sanitized_input_cao_mapping = SanitizeUtil.sanitize_cao_mapping(input_cao_mapping)
-        self.assertDictEqual(expected_output_cao_mapping, sanitized_input_cao_mapping)

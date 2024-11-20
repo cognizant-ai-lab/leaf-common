@@ -1,34 +1,12 @@
 from copy import deepcopy
 from typing import Dict
+from typing import List
 
-from leaf_common.data.profiling.column_name_sanitizer_transformation \
-    import ColumnNameSanitizerTransformation
+from leaf_common.filters.string_filter import StringFilter
 from leaf_common.filters.tensorflow_field_name_filter import TensorFlowFieldNameFilter
 
 
-class SanitizeUtil:
-    """
-    Utility methods for sanitizing special characters per Keras/TensorFlow requirements
-    """
-
-    @staticmethod
-    def sanitize_cao_mapping(cao_mapping: Dict[str, list[str]]) -> Dict[str, list[str]]:
-        """
-        'Sanitizes' the given CAO mapping per Keras/TensorFlow requirements
-
-        :param cao_mapping: The original cao_mapping to potentially sanitize
-            This is not modified on output at all.
-        :return: A potentially sanitized copy of the cao_mapping
-        """
-        # Sanitize while specifically not modifying the input
-        sanitized_cao_mapping = deepcopy(cao_mapping)
-
-        # Sanitize context/actions/outcomes lists and place them in the output dictionary
-        sanitized_cao_mapping['context'] = SanitizeUtil.sanitize_list(cao_mapping['context'])
-        sanitized_cao_mapping['actions'] = SanitizeUtil.sanitize_list(cao_mapping['actions'])
-        sanitized_cao_mapping['outcomes'] = SanitizeUtil.sanitize_list(cao_mapping['outcomes'])
-
-        return sanitized_cao_mapping
+class SanitizeUtil():
 
     @staticmethod
     def sanitize_dict_keys(fields: Dict[str, Dict]) -> Dict[str, Dict]:
@@ -49,7 +27,7 @@ class SanitizeUtil:
         # sanitize_column_names() takes a list of column names as input, and
         # returns a dictionary as output. The keys in the dictionary are column names, and
         # the values in the dictionary are (potentially) sanitized column names
-        field_names_sanitized = ColumnNameSanitizerTransformation.sanitize_column_names(field_names, sanitizer)
+        field_names_sanitized = SanitizeUtil.sanitize_column_names(field_names, sanitizer)
 
         # This code block populates a new dictionary, whose keys are (potentially) sanitized
         # version of the input dictionary and whose values are unchanged.
@@ -85,10 +63,36 @@ class SanitizeUtil:
         # sanitize_column_names() takes a list of column names as input, and
         # returns a dictionary as output. The keys in the dictionary are column names, and
         # the values in the dictionary are (potentially) sanitized column names
-        sanitized_input_dict = ColumnNameSanitizerTransformation.sanitize_column_names(input_list, sanitizer)
+        sanitized_input_dict = SanitizeUtil.sanitize_column_names(input_list, sanitizer)
 
         # Iterate over input list and update the output list entries that are sanitized
         for idx, item in enumerate(input_list):
             sanitized_input[idx] = sanitized_input_dict[item]
 
         return sanitized_input
+
+    @staticmethod
+    def sanitize_column_names(column_names: List[str],
+                              sanitizer: StringFilter) -> Dict[str, str]:
+        """
+        Creates a dictionary of unsanitized column names to sanitized column
+        names where the column name values are sanitized by some specified
+        criteria.
+
+        :param column_names: A List of column names to sanitize.
+        :param sanitizer: A StringFilter implementation that will sanitize
+                        the column name.
+        :return: A new dictionary where the keys are old column names and the
+                 values are new sanitized column names.  If no sanitization
+                 needs to be done, then the value will be the same as they key.
+        """
+
+        # Per https://stackoverflow.com/questions/39980323/are-dictionaries-ordered-in-python-3-6
+        # Dictionary keys are returned in the order they are inserted, so if we do depend on
+        # ordering of the new dictionary we should be ok.
+        sanitized = {}
+        for column_name in column_names:
+            sanitized_column_name = sanitizer.filter(column_name)
+            sanitized[column_name] = sanitized_column_name
+
+        return sanitized
