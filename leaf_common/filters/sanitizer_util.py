@@ -19,6 +19,9 @@ from leaf_common.filters.tensorflow_field_name_filter import TensorFlowFieldName
 
 
 class SanitizeUtil():
+    """
+    Utility methods for sanitizing special characters in data source column names
+    """
 
     @staticmethod
     def sanitize_dict_keys(fields: Dict[str, Dict]) -> Dict[str, Dict]:
