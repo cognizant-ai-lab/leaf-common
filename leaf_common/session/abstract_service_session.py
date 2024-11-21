@@ -130,7 +130,8 @@ class AbstractServiceSession:
     def call_grpc_method(self, method_name: str,
                          stub_method_callable: Any,
                          request: Any,
-                         request_instance: Any = None) -> Any:
+                         request_instance: Any = None,
+                         verbose: bool = True) -> Any:
         """
         :param method_name: The name of the gRPC method call for logging purposes
         :param stub_method_callable: a global-scope method whose signature looks
@@ -150,6 +151,8 @@ class AbstractServiceSession:
                         if present.
         :param request_instance: If present serves as the storage point for converting
                     a request dictionary to the request structure.
+        :param verbose: When True, connection logging is issued. This is the default.
+                        Pass False for connections with sensitive logs.
         :return: If this method received a dictionary request, then it will return
                 a response in dictionary form if the method call was successful.
                 If this method received a gRPC Request structure, then it will return a
@@ -157,10 +160,11 @@ class AbstractServiceSession:
                 In either case if the call was unsuccessful, the return value will be None.
         """
         logger = logging.getLogger(__name__)
-        # Checkmarx flags this as a source for Filtering Sensitive Logs path 5
-        # This is a False Positive, as we are merely abstractly logging a
-        # service method name and no secrets themselves.
-        logger.debug("Calling %s() on the %s", method_name, str(self.name))
+        if verbose:
+            # Checkmarx flags this as a source for Filtering Sensitive Logs path 5
+            # This is a False Positive, as we are merely abstractly logging a
+            # service method name and no secrets themselves.
+            logger.debug("Calling %s() on the %s", method_name, str(self.name))
 
         grpc_request = request
         is_dictionary_request = isinstance(request, Dict)
@@ -179,12 +183,14 @@ class AbstractServiceSession:
         response = self._poll_for_response(method_name,
                                            stub_method_callable,
                                            rpc_method_args,
-                                           want_dictionary_response=is_dictionary_request)
+                                           want_dictionary_response=is_dictionary_request,
+                                           verbose=verbose)
 
-        # Checkmarx flags this as a dest for Filtering Sensitive Logs path 6
-        # This is a False Positive, as we are merely abstractly logging a
-        # service method name and no secrets themselves.
-        logger.debug("Successfully called %s().", method_name)
+        if verbose:
+            # Checkmarx flags this as a dest for Filtering Sensitive Logs path 6
+            # This is a False Positive, as we are merely abstractly logging a
+            # service method name and no secrets themselves.
+            logger.debug("Successfully called %s().", method_name)
         return response
 
     def _build_request_metadata(self, metadata):
@@ -210,10 +216,11 @@ class AbstractServiceSession:
         external_metadata_list.append((request_routing_key, self.request_version))
         return GrpcMetadataUtil.to_tuples(external_metadata_list)
 
-    def _poll_for_response(self, method_name: str,
+    def _poll_for_response(self, method_name: str,      # noqa: C901
                            stub_method_callable: Any,
                            rpc_method_args: List[Any],
-                           want_dictionary_response: bool = True):
+                           want_dictionary_response: bool = True,
+                           verbose: bool = True):
         """
         Will call the given stub_method_callable with the rpc_method_args and
         wait for a result with a valid response dictionary to come back.
@@ -244,12 +251,15 @@ class AbstractServiceSession:
         :param want_dictionary_response: When True (the default) a dictionary
                     version of the gRPC response is returned.  When False,
                     the raw gRPC response is returned.
+        :param verbose: When True, connection logging is issued. This is the default.
+                        Pass False for connections with sensitive logs.
         :return: a dictionary or gRPC response structure corresponding to the
                 response message from the GPC method call.
         """
 
         response_dict = None
         response = None
+        logger = logging.getLogger(__name__)
 
         keep_trying = True
         while keep_trying and \
@@ -269,11 +279,11 @@ class AbstractServiceSession:
                 raise exception
 
             except Exception:       # pylint: disable=broad-except
-                logger = logging.getLogger(__name__)
-                # Checkmarx flags this as a dest for Filtering Sensitive Logs path 4
-                # This is a False Positive, as we are merely abstractly logging a
-                # service method name and no secrets themselves.
-                logger.info("Assuming %s request submitted.", str(method_name))
+                if verbose:
+                    # Checkmarx flags this as a dest for Filtering Sensitive Logs path 4
+                    # This is a False Positive, as we are merely abstractly logging a
+                    # service method name and no secrets themselves.
+                    logger.info("Assuming %s request submitted.", str(method_name))
                 # Otherwise pass
 
             # Read the initial response
@@ -294,12 +304,12 @@ class AbstractServiceSession:
 
             if (want_dictionary_response and response_dict is None) or \
                     response is None:
-                logger = logging.getLogger(__name__)
-                # Checkmarx flags this as a dest for Filtering Sensitive Logs path 3
-                # This is a False Positive, as we are merely abstractly logging a
-                # service method name and no secrets themselves.
-                logger.info("No %s response yet. Retrying %s request.",
-                            str(method_name), str(method_name))
+                if verbose:
+                    # Checkmarx flags this as a dest for Filtering Sensitive Logs path 3
+                    # This is a False Positive, as we are merely abstractly logging a
+                    # service method name and no secrets themselves.
+                    logger.info("No %s response yet. Retrying %s request.",
+                                str(method_name), str(method_name))
                 keep_trying = True
             else:
                 # We got what we wanted
