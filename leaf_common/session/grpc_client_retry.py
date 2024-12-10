@@ -40,7 +40,7 @@ class GrpcClientRetry():
     # Public Enemy #1 for too-many-arguments
     # pylint: disable=too-many-arguments
     # Public Enemy #2 for too-many-instance-attributes
-    # pylint: disable=too-many-instance-attributes
+    # pylint: disable=too-many-instance-attributes,too-many-positional-arguments
     def __init__(self, service_name, service_stub, host, port,
                  timeout_in_seconds=30, poll_interval_seconds=15,
                  max_message_length=-1, limited_retry_set=None,

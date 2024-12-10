@@ -27,7 +27,7 @@ class EasyJsonPersistence(AbstractEasyPersistence):
     extra behaviors on persist() and restore() are implemented.
     """
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self, base_name=None, folder=".", must_exist=False,
                  object_type="dict", dictionary_converter=None,
                  use_file_extension=None,

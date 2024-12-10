@@ -129,7 +129,7 @@ class Condition:  # pylint: disable=too-many-instance-attributes
         the_string = f'{name}{look_back} {operator} {category}'
         return the_string
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def _condition_part_to_string(self, coeff: float, key: str, lookback: int, exponent: int,
                                   states: Dict[str, str]) -> str:
         """

@@ -55,7 +55,7 @@ class AbstractServiceSession:
     come directly from a code-generated gRPC Servicer class for the stub.
     """
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self,
                  service_name: str,
                  service_stub: Any,
@@ -127,6 +127,7 @@ class AbstractServiceSession:
 
         self.umbrella_timeout = umbrella_timeout
 
+    # pylint: disable=too-many-positional-arguments
     def call_grpc_method(self, method_name: str,
                          stub_method_callable: Any,
                          request: Any,
@@ -216,6 +217,7 @@ class AbstractServiceSession:
         external_metadata_list.append((request_routing_key, self.request_version))
         return GrpcMetadataUtil.to_tuples(external_metadata_list)
 
+    # pylint: disable=too-many-positional-arguments
     def _poll_for_response(self, method_name: str,      # noqa: C901
                            stub_method_callable: Any,
                            rpc_method_args: List[Any],
