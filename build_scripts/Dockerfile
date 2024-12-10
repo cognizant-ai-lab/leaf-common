@@ -50,7 +50,7 @@ RUN mkdir -p ${APP_SOURCE}
 # We use A COPY step before the pip install in the RUN step so that requirements
 # only changes cause a proper container rebuild.
 COPY --chown=${USERNAME}:${USERNAME} ${EXTERNAL_BUILD_ROOT}/requirements-build.txt ${APP_SOURCE}
-RUN /bin/bash -c "ls ${APP_SOURCE} ; cat ${APP_SOURCE}/requirements-build-txt ; pip3 install -r ${APP_SOURCE}/requirements-build.txt"
+RUN /bin/bash -c "pip3 install -r ${APP_SOURCE}/requirements-build.txt"
 
 COPY --chown=${USERNAME}:${USERNAME} ${EXTERNAL_BUILD_ROOT}/requirements.txt ${APP_SOURCE}
 RUN /bin/bash -c "pip3 install -r ${APP_SOURCE}/requirements.txt"
