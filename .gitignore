@@ -11,10 +11,6 @@ venv3/
 # Python byte code
 *.pyc
 
-# gRPC generated code
-autoseg_grpc/python/generated/
-ascendautoseg/simulator/sandbox/*
-
 # build files
 dist/
 build/
