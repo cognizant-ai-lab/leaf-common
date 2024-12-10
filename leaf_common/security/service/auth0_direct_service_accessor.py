@@ -38,7 +38,7 @@ class Auth0DirectServiceAccessor(ServiceAccessor):
     directly from Auth0 for secure communication between client and service.
     """
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self, security_config: Dict[str, Any] = None,
                  auth0_defaults: Dict[str, Any] = None,
                  service_name: str = None,

@@ -25,7 +25,7 @@ class HoconPersistence(AbstractPersistence):
     saves Hocon data for an object via some persistence mechanism.
     """
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self, persistence_mechanism,
                  use_file_extension=None,
                  reference_pruner=None,

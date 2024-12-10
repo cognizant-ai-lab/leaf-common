@@ -30,7 +30,7 @@ class LoggingSetup():
     """
 
     # Tied for Public Enemy #2 for too-many-arguments
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self, default_log_config_dir=".",
                  default_log_config_file='logging.json',
                  default_log_level='DEBUG',

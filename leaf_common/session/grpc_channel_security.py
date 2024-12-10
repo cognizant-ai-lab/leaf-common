@@ -41,7 +41,7 @@ class GrpcChannelSecurity():
     This class also handles caching of a token as well.
     """
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self, security_cfg: Dict[str, Any] = None,
                  auth0_defaults: Dict[str, Any] = None,
                  service_name: str = None,

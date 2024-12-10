@@ -53,7 +53,7 @@ class PersistenceFactory():
         implementation.
     """
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self, bucket_base="", key_base="", object_type="object",
                  reference_pruner=None, dictionary_converter=None):
         """
@@ -79,7 +79,7 @@ class PersistenceFactory():
         self.dictionary_converter = dictionary_converter
         self.fallback = SerializationFormats.JSON
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def create_persistence(self, persist_dir, persist_file,
                            serialization_format=None,
                            persistence_mechanism=None,

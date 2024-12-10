@@ -33,7 +33,7 @@ class AbstractEasyPersistence(Persistence):
     """
 
     # Tied for Public Enemy #2 for too-many-arguments
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self, serialization_format,
                  base_name=None, folder=".", must_exist=False,
                  object_type="dict", dictionary_converter=None,

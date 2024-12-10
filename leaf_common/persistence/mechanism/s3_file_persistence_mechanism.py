@@ -25,7 +25,7 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
     saves objects to a file on S3.
     """
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self, folder, base_name, must_exist=True,
                  bucket_base="", key_base=""):
 
