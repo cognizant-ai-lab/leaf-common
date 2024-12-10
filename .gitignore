@@ -19,7 +19,6 @@ ascendautoseg/simulator/sandbox/*
 dist/
 build/
 *.egg-info/
-leaf_common-*/
 
 # Vim editor restore files
 *.swp
