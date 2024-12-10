@@ -40,7 +40,7 @@ steps:
 
             # set the wheel package name which is the
             # the repo name, but with underscores instead of dashes
-            - cf_export PACKAGE_NAME=`echo ${{CF_REPO_NAME}} | sed s/-/_/`
+            - cf_export PACKAGE_NAME=`echo ${{CF_REPO_NAME}} | sed s/-/_/g`
 
     repo_build:
         title: "Building Docker image for ${{CF_REPO_NAME}}"
