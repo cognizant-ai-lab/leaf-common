@@ -21,4 +21,4 @@ pylint-protobuf==0.22.0
 build
 setuptools>=70.0.0
 wheel
-setuptoopls-scm==8.1.0
+setuptools-scm==8.1.0
