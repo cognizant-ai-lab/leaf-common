@@ -32,7 +32,7 @@ from leaf_common.session.grpc_metadata_util import GrpcMetadataUtil
 from leaf_common.time.timeout import Timeout
 
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods,too-many-instance-attributes
 class AbstractServiceSession:
     """
     An abstract class which handles the invocation of one or more gRPC
@@ -261,7 +261,7 @@ class AbstractServiceSession:
         external_metadata_list.append((request_routing_key, self.request_version))
         return GrpcMetadataUtil.to_tuples(external_metadata_list)
 
-    # pylint: disable=too-many-positional-arguments
+    # pylint: disable=too-many-positional-arguments,too-many-branches
     def _poll_for_response(self, method_name: str,      # noqa: C901
                            stub_method_callable: Any,
                            rpc_method_args: List[Any],
