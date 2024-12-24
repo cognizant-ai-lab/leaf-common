@@ -144,7 +144,7 @@ class AbstractServiceSession:
 
         self.umbrella_timeout = umbrella_timeout
 
-    # pylint: disable=too-many-positional-arguments
+    # pylint: disable=too-many-positional-arguments,too-many-locals
     def call_grpc_method(self, method_name: str,
                          stub_method_callable: Any,
                          request: Any,
