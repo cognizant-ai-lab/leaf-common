@@ -170,13 +170,21 @@ class AbstractServiceSession:
                         if present.
         :param request_instance: If present serves as the storage point for converting
                     a request dictionary to the request structure.
+        :param stream_response: Default False. When True, the result from the grpc call
+                    is returned as a Generator.
         :param verbose: When True, connection logging is issued. This is the default.
                         Pass False for connections with sensitive logs.
         :return: If this method received a dictionary request, then it will return
                 a response in dictionary form if the method call was successful.
                 If this method received a gRPC Request structure, then it will return a
                 gRPC response structure if the method call was successful.
-                In either case if the call was unsuccessful, the return value will be None.
+
+                When stream_response is True, a Generator of results is returned,
+                even for simple gRPC methods that return a unary response.
+                The Generator will return Dictionary or gRPC message results
+                depending on the criteria described just previously.
+
+                In any case if the call was unsuccessful, the return value will be None.
         """
         logger = logging.getLogger(__name__)
         if verbose:
