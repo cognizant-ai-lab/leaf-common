@@ -15,6 +15,7 @@ See class comment for details.
 
 from typing import Any
 from typing import Dict
+from typing import Generator
 from typing import List
 
 import json
@@ -132,6 +133,7 @@ class AbstractServiceSession:
                          stub_method_callable: Any,
                          request: Any,
                          request_instance: Any = None,
+                         stream_response: bool = False,
                          verbose: bool = True) -> Any:
         """
         :param method_name: The name of the gRPC method call for logging purposes
@@ -187,11 +189,30 @@ class AbstractServiceSession:
                                            want_dictionary_response=is_dictionary_request,
                                            verbose=verbose)
 
+        # The response is a generator of either a single response or a stream of responses.
+        # See if there is any repackaging to do based on output expectations here.
+        if not stream_response:
+            # This waits for all the responses to come over any stream before proceeding
+            response_list = list(response)
+
+            # See what to return based on what the generator has gotten for us
+            length = len(response_list)
+            if length == 0:
+                # Nothing in the list. Assume no response.
+                response = None
+            elif length == 1:
+                # One item in the list. Return it as the response.
+                response = response_list[0] 
+            else:
+                # More than one item in the list.  Return the whole list as a response.
+                response = response_list
+
         if verbose:
             # Checkmarx flags this as a dest for Filtering Sensitive Logs path 6
             # This is a False Positive, as we are merely abstractly logging a
             # service method name and no secrets themselves.
             logger.debug("Successfully called %s().", method_name)
+
         return response
 
     def _build_request_metadata(self, metadata):
@@ -222,7 +243,7 @@ class AbstractServiceSession:
                            stub_method_callable: Any,
                            rpc_method_args: List[Any],
                            want_dictionary_response: bool = True,
-                           verbose: bool = True):
+                           verbose: bool = True) -> Generator:
         """
         Will call the given stub_method_callable with the rpc_method_args and
         wait for a result with a valid response dictionary to come back.
@@ -255,7 +276,7 @@ class AbstractServiceSession:
                     the raw gRPC response is returned.
         :param verbose: When True, connection logging is issued. This is the default.
                         Pass False for connections with sensitive logs.
-        :return: a dictionary or gRPC response structure corresponding to the
+        :return: a generator of a dictionary or gRPC response structure corresponding to the
                 response message from the GPC method call.
         """
 
@@ -289,20 +310,20 @@ class AbstractServiceSession:
                 # Otherwise pass
 
             # Read the initial response
-            if response is not None and want_dictionary_response:
-                if not isinstance(response, grpc.Future):
-                    response_dict = MessageToDict(response)
-                else:
-                    # Assume the response is a '_MultiThreadedRendezvous' from a stream.
-                    # Results are then actually a list
-                    response_list = []
-                    responses = list(response)
-                    self.initial_submission_retry.close_channel()
-                    for one_response in responses:
-                        response_dict = MessageToDict(one_response)
-                        response_list.append(response_dict)
+            if response is not None:
+                if want_dictionary_response:
+                    if not isinstance(response, grpc.Future):
+                        response_dict = MessageToDict(response)
+                    else:
+                        # Assume the response is a '_MultiThreadedRendezvous' from a stream.
+                        # Results are then actually a generator
+                        stream = response
+                        for one_response in stream:
+                            response_dict = MessageToDict(one_response)
+                            yield response_dict
 
-                    response_dict = response_list
+                        self.initial_submission_retry.close_channel()
+                        return
 
             if (want_dictionary_response and response_dict is None) or \
                     response is None:
@@ -319,6 +340,7 @@ class AbstractServiceSession:
 
         if want_dictionary_response:
             # Return the dictionary, cuz that is what was desired
-            return response_dict
+            yield response_dict
+            return
 
-        return response
+        yield response
