@@ -15,6 +15,7 @@ See class comment for details.
 
 from typing import Any
 from typing import Dict
+from typing import Generator
 from typing import List
 
 import json
@@ -31,7 +32,7 @@ from leaf_common.session.grpc_metadata_util import GrpcMetadataUtil
 from leaf_common.time.timeout import Timeout
 
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods,too-many-instance-attributes
 class AbstractServiceSession:
     """
     An abstract class which handles the invocation of one or more gRPC
@@ -64,7 +65,8 @@ class AbstractServiceSession:
                  timeout_in_seconds: int = 30,
                  metadata: Dict[str, str] = None,
                  security_cfg: Dict[str, Any] = None,
-                 umbrella_timeout: Timeout = None):
+                 umbrella_timeout: Timeout = None,
+                 streaming_timeout_in_seconds: int = None):
         """
         Creates an AbstractServiceSession that can connect to the specified
         service_stub and do retires when those calls fail.
@@ -85,6 +87,8 @@ class AbstractServiceSession:
                         GRPC Channel.  Default is None, uses insecure channel.
         :param umbrella_timeout: A Timeout object under which the length of all
                         looping and retries should be considered
+        :param streaming_timeout_in_seconds: timeout to use when communicating
+                with the service and results are streamed back.
         """
         # This version corresponds to a vague notion of cluster version
         # that we want to talk to.  This doesn't necessarily correspond to
@@ -125,13 +129,27 @@ class AbstractServiceSession:
             channel_security=self.channel_security,
             umbrella_timeout=umbrella_timeout)
 
+        self.stream_submission_retry = GrpcClientRetry(
+            service_name=self.name,
+            service_stub=service_stub,
+            host=host,
+            port=port,
+            timeout_in_seconds=streaming_timeout_in_seconds,
+            poll_interval_seconds=self.poll_interval_seconds,
+            limited_retry_set=limited_retry_set,
+            limited_retry_attempts=1,
+            metadata=self.session_metadata,
+            channel_security=self.channel_security,
+            umbrella_timeout=umbrella_timeout)
+
         self.umbrella_timeout = umbrella_timeout
 
-    # pylint: disable=too-many-positional-arguments
+    # pylint: disable=too-many-positional-arguments,too-many-locals
     def call_grpc_method(self, method_name: str,
                          stub_method_callable: Any,
                          request: Any,
                          request_instance: Any = None,
+                         stream_response: bool = False,
                          verbose: bool = True) -> Any:
         """
         :param method_name: The name of the gRPC method call for logging purposes
@@ -152,13 +170,21 @@ class AbstractServiceSession:
                         if present.
         :param request_instance: If present serves as the storage point for converting
                     a request dictionary to the request structure.
+        :param stream_response: Default False. When True, the result from the grpc call
+                    is returned as a Generator.
         :param verbose: When True, connection logging is issued. This is the default.
                         Pass False for connections with sensitive logs.
         :return: If this method received a dictionary request, then it will return
                 a response in dictionary form if the method call was successful.
                 If this method received a gRPC Request structure, then it will return a
                 gRPC response structure if the method call was successful.
-                In either case if the call was unsuccessful, the return value will be None.
+
+                When stream_response is True, a Generator of results is returned,
+                even for simple gRPC methods that return a unary response.
+                The Generator will return Dictionary or gRPC message results
+                depending on the criteria described just previously.
+
+                In any case if the call was unsuccessful, the return value will be None.
         """
         logger = logging.getLogger(__name__)
         if verbose:
@@ -181,17 +207,46 @@ class AbstractServiceSession:
         # Submit the request
         rpc_method_args = [grpc_request]
 
-        response = self._poll_for_response(method_name,
-                                           stub_method_callable,
-                                           rpc_method_args,
-                                           want_dictionary_response=is_dictionary_request,
-                                           verbose=verbose)
+        # Set up the retry we want to use
+        use_retry: GrpcClientRetry = self.initial_submission_retry
+        if stream_response:
+            use_retry = self.stream_submission_retry
+
+        # Make the call
+        # The return value is a generator of either a single response or a stream of responses.
+        generator = self._poll_for_response(method_name,
+                                            stub_method_callable,
+                                            rpc_method_args,
+                                            want_dictionary_response=is_dictionary_request,
+                                            use_retry=use_retry,
+                                            verbose=verbose)
+
+        # By default, return the response as the generator itself.
+        response = generator
+
+        # See if there is any repackaging to do based on output expectations here.
+        if not stream_response:
+            # This waits for all the responses to come over any stream before proceeding
+            response_list = list(response)
+
+            # See what to return based on what the generator has gotten for us
+            length = len(response_list)
+            if length == 0:
+                # Nothing in the list. Assume no response.
+                response = None
+            elif length == 1:
+                # One item in the list. Return it as the response.
+                response = response_list[0]
+            else:
+                # More than one item in the list.  Return the whole list as a response.
+                response = response_list
 
         if verbose:
             # Checkmarx flags this as a dest for Filtering Sensitive Logs path 6
             # This is a False Positive, as we are merely abstractly logging a
             # service method name and no secrets themselves.
             logger.debug("Successfully called %s().", method_name)
+
         return response
 
     def _build_request_metadata(self, metadata):
@@ -217,12 +272,13 @@ class AbstractServiceSession:
         external_metadata_list.append((request_routing_key, self.request_version))
         return GrpcMetadataUtil.to_tuples(external_metadata_list)
 
-    # pylint: disable=too-many-positional-arguments
+    # pylint: disable=too-many-positional-arguments,too-many-branches
     def _poll_for_response(self, method_name: str,      # noqa: C901
                            stub_method_callable: Any,
                            rpc_method_args: List[Any],
                            want_dictionary_response: bool = True,
-                           verbose: bool = True):
+                           use_retry: GrpcClientRetry = None,
+                           verbose: bool = True) -> Generator:
         """
         Will call the given stub_method_callable with the rpc_method_args and
         wait for a result with a valid response dictionary to come back.
@@ -253,15 +309,20 @@ class AbstractServiceSession:
         :param want_dictionary_response: When True (the default) a dictionary
                     version of the gRPC response is returned.  When False,
                     the raw gRPC response is returned.
+        :param use_retry: The GrpcClientRetry to use. Default is None indicating
+                    the instance's initial_submission_retry will be used.
         :param verbose: When True, connection logging is issued. This is the default.
                         Pass False for connections with sensitive logs.
-        :return: a dictionary or gRPC response structure corresponding to the
+        :return: a generator of a dictionary or gRPC response structure corresponding to the
                 response message from the GPC method call.
         """
 
         response_dict = None
         response = None
         logger = logging.getLogger(__name__)
+
+        if use_retry is None:
+            use_retry = self.initial_submission_retry
 
         keep_trying = True
         while keep_trying and \
@@ -273,7 +334,7 @@ class AbstractServiceSession:
 
             try:
                 # Get the initial response from the service method.
-                response = self.initial_submission_retry.must_have_response(
+                response = use_retry.must_have_response(
                     method_name, stub_method_callable, *rpc_method_args)
 
             except KeyboardInterrupt as exception:
@@ -289,20 +350,20 @@ class AbstractServiceSession:
                 # Otherwise pass
 
             # Read the initial response
-            if response is not None and want_dictionary_response:
-                if not isinstance(response, grpc.Future):
-                    response_dict = MessageToDict(response)
-                else:
-                    # Assume the response is a '_MultiThreadedRendezvous' from a stream.
-                    # Results are then actually a list
-                    response_list = []
-                    responses = list(response)
-                    self.initial_submission_retry.close_channel()
-                    for one_response in responses:
-                        response_dict = MessageToDict(one_response)
-                        response_list.append(response_dict)
+            if response is not None:
+                if want_dictionary_response:
+                    if not isinstance(response, grpc.Future):
+                        response_dict = MessageToDict(response)
+                    else:
+                        # Assume the response is a '_MultiThreadedRendezvous' from a stream.
+                        # Results are then actually a generator
+                        stream = response
+                        for one_response in stream:
+                            response_dict = MessageToDict(one_response)
+                            yield response_dict
 
-                    response_dict = response_list
+                        use_retry.close_channel()
+                        return
 
             if (want_dictionary_response and response_dict is None) or \
                     response is None:
@@ -319,6 +380,7 @@ class AbstractServiceSession:
 
         if want_dictionary_response:
             # Return the dictionary, cuz that is what was desired
-            return response_dict
+            yield response_dict
+            return
 
-        return response
+        yield response
