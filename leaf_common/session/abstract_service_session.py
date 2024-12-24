@@ -65,7 +65,8 @@ class AbstractServiceSession:
                  timeout_in_seconds: int = 30,
                  metadata: Dict[str, str] = None,
                  security_cfg: Dict[str, Any] = None,
-                 umbrella_timeout: Timeout = None):
+                 umbrella_timeout: Timeout = None,
+                 streaming_timeout_in_seconds: int = None):
         """
         Creates an AbstractServiceSession that can connect to the specified
         service_stub and do retires when those calls fail.
@@ -86,6 +87,8 @@ class AbstractServiceSession:
                         GRPC Channel.  Default is None, uses insecure channel.
         :param umbrella_timeout: A Timeout object under which the length of all
                         looping and retries should be considered
+        :param streaming_timeout_in_seconds: timeout to use when communicating
+                with the service and results are streamed back.
         """
         # This version corresponds to a vague notion of cluster version
         # that we want to talk to.  This doesn't necessarily correspond to
@@ -119,6 +122,19 @@ class AbstractServiceSession:
             host=host,
             port=port,
             timeout_in_seconds=timeout_in_seconds,
+            poll_interval_seconds=self.poll_interval_seconds,
+            limited_retry_set=limited_retry_set,
+            limited_retry_attempts=1,
+            metadata=self.session_metadata,
+            channel_security=self.channel_security,
+            umbrella_timeout=umbrella_timeout)
+
+        self.stream_submission_retry = GrpcClientRetry(
+            service_name=self.name,
+            service_stub=service_stub,
+            host=host,
+            port=port,
+            timeout_in_seconds=streaming_timeout_in_seconds,
             poll_interval_seconds=self.poll_interval_seconds,
             limited_retry_set=limited_retry_set,
             limited_retry_attempts=1,
@@ -183,10 +199,17 @@ class AbstractServiceSession:
         # Submit the request
         rpc_method_args = [grpc_request]
 
+        # Set up the retry we want to use
+        use_retry: GrpcClientRetry = self.initial_submission_retry
+        if stream_response:
+            use_retry = self.stream_submission_retry
+
+        # Make the call
         response = self._poll_for_response(method_name,
                                            stub_method_callable,
                                            rpc_method_args,
                                            want_dictionary_response=is_dictionary_request,
+                                           use_retry=use_retry,
                                            verbose=verbose)
 
         # The response is a generator of either a single response or a stream of responses.
@@ -243,6 +266,7 @@ class AbstractServiceSession:
                            stub_method_callable: Any,
                            rpc_method_args: List[Any],
                            want_dictionary_response: bool = True,
+                           use_retry: GrpcClientRetry = None,
                            verbose: bool = True) -> Generator:
         """
         Will call the given stub_method_callable with the rpc_method_args and
@@ -274,6 +298,8 @@ class AbstractServiceSession:
         :param want_dictionary_response: When True (the default) a dictionary
                     version of the gRPC response is returned.  When False,
                     the raw gRPC response is returned.
+        :param use_retry: The GrpcClientRetry to use. Default is None indicating
+                    the instance's initial_submission_retry will be used.
         :param verbose: When True, connection logging is issued. This is the default.
                         Pass False for connections with sensitive logs.
         :return: a generator of a dictionary or gRPC response structure corresponding to the
@@ -283,6 +309,9 @@ class AbstractServiceSession:
         response_dict = None
         response = None
         logger = logging.getLogger(__name__)
+
+        if use_retry is None:
+            use_retry = self.initial_submission_retry
 
         keep_trying = True
         while keep_trying and \
@@ -294,7 +323,7 @@ class AbstractServiceSession:
 
             try:
                 # Get the initial response from the service method.
-                response = self.initial_submission_retry.must_have_response(
+                response = use_retry.must_have_response(
                     method_name, stub_method_callable, *rpc_method_args)
 
             except KeyboardInterrupt as exception:
@@ -322,7 +351,7 @@ class AbstractServiceSession:
                             response_dict = MessageToDict(one_response)
                             yield response_dict
 
-                        self.initial_submission_retry.close_channel()
+                        use_retry.close_channel()
                         return
 
             if (want_dictionary_response and response_dict is None) or \
