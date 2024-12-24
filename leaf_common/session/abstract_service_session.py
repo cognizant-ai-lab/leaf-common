@@ -225,7 +225,7 @@ class AbstractServiceSession:
                 response = None
             elif length == 1:
                 # One item in the list. Return it as the response.
-                response = response_list[0] 
+                response = response_list[0]
             else:
                 # More than one item in the list.  Return the whole list as a response.
                 response = response_list
