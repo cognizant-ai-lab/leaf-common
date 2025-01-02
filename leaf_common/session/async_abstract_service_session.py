@@ -214,12 +214,12 @@ class AsyncAbstractServiceSession:
 
         # Make the call
         # The return value is a generator of either a single response or a stream of responses.
-        generator = await self._poll_for_response(method_name,
-                                                  stub_method_callable,
-                                                  rpc_method_args,
-                                                  want_dictionary_response=is_dictionary_request,
-                                                  use_retry=use_retry,
-                                                  verbose=verbose)
+        generator = self._poll_for_response(method_name,
+                                            stub_method_callable,
+                                           rpc_method_args,
+                                           want_dictionary_response=is_dictionary_request,
+                                           use_retry=use_retry,
+                                           verbose=verbose)
 
         # By default, return the response as the generator itself.
         response = generator
@@ -228,7 +228,9 @@ class AsyncAbstractServiceSession:
         if not stream_response:
             # This waits for all the responses to come over any stream before proceeding
             # AsyncIterators involved need their own await-ing.
-            response_list = await list(response)
+            response_list: List[Any] = []
+            async for one_response in generator:
+                response_list.append(one_response)
 
             # See what to return based on what the generator has gotten for us
             length = len(response_list)
