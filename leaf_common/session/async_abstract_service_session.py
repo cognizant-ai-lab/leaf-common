@@ -227,6 +227,7 @@ class AsyncAbstractServiceSession:
         # See if there is any repackaging to do based on output expectations here.
         if not stream_response:
             # This waits for all the responses to come over any stream before proceeding
+            # AsyncIterators involved need their own await-ing.
             response_list = await list(response)
 
             # See what to return based on what the generator has gotten for us
