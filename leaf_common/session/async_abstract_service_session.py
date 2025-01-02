@@ -216,10 +216,10 @@ class AsyncAbstractServiceSession:
         # The return value is a generator of either a single response or a stream of responses.
         generator = self._poll_for_response(method_name,
                                             stub_method_callable,
-                                           rpc_method_args,
-                                           want_dictionary_response=is_dictionary_request,
-                                           use_retry=use_retry,
-                                           verbose=verbose)
+                                            rpc_method_args,
+                                            want_dictionary_response=is_dictionary_request,
+                                            use_retry=use_retry,
+                                            verbose=verbose)
 
         # By default, return the response as the generator itself.
         response = generator
