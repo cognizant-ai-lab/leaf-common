@@ -16,7 +16,6 @@ import logging
 import traceback
 
 from asyncio import sleep as async_sleep
-from asyncio import TimeoutError
 from asyncio import wait_for
 
 from grpc import CallCredentials
