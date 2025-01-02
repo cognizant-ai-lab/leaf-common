@@ -16,14 +16,14 @@ import logging
 import traceback
 
 from asyncio import sleep as async_sleep
+from asyncio import TimeoutError
+from asyncio import wait_for
 
 from grpc import CallCredentials
 from grpc import ChannelCredentials
 from grpc import Future
-from grpc import FutureTimeoutError
 from grpc import RpcError
 from grpc import StatusCode
-from grpc import channel_ready_future
 
 from grpc.aio import insecure_channel as async_insecure_channel
 from grpc.aio import secure_channel as async_secure_channel
@@ -153,7 +153,7 @@ class AsyncGrpcClientRetry():
                              timeout=self.umbrella_timeout):
 
             try:
-                stub_instance = self._connect_to_service()
+                stub_instance = await self._connect_to_service()
 
             except KeyboardInterrupt:
                 # Allow for command-line quitting
@@ -177,7 +177,7 @@ class AsyncGrpcClientRetry():
             self.logger.warning(err, str(self.service_name),
                                 str(self.poll_interval_seconds))
 
-            async_sleep(self.poll_interval_seconds)
+            await async_sleep(self.poll_interval_seconds)
 
         return stub_instance
 
@@ -319,7 +319,7 @@ class AsyncGrpcClientRetry():
                 # The cause is unknown but using the interruptable sleep
                 # seems to alliviate/fix the problem.  Not enough is yet
                 # known as to the cause
-                async_sleep(self.poll_interval_seconds)
+                await async_sleep(self.poll_interval_seconds)
 
             finally:
                 # Always close the channel
@@ -456,9 +456,10 @@ class AsyncGrpcClientRetry():
             else:
                 self.channel = async_insecure_channel(host_and_port, options=options)
 
-            channel_ready_future(self.channel).result(timeout=self.connect_timeout_seconds)
+            # Be sure we have an async connection
+            await wait_for(self.channel.channel_ready(), timeout=self.connect_timeout_seconds)
 
-        except FutureTimeoutError:
+        except TimeoutError:
 
             # Log the problem, but let the caller figure out what to do
             # with the failure.
