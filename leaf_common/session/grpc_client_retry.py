@@ -17,7 +17,15 @@ import logging
 import threading
 import traceback
 
-import grpc
+from grpc import CallCredentials
+from grpc import ChannelCredentials
+from grpc import Future
+from grpc import FutureTimeoutError
+from grpc import RpcError
+from grpc import StatusCode
+from grpc import channel_ready_future
+from grpc import insecure_channel
+from grpc import secure_channel
 
 from leaf_common.time.timeout import Timeout
 
@@ -151,7 +159,7 @@ class GrpcClientRetry():
                 self.close_channel_and_reset_token()
                 raise
 
-            # DEF: Had a pass on grpc.FutureTimeoutError here
+            # DEF: Had a pass on FutureTimeoutError here
             # Where did that go?
 
             if stub_instance is not None:
@@ -253,7 +261,7 @@ class GrpcClientRetry():
 
                 log_exception = True
                 exception_str = str(exception)
-                if isinstance(exception, grpc.RpcError):
+                if isinstance(exception, RpcError):
                     # pylint-protobuf cannot see the typing at this point
                     # pylint: disable=no-member
                     status_code = exception.code()
@@ -321,7 +329,7 @@ class GrpcClientRetry():
                 # channel open in order to get any remaining results.
                 # In these cases it is the responsibility of the caller
                 # to call close_channel() when they are done with the Future.
-                if not isinstance(response, grpc.Future):
+                if not isinstance(response, Future):
                     self.close_channel()
 
         return response
@@ -335,7 +343,7 @@ class GrpcClientRetry():
 
         # This is the GRPC StatusCode that will be returned
         # when we had a token and we found that it expired.
-        if status_code == grpc.StatusCode.UNAUTHENTICATED:
+        if status_code == StatusCode.UNAUTHENTICATED:
 
             found_unauthenticated = True
             if self.channel_security.has_token():
@@ -430,29 +438,25 @@ class GrpcClientRetry():
 
                 if creds is not None:
                     # "Channels" are gRPC's wrappers for sockets.
-                    if isinstance(creds, grpc.ChannelCredentials):
+                    if isinstance(creds, ChannelCredentials):
                         # Channel credentials holds all the access info,
                         # including call credentials (can be composite)
-                        self.channel = grpc.secure_channel(host_and_port, creds,
-                                                           options=options)
-                    elif isinstance(creds, grpc.CallCredentials):
+                        self.channel = secure_channel(host_and_port, creds, options=options)
+                    elif isinstance(creds, CallCredentials):
                         # We are using an insecure channel, but we will be
                         # sending specific call credentials with each RPC call.
-                        self.channel = grpc.insecure_channel(host_and_port,
-                                                             options=options)
+                        self.channel = insecure_channel(host_and_port, options=options)
                         self.call_credentials = creds
                 else:
                     self.logger.error("Didn't get credentials for %s", self.service_name)
                     self.close_channel_and_reset_token()
                     raise ValueError("No creds from auth domain")
             else:
-                self.channel = grpc.insecure_channel(host_and_port,
-                                                     options=options)
+                self.channel = insecure_channel(host_and_port, options=options)
 
-            grpc.channel_ready_future(self.channel).result(
-                timeout=self.connect_timeout_seconds)
+            channel_ready_future(self.channel).result(timeout=self.connect_timeout_seconds)
 
-        except grpc.FutureTimeoutError:
+        except FutureTimeoutError:
 
             # Log the problem, but let the caller figure out what to do
             # with the failure.
