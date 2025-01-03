@@ -33,7 +33,7 @@ from leaf_common.session.grpc_channel_security import GrpcChannelSecurity
 from leaf_common.session.grpc_metadata_util import GrpcMetadataUtil
 
 
-class GrpcClientRetry():
+class AsyncGrpcClientRetry():
     """
     A class aiding in the retrying of grpc methods, allowing for the services
     on the other end to come up and down while client code is trying to call
