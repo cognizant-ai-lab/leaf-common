@@ -12,20 +12,20 @@
 """
 See class comment for details.
 """
-
 import logging
-import threading
 import traceback
+
+from asyncio import sleep as async_sleep
+from asyncio import wait_for
 
 from grpc import CallCredentials
 from grpc import ChannelCredentials
 from grpc import Future
-from grpc import FutureTimeoutError
 from grpc import RpcError
 from grpc import StatusCode
-from grpc import channel_ready_future
-from grpc import insecure_channel
-from grpc import secure_channel
+
+from grpc.aio import insecure_channel as async_insecure_channel
+from grpc.aio import secure_channel as async_secure_channel
 
 from leaf_common.time.timeout import Timeout
 
@@ -131,7 +131,7 @@ class AsyncGrpcClientRetry():
             # Empty set
             self.limited_retry_set = set()
 
-    def must_connect(self):
+    async def must_connect(self):
         """
         Keeps trying to connect to the service indefinitely until
         an attempt is successful.
@@ -152,11 +152,11 @@ class AsyncGrpcClientRetry():
                              timeout=self.umbrella_timeout):
 
             try:
-                stub_instance = self._connect_to_service()
+                stub_instance = await self._connect_to_service()
 
             except KeyboardInterrupt:
                 # Allow for command-line quitting
-                self.close_channel_and_reset_token()
+                await self.close_channel_and_reset_token()
                 raise
 
             # DEF: Had a pass on FutureTimeoutError here
@@ -169,19 +169,19 @@ class AsyncGrpcClientRetry():
             # Close the channel just in case to avoid resource leaks
             # We do not necessarily want a new token just because there is
             # a retry situation.
-            self.close_channel()
+            await self.close_channel()
 
             # Log the problem and wait to try again.
             err = "Retrying initial connection to %s in %s secs."
             self.logger.warning(err, str(self.service_name),
                                 str(self.poll_interval_seconds))
 
-            threading.Event().wait(timeout=self.poll_interval_seconds)
+            await async_sleep(self.poll_interval_seconds)
 
         return stub_instance
 
     # pylint: disable=too-many-branches
-    def must_have_response(self, method_name, rpc_call_from_stub, *args):   # noqa: C901
+    async def must_have_response(self, method_name, rpc_call_from_stub, *args):   # noqa: C901
         """
         Keeps trying to connect to the gRPC service to make a single
         gRPC call.  Attempts will continue indefinitely until
@@ -195,9 +195,10 @@ class AsyncGrpcClientRetry():
         :param rpc_call_from_stub: a global-scope method whose signature looks
                     like this:
 
-            def _my_rpc_call_from_stub(stub, timeout_in_seconds,
+            async def _my_rpc_call_from_stub(stub, timeout_in_seconds,
                                         metadata, credentials, *args):
-                response = stub.MyRpcCall(*args, timeout=timeout_in_seconds,
+                response = await stub.MyRpcCall(*args,
+                                            timeout=timeout_in_seconds,
                                             metadata=metadata,
                                             credentials=credentials)
                 return response
@@ -221,7 +222,7 @@ class AsyncGrpcClientRetry():
             try:
                 # Connect with a fresh socket each time we make a request.
                 # This allows for the service going down in between retries.
-                stub_instance = self.must_connect()
+                stub_instance = await self.must_connect()
 
                 # Even though we must_connect(), we might not due to the
                 # umbrella timeout
@@ -239,15 +240,15 @@ class AsyncGrpcClientRetry():
                 # call credentials, but no channel credentials..
 
                 # Make the rpc call attempt
-                response = rpc_call_from_stub(stub_instance,
-                                              self.timeout_in_seconds,
-                                              converted_metadata,
-                                              self.call_credentials,
-                                              *args)
+                response = await rpc_call_from_stub(stub_instance,
+                                                    self.timeout_in_seconds,
+                                                    converted_metadata,
+                                                    self.call_credentials,
+                                                    *args)
 
             except KeyboardInterrupt as exception:
                 # Allow for command-line quitting
-                self.close_channel_and_reset_token()
+                await self.close_channel_and_reset_token()
                 raise exception
 
             except Exception as exception:      # pylint: disable=broad-except
@@ -266,7 +267,7 @@ class AsyncGrpcClientRetry():
                     # pylint: disable=no-member
                     status_code = exception.code()
 
-                    log_exception = not self._check_unauthenticated(status_code)
+                    log_exception = not await self._check_unauthenticated(status_code)
 
                     # Allow exceptions that say our own service is
                     # refusing for shut down purposes.
@@ -277,7 +278,7 @@ class AsyncGrpcClientRetry():
                         if num_attempts == self.limited_retry_attempts:
                             # We do not necessarily want a new token just
                             # because there is a retry situation.
-                            self.close_channel()
+                            await self.close_channel()
                             raise
 
                 elif isinstance(exception, KeyError):
@@ -298,7 +299,7 @@ class AsyncGrpcClientRetry():
                             "have been entered correctly."
                     host_and_port = f"{self.host}:{self.port}"
                     self.logger.error(error, host_and_port)
-                    self.close_channel_and_reset_token()
+                    await self.close_channel_and_reset_token()
                     raise
 
                 if log_exception:
@@ -311,13 +312,13 @@ class AsyncGrpcClientRetry():
                 # Close the channel before sleep to tidy up sooner
                 # We do not necessarily want a new token just
                 # because there is a retry situation.
-                self.close_channel()
+                await self.close_channel()
 
                 # For some reason using a sleep causes threads to lock in here.
                 # The cause is unknown but using the interruptable sleep
                 # seems to alliviate/fix the problem.  Not enough is yet
                 # known as to the cause
-                threading.Event().wait(timeout=self.poll_interval_seconds)
+                await async_sleep(self.poll_interval_seconds)
 
             finally:
                 # Always close the channel
@@ -330,11 +331,11 @@ class AsyncGrpcClientRetry():
                 # In these cases it is the responsibility of the caller
                 # to call close_channel() when they are done with the Future.
                 if not isinstance(response, Future):
-                    self.close_channel()
+                    await self.close_channel()
 
         return response
 
-    def _check_unauthenticated(self, status_code):
+    async def _check_unauthenticated(self, status_code):
         """
         Checks for an unauthenticated error on grpc request
         :return: True if we found the unauthenticated error.
@@ -371,19 +372,19 @@ class AsyncGrpcClientRetry():
                     "have been entered correctly."
                 host_and_port = f"{self.host}:{self.port}"
                 self.logger.error(error, host_and_port)
-            self.close_channel_and_reset_token()
+            await self.close_channel_and_reset_token()
 
         return found_unauthenticated
 
-    def close_channel_and_reset_token(self):
+    async def close_channel_and_reset_token(self):
         """
         Called whenever we close the channel in response to an exception
         which requires us to reset the token.
         """
-        self.close_channel()
+        await self.close_channel()
         self.channel_security.reset_token()
 
-    def close_channel(self):
+    async def close_channel(self):
         """
         Close the GRPC Channel if one has been opened.
         Allow for this being an older GRPC Channel object
@@ -394,10 +395,10 @@ class AsyncGrpcClientRetry():
         """
         if self.channel is not None:
             if "close" in dir(self.channel):
-                self.channel.close()
+                await self.channel.close()
             self.channel = None
 
-    def _connect_to_service(self):
+    async def _connect_to_service(self):
         """
         Attempt to connect to the service specified in the constructor once.
         :return: If the single connection attmept is successful,
@@ -426,7 +427,7 @@ class AsyncGrpcClientRetry():
 
         # We do not necessarily want a new token just
         # because we want a new channel next time.
-        self.close_channel()
+        await self.close_channel()
 
         try:
             # "Channels" are gRPC's wrappers for sockets.
@@ -441,22 +442,23 @@ class AsyncGrpcClientRetry():
                     if isinstance(creds, ChannelCredentials):
                         # Channel credentials holds all the access info,
                         # including call credentials (can be composite)
-                        self.channel = secure_channel(host_and_port, creds, options=options)
+                        self.channel = async_secure_channel(host_and_port, creds, options=options)
                     elif isinstance(creds, CallCredentials):
                         # We are using an insecure channel, but we will be
                         # sending specific call credentials with each RPC call.
-                        self.channel = insecure_channel(host_and_port, options=options)
+                        self.channel = async_insecure_channel(host_and_port, options=options)
                         self.call_credentials = creds
                 else:
                     self.logger.error("Didn't get credentials for %s", self.service_name)
-                    self.close_channel_and_reset_token()
+                    await self.close_channel_and_reset_token()
                     raise ValueError("No creds from auth domain")
             else:
-                self.channel = insecure_channel(host_and_port, options=options)
+                self.channel = async_insecure_channel(host_and_port, options=options)
 
-            channel_ready_future(self.channel).result(timeout=self.connect_timeout_seconds)
+            # Be sure we have an async connection
+            await wait_for(self.channel.channel_ready(), timeout=self.connect_timeout_seconds)
 
-        except FutureTimeoutError:
+        except TimeoutError:
 
             # Log the problem, but let the caller figure out what to do
             # with the failure.
@@ -464,7 +466,7 @@ class AsyncGrpcClientRetry():
             self.logger.error(msg, self.service_name, host_and_port,
                               self.connect_timeout_seconds)
             # We do not necessarily want to reset the token in this case
-            self.close_channel()
+            await self.close_channel()
             return None
 
         self.logger.info("Connected to %s on %s.", self.service_name,

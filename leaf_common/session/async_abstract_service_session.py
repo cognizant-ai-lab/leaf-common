@@ -26,7 +26,7 @@ import grpc
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.json_format import Parse
 
-from leaf_common.session.grpc_client_retry import GrpcClientRetry
+from leaf_common.session.async_grpc_client_retry import AsyncGrpcClientRetry
 from leaf_common.session.grpc_channel_security import GrpcChannelSecurity
 from leaf_common.session.grpc_metadata_util import GrpcMetadataUtil
 from leaf_common.time.timeout import Timeout
@@ -116,7 +116,7 @@ class AsyncAbstractServiceSession:
         limited_retry_set = set()
         limited_retry_set.add(grpc.StatusCode.UNAVAILABLE)
 
-        self.initial_submission_retry = GrpcClientRetry(
+        self.initial_submission_retry = AsyncGrpcClientRetry(
             service_name=self.name,
             service_stub=service_stub,
             host=host,
@@ -129,7 +129,7 @@ class AsyncAbstractServiceSession:
             channel_security=self.channel_security,
             umbrella_timeout=umbrella_timeout)
 
-        self.stream_submission_retry = GrpcClientRetry(
+        self.stream_submission_retry = AsyncGrpcClientRetry(
             service_name=self.name,
             service_stub=service_stub,
             host=host,
@@ -145,21 +145,21 @@ class AsyncAbstractServiceSession:
         self.umbrella_timeout = umbrella_timeout
 
     # pylint: disable=too-many-positional-arguments,too-many-locals
-    def call_grpc_method(self, method_name: str,
-                         stub_method_callable: Any,
-                         request: Any,
-                         request_instance: Any = None,
-                         stream_response: bool = False,
-                         verbose: bool = True) -> Any:
+    async def call_grpc_method(self, method_name: str,
+                               stub_method_callable: Any,
+                               request: Any,
+                               request_instance: Any = None,
+                               stream_response: bool = False,
+                               verbose: bool = True) -> Any:
         """
         :param method_name: The name of the gRPC method call for logging purposes
         :param stub_method_callable: a global-scope method whose signature looks
                     like this:
 
             @staticmethod
-            def _my_stub_method_callable(service_stub_instance, timeout_in_seconds,
+            async def _my_stub_method_callable(service_stub_instance, timeout_in_seconds,
                                        metadata, credentials, *args):
-                response = service_stub_instance.MyRpcCall(*args,
+                response = await service_stub_instance.MyRpcCall(*args,
                                                            timeout=timeout_in_seconds,
                                                            metadata=metadata,
                                                            credentials=credentials)
@@ -208,12 +208,14 @@ class AsyncAbstractServiceSession:
         rpc_method_args = [grpc_request]
 
         # Set up the retry we want to use
-        use_retry: GrpcClientRetry = self.initial_submission_retry
+        use_retry: AsyncGrpcClientRetry = self.initial_submission_retry
         if stream_response:
             use_retry = self.stream_submission_retry
 
         # Make the call
         # The return value is a generator of either a single response or a stream of responses.
+        # Note that we are not await-ing the response here because what is returned is a generator.
+        # Proper await-ing for generator results is done in the "async for"-loop below.
         generator = self._poll_for_response(method_name,
                                             stub_method_callable,
                                             rpc_method_args,
@@ -226,8 +228,12 @@ class AsyncAbstractServiceSession:
 
         # See if there is any repackaging to do based on output expectations here.
         if not stream_response:
-            # This waits for all the responses to come over any stream before proceeding
-            response_list = list(response)
+
+            # This waits for all the responses to come over any stream before proceeding.
+            # AsyncIterators involved need their own await-ing in this async-for construct.
+            response_list: List[Any] = []
+            async for one_response in generator:
+                response_list.append(one_response)
 
             # See what to return based on what the generator has gotten for us
             length = len(response_list)
@@ -273,12 +279,12 @@ class AsyncAbstractServiceSession:
         return GrpcMetadataUtil.to_tuples(external_metadata_list)
 
     # pylint: disable=too-many-positional-arguments,too-many-branches
-    def _poll_for_response(self, method_name: str,      # noqa: C901
-                           stub_method_callable: Any,
-                           rpc_method_args: List[Any],
-                           want_dictionary_response: bool = True,
-                           use_retry: GrpcClientRetry = None,
-                           verbose: bool = True) -> Generator:
+    async def _poll_for_response(self, method_name: str,      # noqa: C901
+                                 stub_method_callable: Any,
+                                 rpc_method_args: List[Any],
+                                 want_dictionary_response: bool = True,
+                                 use_retry: AsyncGrpcClientRetry = None,
+                                 verbose: bool = True) -> Generator:
         """
         Will call the given stub_method_callable with the rpc_method_args and
         wait for a result with a valid response dictionary to come back.
@@ -297,9 +303,9 @@ class AsyncAbstractServiceSession:
                     like this:
 
             @staticmethod
-            def _my_stub_method_callable(service_stub_instance, timeout_in_seconds,
+            async def _my_stub_method_callable(service_stub_instance, timeout_in_seconds,
                                        metadata, credentials, *args):
-                response = service_stub_instance.MyRpcCall(*args,
+                response = await service_stub_instance.MyRpcCall(*args,
                                                            timeout=timeout_in_seconds,
                                                            metadata=metadata,
                                                            credentials=credentials)
@@ -309,7 +315,7 @@ class AsyncAbstractServiceSession:
         :param want_dictionary_response: When True (the default) a dictionary
                     version of the gRPC response is returned.  When False,
                     the raw gRPC response is returned.
-        :param use_retry: The GrpcClientRetry to use. Default is None indicating
+        :param use_retry: The AsyncGrpcClientRetry to use. Default is None indicating
                     the instance's initial_submission_retry will be used.
         :param verbose: When True, connection logging is issued. This is the default.
                         Pass False for connections with sensitive logs.
@@ -334,7 +340,7 @@ class AsyncAbstractServiceSession:
 
             try:
                 # Get the initial response from the service method.
-                response = use_retry.must_have_response(
+                response = await use_retry.must_have_response(
                     method_name, stub_method_callable, *rpc_method_args)
 
             except KeyboardInterrupt as exception:
@@ -362,7 +368,7 @@ class AsyncAbstractServiceSession:
                             response_dict = MessageToDict(one_response)
                             yield response_dict
 
-                        use_retry.close_channel()
+                        await use_retry.close_channel()
                         return
 
             if (want_dictionary_response and response_dict is None) or \
