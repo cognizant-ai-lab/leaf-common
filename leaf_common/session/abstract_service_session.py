@@ -384,11 +384,11 @@ class AbstractServiceSession:
             return
 
         # Case where what was wanted was a raw grpc response.
-        # This still could be a stream or a regular unary response.
-        if not isinstance(response, grpc.Future):
-            # Unary response case
-            yield response
-        else:
+        # This still could be either a stream or a regular unary response.
+        if isinstance(response, grpc.Future):
             # Response was a stream
             yield from response
             use_retry.close_channel()
+        else:
+            # Unary response case
+            yield response
