@@ -367,6 +367,9 @@ class AsyncAbstractServiceSession:
                 if want_dictionary_response:
                     if isinstance(response, AsyncGenerator):
                         stream = response
+
+                        # Cannot do "yield from" in async land. Have to make explicit loop
+                        # But in this case, we want to transform the message anyway into a dict.
                         async for one_response in stream:
                             response_dict = MessageToDict(one_response)
                             yield response_dict

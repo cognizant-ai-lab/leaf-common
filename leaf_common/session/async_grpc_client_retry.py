@@ -561,6 +561,7 @@ class AsyncGrpcClientRetry():
                                               converted_metadata,
                                               self.call_credentials,
                                               *args)
+                # Cannot do "yield from" in async land. Have to make explicit loop
                 async for one_response in response:
                     yield one_response
 
