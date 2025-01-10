@@ -23,7 +23,6 @@ import logging
 
 import grpc
 
-from inspect import iscoroutine
 from google.protobuf.json_format import MessageToDict
 from google.protobuf.json_format import Parse
 
@@ -366,7 +365,7 @@ class AsyncAbstractServiceSession:
             # Read the initial response
             if response is not None:
                 if want_dictionary_response:
-                    if iscoroutine(response) or isinstance(response, AsyncGenerator):
+                    if isinstance(response, AsyncGenerator):
                         stream = response
                         async for one_response in stream:
                             response_dict = MessageToDict(one_response)
