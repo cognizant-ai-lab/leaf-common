@@ -366,14 +366,11 @@ class AsyncAbstractServiceSession:
             # Read the initial response
             if response is not None:
                 if want_dictionary_response:
-                    print(f"response in poll_for_response() is {response}")
                     if iscoroutine(response) or isinstance(response, AsyncGenerator):
                         stream = response
-                        print("About to async for in _poll_for_response()")
                         async for one_response in stream:
                             response_dict = MessageToDict(one_response)
                             yield response_dict
-                        print("Done with async for in _poll_for_response()")
                         await use_retry.close_channel()
                         return
                     if not isinstance(response, grpc.Future):
@@ -488,14 +485,12 @@ class AsyncAbstractServiceSession:
         # The return value is a generator of either a single response or a stream of responses.
         # Note that we are not await-ing the response here because what is returned is a generator.
         # Proper await-ing for generator results is done in the "async for"-loop below.
-        print("About to poll_for_response() in stream_grpc_method()")
         generator = self._poll_for_response(method_name,
                                             stub_method_callable,
                                             rpc_method_args,
                                             want_dictionary_response=is_dictionary_request,
                                             use_retry=use_retry,
                                             verbose=verbose)
-        print("Done with poll_for_response() in stream_grpc_method()")
 
         # By default, return the response as the generator itself.
         if verbose:
@@ -504,8 +499,5 @@ class AsyncAbstractServiceSession:
             # service method name and no secrets themselves.
             logger.debug("Successfully called %s().", method_name)
 
-        print("About to async for in stream_grpc_method()")
-        print(f"... with generator {generator}")
         async for response in generator:
             yield response
-        print("Done with async for in stream_grpc_method()")

@@ -308,8 +308,6 @@ class AsyncGrpcClientRetry():
                             "Retrying in %s secs."
                     self.logger.warning(info, str(method_name), exception_str,
                                         str(self.poll_interval_seconds))
-                    import traceback
-                    traceback.print_exc()
 
                 # Close the channel before sleep to tidy up sooner
                 # We do not necessarily want a new token just
@@ -558,17 +556,13 @@ class AsyncGrpcClientRetry():
                 # call credentials, but no channel credentials..
 
                 # Make the rpc call attempt
-                print("About to rpc_call_from_stub in must_have_stream()")
                 response = rpc_call_from_stub(stub_instance,
                                               self.timeout_in_seconds,
                                               converted_metadata,
                                               self.call_credentials,
                                               *args)
-                print("Done with rpc_call_from_stub in must_have_stream()")
-                print("About to async for in rpc_call_from_stub in must_have_stream()")
                 async for one_response in response:
                     yield one_response
-                print("Done with async for in rpc_call_from_stub in must_have_stream()")
 
             except KeyboardInterrupt as exception:
                 # Allow for command-line quitting
@@ -632,8 +626,6 @@ class AsyncGrpcClientRetry():
                             "Retrying in %s secs."
                     self.logger.warning(info, str(method_name), exception_str,
                                         str(self.poll_interval_seconds))
-                    import traceback
-                    traceback.print_exc()
 
                 # Close the channel before sleep to tidy up sooner
                 # We do not necessarily want a new token just
