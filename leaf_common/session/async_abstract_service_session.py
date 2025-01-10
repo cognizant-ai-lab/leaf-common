@@ -501,5 +501,6 @@ class AsyncAbstractServiceSession:
             # service method name and no secrets themselves.
             logger.debug("Successfully called %s().", method_name)
 
+        # Cannot do "yield from" in async land. Have to make explicit loop
         async for response in generator:
             yield response
