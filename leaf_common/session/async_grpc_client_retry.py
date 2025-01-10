@@ -308,6 +308,8 @@ class AsyncGrpcClientRetry():
                             "Retrying in %s secs."
                     self.logger.warning(info, str(method_name), exception_str,
                                         str(self.poll_interval_seconds))
+                    import traceback
+                    traceback.print_exc()
 
                 # Close the channel before sleep to tidy up sooner
                 # We do not necessarily want a new token just
@@ -495,3 +497,164 @@ class AsyncGrpcClientRetry():
             is_refusal = True
 
         return is_refusal
+
+    # pylint: disable=too-many-branches
+    async def must_have_stream(self, method_name, rpc_call_from_stub, *args):   # noqa: C901
+        """
+        Keeps trying to connect to the gRPC service to make a single
+        gRPC call.  Attempts will continue indefinitely until
+        an attempt is successful with a non-None response by the gRPC call.
+
+        Each attempt is made with a new socket/channel to the service,
+        allowing for the service on the other end to go up and down.
+
+        :param method_name: a string name for the gRPC method invoked
+                    used for logging purposes.
+        :param rpc_call_from_stub: a global-scope method whose signature looks
+                    like this:
+
+            async def _my_rpc_call_from_stub(stub, timeout_in_seconds,
+                                        metadata, credentials, *args):
+                response = stub.MyRpcCall(*args,
+                                            timeout=timeout_in_seconds,
+                                            metadata=metadata,
+                                            credentials=credentials)
+                return response
+
+        :param *args: a list of arguments to pass to the rpc call method.
+                    Even if the gRPC call only takes a single argument,
+                    you must put that single argument in a list like this:
+                    [ my_one_arg ]
+
+        :return: When a gRPC method call attmept is successful,
+                    the instance of the response for that call is returned.
+        """
+
+        converted_metadata = GrpcMetadataUtil.to_tuples(self.metadata)
+
+        num_attempts = 0
+        response = None
+        while response is None and \
+            Timeout.has_time(self.poll_interval_seconds,
+                             timeout=self.umbrella_timeout):
+            try:
+                # Connect with a fresh socket each time we make a request.
+                # This allows for the service going down in between retries.
+                stub_instance = await self.must_connect()
+
+                # Even though we must_connect(), we might not due to the
+                # umbrella timeout
+                if stub_instance is None:
+                    break
+
+                # It's possible that the above connection can be successful
+                # and then the rpc call below is when the service decides to
+                # go down. That's OK. the rpc_call_from_stub() will fail, and
+                # a new socket will be connected to the new service instance
+                # upon the detection of the failure below.
+
+                # By this point self.call_credentials should have been set up
+                # if they were necessary, which is the case when there are
+                # call credentials, but no channel credentials..
+
+                # Make the rpc call attempt
+                print("About to rpc_call_from_stub in must_have_stream()")
+                response = rpc_call_from_stub(stub_instance,
+                                              self.timeout_in_seconds,
+                                              converted_metadata,
+                                              self.call_credentials,
+                                              *args)
+                print("Done with rpc_call_from_stub in must_have_stream()")
+                print("About to async for in rpc_call_from_stub in must_have_stream()")
+                async for one_response in response:
+                    yield one_response
+                print("Done with async for in rpc_call_from_stub in must_have_stream()")
+
+            except KeyboardInterrupt as exception:
+                # Allow for command-line quitting
+                await self.close_channel_and_reset_token()
+                raise exception
+
+            except Exception as exception:      # pylint: disable=broad-except
+
+                # See if the error is an RpcError with status codes
+                # that are registered as limited-retry.
+                if self.debug:
+                    self.logger.error(exception)
+                    error = traceback.format_exc()
+                    self.logger.error(error)
+
+                log_exception = True
+                exception_str = str(exception)
+                if isinstance(exception, RpcError):
+                    # pylint-protobuf cannot see the typing at this point
+                    # pylint: disable=no-member
+                    status_code = exception.code()
+
+                    log_exception = not await self._check_unauthenticated(status_code)
+
+                    # Allow exceptions that say our own service is
+                    # refusing for shut down purposes.
+                    if status_code in self.limited_retry_set \
+                            and not self._is_shut_down_refusal(exception):
+
+                        num_attempts = num_attempts + 1
+                        if num_attempts == self.limited_retry_attempts:
+                            # We do not necessarily want a new token just
+                            # because there is a retry situation.
+                            await self.close_channel()
+                            raise
+
+                elif isinstance(exception, KeyError):
+                    # Checkmarx: Not Exploitable
+                    # Checkmarx flags this as a "Filtering Sensitive Logs" Risk
+                    # This is a false positive.   No actual user information is
+                    # output in the log message. In fact, it's a helpful message
+                    # to allow people to start debugging what went wrong on their
+                    # own machine.
+                    error = "Could not get access token for secure " + \
+                            "communication to %s.\n" + \
+                            "Check your ~/.enn/security_config.hocon to be " + \
+                            "sure the values for the keys:\n" + \
+                            "    auth_client_id\n" + \
+                            "    auth_secret\n" + \
+                            "    username\n" + \
+                            "    password\n" + \
+                            "have been entered correctly."
+                    host_and_port = f"{self.host}:{self.port}"
+                    self.logger.error(error, host_and_port)
+                    await self.close_channel_and_reset_token()
+                    raise
+
+                if log_exception:
+                    # Log the problem and wait to try again.
+                    info = "Info: Exception when calling %s: %s. " + \
+                            "Retrying in %s secs."
+                    self.logger.warning(info, str(method_name), exception_str,
+                                        str(self.poll_interval_seconds))
+                    import traceback
+                    traceback.print_exc()
+
+                # Close the channel before sleep to tidy up sooner
+                # We do not necessarily want a new token just
+                # because there is a retry situation.
+                await self.close_channel()
+
+                # For some reason using a sleep causes threads to lock in here.
+                # The cause is unknown but using the interruptable sleep
+                # seems to alliviate/fix the problem.  Not enough is yet
+                # known as to the cause
+                await async_sleep(self.poll_interval_seconds)
+
+            finally:
+                # Always close the channel
+                # We do not necessarily want a new token just
+                # because there is a retry situation.
+                #
+                # However, we don't want to close the channel if the response
+                # is a Future (stream handle) because the response needs the
+                # channel open in order to get any remaining results.
+                # In these cases it is the responsibility of the caller
+                # to call close_channel() when they are done with the Future.
+                if not isinstance(response, Future):
+                    await self.close_channel()
