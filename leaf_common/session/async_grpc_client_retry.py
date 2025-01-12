@@ -513,11 +513,12 @@ class AsyncGrpcClientRetry():
 
             async def _my_rpc_call_from_stub(stub, timeout_in_seconds,
                                         metadata, credentials, *args):
-                response = stub.MyRpcCall(*args,
+                generator = stub.MyRpcCall(*args,
                                             timeout=timeout_in_seconds,
                                             metadata=metadata,
                                             credentials=credentials)
-                return response
+                async for response in generator
+                    yield response
 
         :param *args: a list of arguments to pass to the rpc call method.
                     Even if the gRPC call only takes a single argument,

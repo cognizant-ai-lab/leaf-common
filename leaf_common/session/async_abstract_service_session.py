@@ -434,11 +434,13 @@ class AsyncAbstractServiceSession:
             async def _my_stub_method_callable(service_stub_instance, timeout_in_seconds,
                                        metadata, credentials, *args):
                 # Note! No await, as we will be returning a generator!
-                response = service_stub_instance.MyRpcCall(*args,
+                generator = service_stub_instance.MyRpcCall(*args,
                                                            timeout=timeout_in_seconds,
                                                            metadata=metadata,
                                                            credentials=credentials)
-                return response
+                async for response in generator:
+                    yield response
+
         :param request: Can be one of either:
                     * A gRPC Request structure to forward as the gRPC method argument
                     * A request dictionary whose data will fill in the request_instance
