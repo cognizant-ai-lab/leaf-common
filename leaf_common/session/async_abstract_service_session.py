@@ -15,7 +15,7 @@ See class comment for details.
 
 from typing import Any
 from typing import Dict
-from typing import Generator
+from typing import AsyncGenerator
 from typing import List
 
 import json
@@ -171,7 +171,7 @@ class AsyncAbstractServiceSession:
         :param request_instance: If present serves as the storage point for converting
                     a request dictionary to the request structure.
         :param stream_response: Default False. When True, the result from the grpc call
-                    is returned as a Generator.
+                    is returned as a AsyncGenerator.
         :param verbose: When True, connection logging is issued. This is the default.
                         Pass False for connections with sensitive logs.
         :return: If this method received a dictionary request, then it will return
@@ -179,9 +179,9 @@ class AsyncAbstractServiceSession:
                 If this method received a gRPC Request structure, then it will return a
                 gRPC response structure if the method call was successful.
 
-                When stream_response is True, a Generator of results is returned,
+                When stream_response is True, a AsyncGenerator of results is returned,
                 even for simple gRPC methods that return a unary response.
-                The Generator will return Dictionary or gRPC message results
+                The AsyncGenerator will return Dictionary or gRPC message results
                 depending on the criteria described just previously.
 
                 In any case if the call was unsuccessful, the return value will be None.
@@ -284,7 +284,7 @@ class AsyncAbstractServiceSession:
                                  rpc_method_args: List[Any],
                                  want_dictionary_response: bool = True,
                                  use_retry: AsyncGrpcClientRetry = None,
-                                 verbose: bool = True) -> Generator:
+                                 verbose: bool = True) -> AsyncGenerator:
         """
         Will call the given stub_method_callable with the rpc_method_args and
         wait for a result with a valid response dictionary to come back.
@@ -339,9 +339,16 @@ class AsyncAbstractServiceSession:
             response_dict = None
 
             try:
-                # Get the initial response from the service method.
-                response = await use_retry.must_have_response(
-                    method_name, stub_method_callable, *rpc_method_args)
+                response = None
+                if use_retry == self.stream_submission_retry:
+                    # We are streaming.
+                    # Do not await so that we have a generator as the response.
+                    response = use_retry.must_have_stream(
+                        method_name, stub_method_callable, *rpc_method_args)
+                else:
+                    # Get the initial response from the service method.
+                    response = await use_retry.must_have_response(
+                        method_name, stub_method_callable, *rpc_method_args)
 
             except KeyboardInterrupt as exception:
                 # Allow for command-line quitting
@@ -358,6 +365,16 @@ class AsyncAbstractServiceSession:
             # Read the initial response
             if response is not None:
                 if want_dictionary_response:
+                    if isinstance(response, AsyncGenerator):
+                        stream = response
+
+                        # Cannot do "yield from" in async land. Have to make explicit loop
+                        # But in this case, we want to transform the message anyway into a dict.
+                        async for one_response in stream:
+                            response_dict = MessageToDict(one_response)
+                            yield response_dict
+                        await use_retry.close_channel()
+                        return
                     if not isinstance(response, grpc.Future):
                         response_dict = MessageToDict(response)
                     else:
@@ -389,4 +406,103 @@ class AsyncAbstractServiceSession:
             yield response_dict
             return
 
-        yield response
+        # Case where what was wanted was a raw grpc response.
+        # This still could be either a stream or a regular unary response.
+        if isinstance(response, grpc.Future):
+            # Response was a stream
+            # Cannot directly use "yield from" because that returns a synchronous Generator
+            # not an AsyncGenerator, so we have to take it apart in an explicit async for loop.
+            async for one_response in response:
+                yield one_response
+            use_retry.close_channel()
+        else:
+            # Unary response case
+            yield response
+
+    # pylint: disable=too-many-positional-arguments,too-many-locals
+    async def stream_grpc_method(self, method_name: str,
+                                 stub_method_callable: Any,
+                                 request: Any,
+                                 request_instance: Any = None,
+                                 verbose: bool = True) -> Any:
+        """
+        :param method_name: The name of the gRPC method call for logging purposes
+        :param stub_method_callable: a global-scope method whose signature looks
+                    like this:
+
+            @staticmethod
+            async def _my_stub_method_callable(service_stub_instance, timeout_in_seconds,
+                                       metadata, credentials, *args):
+                # Note! No await, as we will be returning a generator!
+                generator = service_stub_instance.MyRpcCall(*args,
+                                                           timeout=timeout_in_seconds,
+                                                           metadata=metadata,
+                                                           credentials=credentials)
+                async for response in generator:
+                    yield response
+
+        :param request: Can be one of either:
+                    * A gRPC Request structure to forward as the gRPC method argument
+                    * A request dictionary whose data will fill in the request_instance
+                        if present.
+        :param request_instance: If present serves as the storage point for converting
+                    a request dictionary to the request structure.
+        :param verbose: When True, connection logging is issued. This is the default.
+                        Pass False for connections with sensitive logs.
+        :return: If this method received a dictionary request, then it will return
+                a response in dictionary form if the method call was successful.
+                If this method received a gRPC Request structure, then it will return a
+                gRPC response structure if the method call was successful.
+
+                When stream_response is True, a AsyncGenerator of results is returned,
+                even for simple gRPC methods that return a unary response.
+                The AsyncGenerator will return Dictionary or gRPC message results
+                depending on the criteria described just previously.
+
+                In any case if the call was unsuccessful, the return value will be None.
+        """
+        logger = logging.getLogger(__name__)
+        if verbose:
+            # Checkmarx flags this as a source for Filtering Sensitive Logs path 5
+            # This is a False Positive, as we are merely abstractly logging a
+            # service method name and no secrets themselves.
+            logger.debug("Calling %s() on the %s", method_name, str(self.name))
+
+        grpc_request = request
+        is_dictionary_request = isinstance(request, Dict)
+        if is_dictionary_request:
+            if request_instance is not None:
+                grpc_request = Parse(json.dumps(request), request_instance)
+            else:
+                # We really only expect this to be raised during development,
+                # should someone not match the calling semantics.
+                raise ValueError(f"Request to {method_name} on {self.name} was dictionary, " +
+                                 "but no request_instance passed")
+
+        # Submit the request
+        rpc_method_args = [grpc_request]
+
+        # Set up the retry we want to use
+        use_retry = self.stream_submission_retry
+
+        # Make the call
+        # The return value is a generator of either a single response or a stream of responses.
+        # Note that we are not await-ing the response here because what is returned is a generator.
+        # Proper await-ing for generator results is done in the "async for"-loop below.
+        generator = self._poll_for_response(method_name,
+                                            stub_method_callable,
+                                            rpc_method_args,
+                                            want_dictionary_response=is_dictionary_request,
+                                            use_retry=use_retry,
+                                            verbose=verbose)
+
+        # By default, return the response as the generator itself.
+        if verbose:
+            # Checkmarx flags this as a dest for Filtering Sensitive Logs path 6
+            # This is a False Positive, as we are merely abstractly logging a
+            # service method name and no secrets themselves.
+            logger.debug("Successfully called %s().", method_name)
+
+        # Cannot do "yield from" in async land. Have to make explicit loop
+        async for response in generator:
+            yield response
