@@ -283,7 +283,7 @@ class AsyncAbstractServiceSession:
         external_metadata_list.append((request_routing_key, self.request_version))
         return GrpcMetadataUtil.to_tuples(external_metadata_list)
 
-    # pylint: disable=too-many-positional-arguments,too-many-branches
+    # pylint: disable=too-many-positional-arguments,too-many-branches,too-many-statements
     async def _poll_for_response(self, method_name: str,      # noqa: C901
                                  stub_method_callable: Any,
                                  rpc_method_args: List[Any],
