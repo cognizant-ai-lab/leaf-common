@@ -385,6 +385,7 @@ class AbstractServiceSession:
                     # service method name and no secrets themselves.
                     logger.info("No %s response yet. Retrying %s request.",
                                 str(method_name), str(method_name))
+                keep_trying = True
             else:
                 # We got what we wanted
                 keep_trying = False
