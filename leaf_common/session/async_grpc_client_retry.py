@@ -54,7 +54,8 @@ class AsyncGrpcClientRetry():
                  max_message_length=-1, limited_retry_set=None,
                  limited_retry_attempts=3, metadata=None,
                  security_cfg=None, channel_security=None,
-                 umbrella_timeout=None):
+                 umbrella_timeout=None,
+                 never_retry_set=None):
         """
         :param service_name: a string for the name of the service,
                             used for logging
@@ -96,6 +97,10 @@ class AsyncGrpcClientRetry():
                         the lifetime of any token received from a secure service
         :param umbrella_timeout: A Timeout object under which the length of all
                         looping and retries should be considered
+        :param never_retry_set: A set of GRPC StatusCodes which will never retry
+                            and exceptions are raised immediately..
+                            None by default, indicating that all grpc status codes
+                            will be retried.
         """
 
         self.logger = logging.getLogger(__name__)
@@ -126,10 +131,15 @@ class AsyncGrpcClientRetry():
         self.debug = False
         self.call_credentials = None
         self.umbrella_timeout = umbrella_timeout
+        self.never_retry_set = never_retry_set
 
         if self.limited_retry_set is None:
             # Empty set
             self.limited_retry_set = set()
+
+        if self.never_retry_set is None:
+            # Empty set
+            self.never_retry_set = set()
 
     async def must_connect(self):
         """
@@ -268,6 +278,10 @@ class AsyncGrpcClientRetry():
                     status_code = exception.code()
 
                     log_exception = not await self._check_unauthenticated(status_code)
+
+                    if status_code in self.never_retry_set:
+                        await self.close_channel()
+                        raise
 
                     # Allow exceptions that say our own service is
                     # refusing for shut down purposes.

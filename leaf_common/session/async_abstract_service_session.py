@@ -116,6 +116,9 @@ class AsyncAbstractServiceSession:
         limited_retry_set = set()
         limited_retry_set.add(grpc.StatusCode.UNAVAILABLE)
 
+        self.never_retry_set = set()
+        self.never_retry_set.add(grpc.StatusCode.UNIMPLEMENTED)
+
         self.initial_submission_retry = AsyncGrpcClientRetry(
             service_name=self.name,
             service_stub=service_stub,
@@ -127,7 +130,8 @@ class AsyncAbstractServiceSession:
             limited_retry_attempts=1,
             metadata=self.session_metadata,
             channel_security=self.channel_security,
-            umbrella_timeout=umbrella_timeout)
+            umbrella_timeout=umbrella_timeout,
+            never_retry_set=self.never_retry_set)
 
         self.stream_submission_retry = AsyncGrpcClientRetry(
             service_name=self.name,
@@ -140,7 +144,8 @@ class AsyncAbstractServiceSession:
             limited_retry_attempts=1,
             metadata=self.session_metadata,
             channel_security=self.channel_security,
-            umbrella_timeout=umbrella_timeout)
+            umbrella_timeout=umbrella_timeout,
+            never_retry_set=self.never_retry_set)
 
         self.umbrella_timeout = umbrella_timeout
 
@@ -278,7 +283,7 @@ class AsyncAbstractServiceSession:
         external_metadata_list.append((request_routing_key, self.request_version))
         return GrpcMetadataUtil.to_tuples(external_metadata_list)
 
-    # pylint: disable=too-many-positional-arguments,too-many-branches
+    # pylint: disable=too-many-positional-arguments,too-many-branches,too-many-statements
     async def _poll_for_response(self, method_name: str,      # noqa: C901
                                  stub_method_callable: Any,
                                  rpc_method_args: List[Any],
@@ -354,7 +359,13 @@ class AsyncAbstractServiceSession:
                 # Allow for command-line quitting
                 raise exception
 
-            except Exception:       # pylint: disable=broad-except
+            except Exception as exception:       # pylint: disable=broad-except
+                if isinstance(exception, grpc.RpcError):
+                    # pylint-protobuf cannot see the typing at this point
+                    # pylint: disable=no-member
+                    status_code = exception.code()
+                    if status_code in self.never_retry_set:
+                        raise
                 if verbose:
                     # Checkmarx flags this as a dest for Filtering Sensitive Logs path 4
                     # This is a False Positive, as we are merely abstractly logging a
