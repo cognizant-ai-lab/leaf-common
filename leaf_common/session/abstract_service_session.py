@@ -116,6 +116,9 @@ class AbstractServiceSession:
         limited_retry_set = set()
         limited_retry_set.add(grpc.StatusCode.UNAVAILABLE)
 
+        self.never_retry_set = set()
+        self.never_retry_set.add(grpc.StatusCode.UNIMPLEMENTED)
+
         self.initial_submission_retry = GrpcClientRetry(
             service_name=self.name,
             service_stub=service_stub,
@@ -127,7 +130,8 @@ class AbstractServiceSession:
             limited_retry_attempts=1,
             metadata=self.session_metadata,
             channel_security=self.channel_security,
-            umbrella_timeout=umbrella_timeout)
+            umbrella_timeout=umbrella_timeout,
+            never_retry_set=self.never_retry_set)
 
         self.stream_submission_retry = GrpcClientRetry(
             service_name=self.name,
@@ -140,7 +144,8 @@ class AbstractServiceSession:
             limited_retry_attempts=1,
             metadata=self.session_metadata,
             channel_security=self.channel_security,
-            umbrella_timeout=umbrella_timeout)
+            umbrella_timeout=umbrella_timeout,
+            never_retry_set=self.never_retry_set)
 
         self.umbrella_timeout = umbrella_timeout
 
@@ -341,7 +346,14 @@ class AbstractServiceSession:
                 # Allow for command-line quitting
                 raise exception
 
-            except Exception:       # pylint: disable=broad-except
+            except Exception as exception:       # pylint: disable=broad-except
+                if isinstance(exception, grpc.RpcError):
+                    # pylint-protobuf cannot see the typing at this point
+                    # pylint: disable=no-member
+                    status_code = exception.code()
+                    if status_code in self.never_retry_set:
+                        raise
+
                 if verbose:
                     # Checkmarx flags this as a dest for Filtering Sensitive Logs path 4
                     # This is a False Positive, as we are merely abstractly logging a
@@ -373,7 +385,6 @@ class AbstractServiceSession:
                     # service method name and no secrets themselves.
                     logger.info("No %s response yet. Retrying %s request.",
                                 str(method_name), str(method_name))
-                keep_trying = True
             else:
                 # We got what we wanted
                 keep_trying = False
