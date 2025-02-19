@@ -52,7 +52,15 @@ class AsyncioExecutor(Executor):
         super().__init__()
         self._shutdown: bool = False
         self._thread: threading.Thread = None
-        self._loop: AbstractEventLoop = loop or asyncio.get_event_loop()
+        self._loop: AbstractEventLoop = loop
+        if not self._loop:
+            try:
+                self._loop = asyncio.get_event_loop()
+            except RuntimeError:
+                # We likely don't have AbstractEventLoop in current thread;
+                # so let's create a new one:
+                self._loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(self._loop)
         self._loop.set_exception_handler(AsyncioExecutor.loop_exception_handler)
 
         # Use the global
