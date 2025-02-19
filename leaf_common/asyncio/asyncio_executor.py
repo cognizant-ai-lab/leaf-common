@@ -41,26 +41,17 @@ class AsyncioExecutor(Executor):
     https://stackoverflow.com/questions/38387443/how-to-implement-a-async-grpc-python-server/63020796#63020796
     """
 
-    def __init__(self, *, loop: AbstractEventLoop = None):
+    def __init__(self):
         """
         Constructor
-
-        :param loop: An existing AbstractEventLoo to use. Default is None,
-                    implying we should use the default supplied by asyncio.
         """
 
         super().__init__()
         self._shutdown: bool = False
         self._thread: threading.Thread = None
-        self._loop: AbstractEventLoop = loop
-        if not self._loop:
-            try:
-                self._loop = asyncio.get_event_loop()
-            except RuntimeError:
-                # We likely don't have AbstractEventLoop in current thread;
-                # so let's create a new one:
-                self._loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(self._loop)
+        # We are going to start new thread for this Executor,
+        # so we need a new event loop bound to this particular thread:
+        self._loop: AbstractEventLoop = asyncio.new_event_loop()
         self._loop.set_exception_handler(AsyncioExecutor.loop_exception_handler)
 
         # Use the global
@@ -91,7 +82,7 @@ class AsyncioExecutor(Executor):
         """
         Entry point static method for the background thread.
 
-        :param loop: The AbtractEventLoop to use to run the event loop.
+        :param loop: The AbstractEventLoop to use to run the event loop.
         """
         asyncio.set_event_loop(loop)
         loop.run_forever()
