@@ -248,7 +248,7 @@ class AsyncioExecutor(Executor):
         :param cancel_futures: Ignored? Default is False.
         """
         self._shutdown = True
-        self._loop.stop()
+        self._loop.call_soon_threadsafe(self._loop.stop)
         if wait:
             self._thread.join()
         self._thread = None
