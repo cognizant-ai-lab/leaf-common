@@ -13,7 +13,8 @@
 See class comment for details.
 """
 
-import json
+from collections import OrderedDict
+from typing import Dict
 
 from pyhocon import ConfigFactory
 
@@ -40,6 +41,15 @@ class HoconSerializationFormat(JsonSerializationFormat):
         :return: the deserialized object
         """
 
+        def ordered_dict_to_dict(obj: OrderedDict) -> Dict:
+            """Recursively converts an OrderedDict (or dict) to a regular dict."""
+            if isinstance(obj, OrderedDict):  # Handle both dict and OrderedDict
+                return {k: ordered_dict_to_dict(v) for k, v in obj.items()}
+            if isinstance(obj, list):  # Handle lists of OrderedDicts/dicts
+                return [ordered_dict_to_dict(item) for item in obj]
+
+            return obj
+
         pruned_dict = None
         if fileobj is not None:
             hocon_bytes = fileobj.getvalue()
@@ -50,11 +60,12 @@ class HoconSerializationFormat(JsonSerializationFormat):
 
             # Hocon tends to produce regular dictionaries that have
             # ConfigTree structures for nested dictionaries.
-            # No one ever wants that, so have the result go through a json
-            # encode/decode step before handing the dictionary back to save
-            # the world the trouble of having to do it everywhere.
+            # Use as_plain_ordered_dict to convert ConfigTree to OrderedDict.
+            # This method also sanitize keys with forbidden characters,
+            # such as ".", ":", "$", "@", "#", "!", "?", "=", "+", and white spaces,
+            # then recursively convert to dictionary.
             if pruned_dict is not None:
-                pruned_dict = json.loads(json.dumps(pruned_dict))
+                pruned_dict = ordered_dict_to_dict(pruned_dict.as_plain_ordered_dict())
 
         obj = self.conversion_policy.convert_to_object(pruned_dict)
         return obj
