@@ -22,11 +22,15 @@ jobs:
           pip install -r requirements-build.txt
           pip install -r requirements.txt
 
-      - name: Run tests
-        run: |
-          pip freeze
-          build_scripts/run_pylint.sh
-          flake8
-          pytest --verbose -m "not integration" --timer-top-n 10
+      - name: Show installed packages
+        run: pip freeze
 
+      - name: Run pylint
+        run: build_scripts/run_pylint.sh
+
+      - name: Run flake8
+        run: flake8
+
+      - name: Run pytest (excluding integration tests)
+        run: pytest --verbose -m "not integration" --timer-top-n 10
 
