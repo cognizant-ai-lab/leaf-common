@@ -14,7 +14,7 @@ description = "LEAF team common code library"
 keywords = ["utility", "interfaces"]
 readme = "README.md"
 license = {file = "LICENSE.txt"}
-requires-python = ">=3.10"
+requires-python = ">=3.10" # <-- Should this be bumped up?
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -28,7 +28,7 @@ classifiers = [
     "Intended Audience :: Developers",
 
     # We still need to classify our academic license
-    # "License :: XXX :: XXX"
+    # "License :: XXX :: XXX" <--Need to figure out what goes in here
 ]
 # "dynamic" says we are going to get these project properties by dynamic means.
 # More on each below
