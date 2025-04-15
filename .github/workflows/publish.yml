@@ -2,13 +2,13 @@ name: Publish to PyPI
 
 on:
   release:
-    types: [published]  # Trigger only when a GitHub Release is published
+    types: [published]  # Trigger only when a GitHub Release is published.
 
 jobs:
   publish:
     name: Build and Publish
     runs-on: ubuntu-latest
-    environment: pypi  # Match this to your configured GitHub Environment
+    environment: pypi  # Match this to your configured GitHub Environment.
 
     steps:
       - name: Checkout code
