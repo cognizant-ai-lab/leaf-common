@@ -34,10 +34,10 @@ jobs:
       - name: Run pytest (excluding integration tests)
         run: pytest --verbose -m "not integration" --timer-top-n 10
       
-      - name: Lint Markdown
+      - name: Check README renders correctly on PyPI
         run: |
-          npm install -g markdownlint-cli2
-          markdownlint-cli2 '**/*.md'
+          pip install readme_renderer
+          python -m readme_renderer README.md
 
       - name: Notify Slack on success
         if: success()
