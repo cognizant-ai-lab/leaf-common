@@ -33,6 +33,8 @@ from concurrent.futures import Executor
 # reportedly operate under weak references.
 BACKGROUND_TASKS: Dict[Future, Dict[str, Any]] = {}
 
+EXECUTOR_START_TIMEOUT_SECONDS: int = 5
+
 
 class AsyncioExecutor(Executor):
     """
@@ -45,7 +47,6 @@ class AsyncioExecutor(Executor):
         """
         Constructor
         """
-
         super().__init__()
         self._shutdown: bool = False
         self._thread: threading.Thread = None
@@ -53,6 +54,7 @@ class AsyncioExecutor(Executor):
         # so we need a new event loop bound to this particular thread:
         self._loop: AbstractEventLoop = asyncio.new_event_loop()
         self._loop.set_exception_handler(AsyncioExecutor.loop_exception_handler)
+        self._loop_ready = threading.Event()
 
         # Use the global
         self._background_tasks: Dict[Future, Dict[str, Any]] = BACKGROUND_TASKS
@@ -73,18 +75,31 @@ class AsyncioExecutor(Executor):
             return
 
         self._thread = threading.Thread(target=self.loop_manager,
-                                        args=(self._loop,),
+                                        args=(self._loop, self._loop_ready),
                                         daemon=True)
         self._thread.start()
+        timeout: int = EXECUTOR_START_TIMEOUT_SECONDS
+        was_set: bool = self._loop_ready.wait(timeout=timeout)
+        if not was_set:
+            raise ValueError(f"FAILED to start executor event loop in {timeout} sec")
 
     @staticmethod
-    def loop_manager(loop: AbstractEventLoop):
+    def notify_loop_ready(loop_ready: threading.Event):
+        """
+        Function will be called once the event loop starts
+        """
+        loop_ready.set()
+
+    @staticmethod
+    def loop_manager(loop: AbstractEventLoop, loop_ready: threading.Event):
         """
         Entry point static method for the background thread.
 
         :param loop: The AbstractEventLoop to use to run the event loop.
+        :param loop_ready: event notifying that loop is ready for execution.
         """
         asyncio.set_event_loop(loop)
+        loop.call_soon(AsyncioExecutor.notify_loop_ready, loop_ready)
         loop.run_forever()
 
         # If we reach here, the loop was stopped.
