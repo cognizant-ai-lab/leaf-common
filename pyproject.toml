@@ -52,8 +52,8 @@ exclude = ["tests*", "build_scripts*"]
 fallback_version = "0.0.1"
 
 [project.urls]
-Homepage = "https://github.com/leaf-ai/leaf-common"
-Repository = "https://github.com/leaf-ai/leaf-common"
-Documentation = "https://github.com/leaf-ai/leaf-common#readme"
+Homepage = "https://github.com/cognizant-ai-lab/leaf-common"
+Repository = "https://github.com/cognizant-ai-lab/leaf-common"
+Documentation = "https://github.com/cognizant-ai-lab/leaf-common#readme"
 # If we move issue tracking to github
-# Issues = "https://github.com/leaf-ai/leaf-common/issues"
+# Issues = "https://github.com/cognizant-ai-lab/leaf-common/issues"
