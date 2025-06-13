@@ -106,7 +106,7 @@ class AsyncToSyncGenerator:
         #  but just yield on up all of its results."
         yield from self.synchronously_iterate(async_iter)
 
-    def synchronously_iterate(self, async_iter: AsyncIterator) -> Generator[Any, None, None]:
+    def synchronously_iterate(self, async_iter: AsyncIterator) -> Generator[Any, None, None]:   # noqa: C901
         """
         :param async_iter: The AsyncIterator implementation over which this method
                     should synchronously yield its results.
@@ -116,6 +116,7 @@ class AsyncToSyncGenerator:
 
         # Loop through the asynchronous results
         done: bool = False
+        # pylint: disable=too-many-nested-blocks
         while not done:
             try:
                 # Asynchronously call the anext() method on the asynchronous iterator
