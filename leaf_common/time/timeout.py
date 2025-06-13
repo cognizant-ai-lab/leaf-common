@@ -146,3 +146,12 @@ class Timeout:
 
         if self.is_reached():
             raise TimeoutReachedException(self)
+
+    @classmethod
+    def check_if_not_none(cls, timeout: Timeout):
+        """
+        Helper that calls check_timeout() as long as the given timeout is not None.
+        :param timeout:
+        """
+        if timeout is not None:
+            timeout.check_timeout()
