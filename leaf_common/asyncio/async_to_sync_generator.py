@@ -133,8 +133,7 @@ class AsyncToSyncGenerator:
                             if use_timeout <= 0.0 or use_timeout > time_left:
                                 use_timeout = time_left
                         iteration_result = self.wait_for_future(future, self.generated_type, use_timeout)
-                        if self.umbrella_timeout is not None:
-                            self.umbrella_timeout.check_timeout()
+                        Timeout.check_if_not_none(self.umbrella_timeout)
                         got_real_result = True
 
                     except TimeoutError:
@@ -171,8 +170,7 @@ class AsyncToSyncGenerator:
         start_time: float = time()
         while not future.done():
             # Always exit the loop if the future is done
-            if self.umbrella_timeout is not None:
-                self.umbrella_timeout.check_timeout()
+            Timeout.check_if_not_none(self.umbrella_timeout)
 
             # Sleep to give another thread a change
             sleep(self.poll_seconds)
