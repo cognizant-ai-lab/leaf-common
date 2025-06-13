@@ -22,6 +22,7 @@ from time import sleep
 from time import time
 
 from leaf_common.asyncio.asyncio_executor import AsyncioExecutor
+from leaf_common.time.timeout import Timeout
 
 
 class AsyncToSyncGenerator:
@@ -36,7 +37,8 @@ class AsyncToSyncGenerator:
                  generated_type: Type[Any] = Any,
                  keep_alive_result: Any = None,
                  keep_alive_timeout_seconds: float = 0.0,
-                 poll_seconds: float = 0.1):
+                 poll_seconds: float = 0.1,
+                 umbrella_timeout: Timeout = None):
         """
         Constructor
 
@@ -55,6 +57,8 @@ class AsyncToSyncGenerator:
                 waiting forever for a result.
         :param poll_seconds: The number of seconds to wait while waiting for
                 asynchronous Futures to come back with results
+        :param umbrella_timeout: A Timeout object to check while looking for results.
+                                Default is None implying no timeout.
         """
         self.asyncio_executor: AsyncioExecutor = asyncio_executor
         self.submitter_id: str = submitter_id
@@ -62,6 +66,7 @@ class AsyncToSyncGenerator:
         self.keep_alive_result: Any = keep_alive_result
         self.keep_alive_timeout_seconds: float = keep_alive_timeout_seconds
         self.poll_seconds: float = poll_seconds
+        self.umbrella_timeout: Timeout = umbrella_timeout
 
     @staticmethod
     async def my_anext(async_iter: AsyncIterator) -> Any:
@@ -121,8 +126,14 @@ class AsyncToSyncGenerator:
                 got_real_result: bool = False
                 while not got_real_result:
                     try:
-                        iteration_result = self.wait_for_future(future, self.generated_type,
-                                                                self.keep_alive_timeout_seconds)
+                        use_timeout: float = self.keep_alive_timeout_seconds
+                        if self.umbrella_timeout is not None:
+                            time_left: float = self.umbrella_timeout.get_remaining_time_in_seconds()
+                            if use_timeout <= 0.0 or use_timeout > time_left:
+                                use_timeout = time_left
+                        iteration_result = self.wait_for_future(future, self.generated_type, use_timeout)
+                        if self.umbrella_timeout is not None:
+                            self.umbrella_timeout.check_timeout()
                         got_real_result = True
 
                     except TimeoutError:
@@ -159,6 +170,8 @@ class AsyncToSyncGenerator:
         start_time: float = time()
         while not future.done():
             # Always exit the loop if the future is done
+            if self.umbrella_timeout is not None:
+                self.umbrella_timeout.check_timeout()
 
             # Sleep to give another thread a change
             sleep(self.poll_seconds)
