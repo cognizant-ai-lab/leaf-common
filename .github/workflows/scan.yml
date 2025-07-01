@@ -12,7 +12,7 @@ jobs:
   blackduck_scan: 
     name: Blackduck Scan
     if: startsWith(github.ref, 'refs/heads/oss/')
-    runs-on: ubuntu-latest
+    runs-on: codebuild-cdhb-ubuntu-cdbuild-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.10
@@ -54,17 +54,14 @@ jobs:
   sonarqube_Scan:
     name: SonarQube Scan
     if: startsWith(github.ref, 'refs/heads/sonar/')
-    runs-on: ubuntu-latest
+    runs-on: codebuild-cdhb-ubuntu-cdbuild-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v4
       - name: SonarQube Scan
         run: |
-          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
-          unzip sonar-scanner-cli-4.6.2.2472-linux.zip
-          rm sonar-scanner-cli-4.6.2.2472-linux.zip
-          export PATH="${PATH}:$(pwd)/sonar-scanner-4.6.2.2472-linux/bin"
           sonar-scanner \
             -Dsonar.projectKey=${{ github.event.repository.name }} \
+            -Dsonar.ci.autoconfig.disabled=true \
             -Dsonar.sources=. \
             -Dsonar.exclusions=build_scripts/**,**/tests/** \
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
