@@ -9,6 +9,9 @@
 # neuro-san SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comments
+"""
 
 import logging
 import threading
@@ -33,7 +36,7 @@ class AsyncioExecutorPool:
         self.lock: threading.Lock = threading.Lock()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.debug("AsyncioExecutorPool created: %s reuse: %s",
-                         id(self), str(self.reuse_mode))
+                          id(self), str(self.reuse_mode))
 
     def get_executor(self) -> AsyncioExecutor:
         """
