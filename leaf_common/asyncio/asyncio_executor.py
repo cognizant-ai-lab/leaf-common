@@ -107,6 +107,8 @@ class AsyncioExecutor(Executor):
         pending = asyncio.all_tasks(loop=loop)
         if pending:
             loop.run_until_complete(asyncio.gather(*pending, return_exceptions=False))
+        # Close the event loop to free its related resources
+        loop.close()
 
     @staticmethod
     def loop_exception_handler(loop: AbstractEventLoop, context: Dict[str, Any]):
