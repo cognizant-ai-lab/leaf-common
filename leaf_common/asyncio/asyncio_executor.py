@@ -107,6 +107,8 @@ class AsyncioExecutor(Executor):
         pending = asyncio.all_tasks(loop=loop)
         if pending:
             loop.run_until_complete(asyncio.gather(*pending, return_exceptions=False))
+        # Close the event loop to free its related resources
+        loop.close()
 
     @staticmethod
     def loop_exception_handler(loop: AbstractEventLoop, context: Dict[str, Any]):
@@ -262,6 +264,16 @@ class AsyncioExecutor(Executor):
                      False otherwise.  Default is True.
         :param cancel_futures: Ignored? Default is False.
         """
+        # Here is an outline of how this call works:
+        # 1. shutdown() tells event loop to stop
+        # (telling loop to execute loop.stop(), and doing this from caller thread by call_soon_threadsafe())
+        #  then it starts to wait to join executor thread;
+        # 2. executor thread returns from loop.run_forever(), because event loop has stopped,
+        # does some finishing with outstanding loop tasks, and closes the loop. Then executor thread finishes.
+        # Note that closing event loop frees loop-bound resources which otherwise
+        # are not necessarily released.
+        # 3. shutdown() joins the finished executor thread and peacefully finishes itself.
+        # 4. shutdown() call returns to caller.
         self._shutdown = True
         self._loop.call_soon_threadsafe(self._loop.stop)
         if wait:
