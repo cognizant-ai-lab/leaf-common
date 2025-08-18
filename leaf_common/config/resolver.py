@@ -13,9 +13,14 @@
 See class comment for details.
 """
 
-import importlib
-import logging
-import re
+from typing import Any
+from typing import List
+from typing import Type
+
+from importlib import import_module
+from logging import getLogger
+from logging import Logger
+from re import sub
 
 
 class Resolver():
@@ -24,16 +29,18 @@ class Resolver():
     where the module might be found in one of many packages.
     """
 
-    def __init__(self, packages):
+    def __init__(self, packages: List[str] = None):
         """
         :param packages: The list of packages to search
         """
 
-        self.packages = packages
+        self.packages: List[str] = packages
 
-    def resolve_class_in_module(self, class_name, module_name=None,
-                                raise_if_not_found=True,
-                                verbose=False):
+    # pylint: disable=too-many-positional-arguments,too-many-arguments
+    def resolve_class_in_module(self, class_name: str, module_name: str = None,
+                                raise_if_not_found: bool = True,
+                                verbose: bool = False,
+                                install_if_missing: str = None) -> Type[Any]:
         """
         :param class_name: The name of the class we are looking for.
         :param module_name: The name of the module the class should be in.
@@ -42,29 +49,35 @@ class Resolver():
         :param raise_if_not_found: When True an error will be raised that
                         the class could not be resolved.
         :param verbose: Controls how chatty the process is. Default False.
+        :param install_if_missing: Optional name of a package to install if the module is missing.
         :return: a reference to the Python class, if the class could be resolved
                  None otherwise.
         """
 
         # See if we need to manufacture a module name from the class name
-        use_module_name = module_name
+        use_module_name: str = module_name
         if use_module_name is None:
             use_module_name = self.module_name_from_class_name(class_name)
 
-        logger = logging.getLogger(self.__class__.__name__)
-        messages = []
-        found_module = None
+        logger: Logger = getLogger(self.__class__.__name__)
+        messages: List[str] = []
+        found_module: bool = None
         if verbose:
             logger.info("Attempting to resolve module %s", use_module_name)
-        for package in self.packages:
-            fully_qualified_module = f"{package}.{use_module_name}"
-            found_module = self.try_to_import_module(fully_qualified_module,
-                                                     messages)
-            if found_module is not None:
-                break
+
+        if self.packages is not None:
+            for package in self.packages:
+                fully_qualified_module: str = f"{package}.{use_module_name}"
+                found_module: Any = self.try_to_import_module(fully_qualified_module,
+                                                              messages, install_if_missing)
+                if found_module is not None:
+                    break
+        else:
+            found_module: Any = self.try_to_import_module(use_module_name, messages,
+                                                          install_if_missing)
 
         if found_module is None:
-            message = f"Could not find code for {use_module_name}"
+            message: str = f"Could not find code for {use_module_name}"
             messages.append(message)
             for message in messages:
                 # Always print a message when we couldn't find something
@@ -74,22 +87,26 @@ class Resolver():
         elif verbose:
             logger.info("Found module %s", use_module_name)
 
-        my_class = getattr(found_module, class_name)
+        my_class: Type[Any] = getattr(found_module, class_name)
         return my_class
 
-    def try_to_import_module(self, module, messages):
+    def try_to_import_module(self, module: str, messages: List[str],
+                             install_if_missing: str = None) -> Any:
         """
         Makes a single attempt to load a module
+
         :param module: The name of the module to load
         :param messages: a list of messages where logs of failed attempts can go
+        :param install_if_missing: Optional name of a package to install if the module is missing.
         :return: The python module if found. None if not found.
         """
 
-        found_module = None
-        message = None
+        # importlib source and docs gives no clue as to proper typing for modules. <shrug>
+        found_module: Any = None
+        message: str = None
 
         try:
-            found_module = importlib.import_module(module)
+            found_module = import_module(module)
         except SyntaxError as exception:
             message = \
                 f"Module {module}: Couldn't load due to SyntaxError: {str(exception)}"
@@ -97,9 +114,12 @@ class Resolver():
             message = \
                 f"Module {module}: Couldn't load due to ImportError: {str(exception)}"
             message += "...\n"
-            message += "This might be OK if this is *not* an ImportError "
-            message += "in the file itself and the code can be found in "
-            message += "another directory"
+            if not install_if_missing:
+                message += "This might be OK if this is *not* an ImportError "
+                message += "in the file itself and the code can be found in "
+                message += "another directory"
+            else:
+                message += f"Try pip installing the package {install_if_missing} to get past this error."
 
         except Exception as exception:      # pylint: disable=broad-except
             message = f"Module {module}: Couldn't load due to Exception: {str(exception)}"
@@ -109,7 +129,7 @@ class Resolver():
 
         return found_module
 
-    def module_name_from_class_name(self, class_name):
+    def module_name_from_class_name(self, class_name: str) -> str:
         """
         :param class_name: The class name whose module name we are looking for
         :return: the snake-case module name
@@ -117,7 +137,7 @@ class Resolver():
 
         # See https://stackoverflow.com/questions/1175208/
         #       elegant-python-function-to-convert-camelcase-to_snake_case
-        sub_expr = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', class_name)
-        module_name = re.sub('([a-z0-9])([A-Z])', r'\1_\2', sub_expr).lower()
+        sub_expr: str = sub('(.)([A-Z][a-z]+)', r'\1_\2', class_name)
+        module_name: str = sub('([a-z0-9])([A-Z])', r'\1_\2', sub_expr).lower()
 
         return module_name
