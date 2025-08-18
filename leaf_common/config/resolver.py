@@ -38,7 +38,8 @@ class Resolver():
 
     def resolve_class_in_module(self, class_name: str, module_name: str = None,
                                 raise_if_not_found: bool = True,
-                                verbose: bool = False) -> Type[Any]:
+                                verbose: bool = False,
+                                install_if_missing: str = None) -> Type[Any]:
         """
         :param class_name: The name of the class we are looking for.
         :param module_name: The name of the module the class should be in.
@@ -47,6 +48,7 @@ class Resolver():
         :param raise_if_not_found: When True an error will be raised that
                         the class could not be resolved.
         :param verbose: Controls how chatty the process is. Default False.
+        :param install_if_missing: Optional name of a package to install if the module is missing.
         :return: a reference to the Python class, if the class could be resolved
                  None otherwise.
         """
@@ -66,11 +68,12 @@ class Resolver():
             for package in self.packages:
                 fully_qualified_module: str = f"{package}.{use_module_name}"
                 found_module: Any = self.try_to_import_module(fully_qualified_module,
-                                                              messages)
+                                                              messages, install_if_missing)
                 if found_module is not None:
                     break
         else:
-            found_module: Any = self.try_to_import_module(use_module_name, messages)
+            found_module: Any = self.try_to_import_module(use_module_name, messages,
+                                                          install_if_missing)
 
         if found_module is None:
             message: str = f"Could not find code for {use_module_name}"
@@ -86,11 +89,14 @@ class Resolver():
         my_class: Type[Any] = getattr(found_module, class_name)
         return my_class
 
-    def try_to_import_module(self, module: str, messages: List[str]) -> Any:
+    def try_to_import_module(self, module: str, messages: List[str],
+                             install_if_missing: str = None) -> Any:
         """
         Makes a single attempt to load a module
+
         :param module: The name of the module to load
         :param messages: a list of messages where logs of failed attempts can go
+        :param install_if_missing: Optional name of a package to install if the module is missing.
         :return: The python module if found. None if not found.
         """
 
@@ -106,9 +112,12 @@ class Resolver():
             message = \
                 f"Module {module}: Couldn't load due to ImportError: {str(exception)}"
             message += "...\n"
-            message += "This might be OK if this is *not* an ImportError "
-            message += "in the file itself and the code can be found in "
-            message += "another directory"
+            if not install_if_missing:
+                message += "This might be OK if this is *not* an ImportError "
+                message += "in the file itself and the code can be found in "
+                message += "another directory"
+            else:
+                message += f"Try pip installing the package {install_if_missing} to get past this error."
 
         except Exception as exception:      # pylint: disable=broad-except
             message = f"Module {module}: Couldn't load due to Exception: {str(exception)}"
