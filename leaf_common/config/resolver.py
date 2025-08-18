@@ -61,12 +61,16 @@ class Resolver():
         found_module: bool = None
         if verbose:
             logger.info("Attempting to resolve module %s", use_module_name)
-        for package in self.packages:
-            fully_qualified_module: str = f"{package}.{use_module_name}"
-            found_module: Any = self.try_to_import_module(fully_qualified_module,
-                                                          messages)
-            if found_module is not None:
-                break
+
+        if self.packages is not None:
+            for package in self.packages:
+                fully_qualified_module: str = f"{package}.{use_module_name}"
+                found_module: Any = self.try_to_import_module(fully_qualified_module,
+                                                              messages)
+                if found_module is not None:
+                    break
+        else:
+            found_module: Any = self.try_to_import_module(use_module_name, messages)
 
         if found_module is None:
             message: str = f"Could not find code for {use_module_name}"
