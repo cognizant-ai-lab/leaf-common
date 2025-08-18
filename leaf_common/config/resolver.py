@@ -100,6 +100,7 @@ class Resolver():
         :return: The python module if found. None if not found.
         """
 
+        # importlib source and docs gives no clue as to proper typing for modules. <shrug>
         found_module: Any = None
         message: str = None
 
