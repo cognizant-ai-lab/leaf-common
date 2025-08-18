@@ -36,6 +36,7 @@ class Resolver():
 
         self.packages: List[str] = packages
 
+    # pylint: disable=too-many-positional-arguments,too-many-arguments
     def resolve_class_in_module(self, class_name: str, module_name: str = None,
                                 raise_if_not_found: bool = True,
                                 verbose: bool = False,
