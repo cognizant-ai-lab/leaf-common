@@ -9,6 +9,9 @@
 # leaf-server-common SDK Software in commercial settings.
 #
 # END COPYRIGHT
+"""
+See class comments for description.
+"""
 import threading
 
 
