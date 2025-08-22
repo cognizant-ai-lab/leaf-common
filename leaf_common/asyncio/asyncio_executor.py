@@ -101,7 +101,7 @@ class AsyncioExecutor(Executor):
     @staticmethod
     def loop_manager(loop: AbstractEventLoop,
                      loop_ready: threading.Event,
-                     startup_function: Callable = None):
+                     startup_function: Callable):
         """
         Entry point static method for the background thread.
 
