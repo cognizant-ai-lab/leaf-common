@@ -112,13 +112,16 @@ class AsyncioExecutor(Executor):
         :param startup_function: callable object to be executed by loop_manager
             before anything else
         """
+        print(">>>>>>>>>>>> LOOP MANAGER start")
         if startup_function is not None:
+            print(">>>>>>>>>>>> HAVE STARTUP FUNCTION!")
             try:
                 print(">>>>>>>>>>> STARTUP CALL")
                 startup_function()
                 print(">>>>>>>>>>> STARTUP CALL DONE")
             except Exception as exc:  # pylint: disable=broad-except
                 print(f"Loop manager startup function exception: {exc}")
+        print(">>>>>>>>>>>> LOOP MANAGER end")
 
         asyncio.set_event_loop(loop)
         loop.call_soon(AsyncioExecutor.notify_loop_ready, loop_ready)
