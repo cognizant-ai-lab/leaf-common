@@ -77,7 +77,7 @@ class AsyncioExecutor(Executor):
             return
 
         self._thread = threading.Thread(target=self.loop_manager,
-                                        args=(self._loop, self._loop_ready, self._startup_function),
+                                        args=(self._loop, self._loop_ready),
                                         daemon=True)
         self._thread.start()
         timeout: int = EXECUTOR_START_TIMEOUT_SECONDS
