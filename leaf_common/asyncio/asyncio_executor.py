@@ -71,7 +71,9 @@ class AsyncioExecutor(Executor):
         return self._loop
 
     def set_startup_function(self, function: Callable):
+        print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
         self._startup_function = function
+        print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 
     def start(self):
         """
