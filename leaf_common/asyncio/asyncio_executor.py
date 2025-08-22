@@ -14,6 +14,7 @@ See class comment for details.
 """
 from typing import Any
 from typing import Awaitable
+from typing import Callable
 from typing import Dict
 from typing import List
 
@@ -56,6 +57,10 @@ class AsyncioExecutor(Executor):
         self._loop.set_exception_handler(AsyncioExecutor.loop_exception_handler)
         self._loop_ready = threading.Event()
 
+        # Optional function to be executed
+        # by loop manager thread (self._thread) before anything else.
+        self._startup_function = None
+
         # Use the global
         self._background_tasks: Dict[Future, Dict[str, Any]] = BACKGROUND_TASKS
 
@@ -64,6 +69,9 @@ class AsyncioExecutor(Executor):
         :return: The AbstractEventLoop associated with this instance
         """
         return self._loop
+
+    def set_startup_function(self, function: Callable):
+        self._startup_function = function
 
     def start(self):
         """
@@ -75,7 +83,7 @@ class AsyncioExecutor(Executor):
             return
 
         self._thread = threading.Thread(target=self.loop_manager,
-                                        args=(self._loop, self._loop_ready),
+                                        args=(self._loop, self._loop_ready, self._startup_function),
                                         daemon=True)
         self._thread.start()
         timeout: int = EXECUTOR_START_TIMEOUT_SECONDS
@@ -91,13 +99,25 @@ class AsyncioExecutor(Executor):
         loop_ready.set()
 
     @staticmethod
-    def loop_manager(loop: AbstractEventLoop, loop_ready: threading.Event):
+    def loop_manager(loop: AbstractEventLoop,
+                     loop_ready: threading.Event,
+                     startup_function: Callable = None):
         """
         Entry point static method for the background thread.
 
         :param loop: The AbstractEventLoop to use to run the event loop.
         :param loop_ready: event notifying that loop is ready for execution.
+        :param startup_function: callable object to be executed by loop_manager
+            before anything else
         """
+        if startup_function is not None:
+            try:
+                print(">>>>>>>>>>> STARTUP CALL")
+                startup_function()
+                print(">>>>>>>>>>> STARTUP CALL DONE")
+            except Exception as exc:  # pylint: disable=broad-except
+                print(f"Loop manager startup function exception: {exc}")
+
         asyncio.set_event_loop(loop)
         loop.call_soon(AsyncioExecutor.notify_loop_ready, loop_ready)
         loop.run_forever()
