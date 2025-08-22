@@ -56,10 +56,7 @@ class AsyncioExecutor(Executor):
         self._loop: AbstractEventLoop = asyncio.new_event_loop()
         self._loop.set_exception_handler(AsyncioExecutor.loop_exception_handler)
         self._loop_ready = threading.Event()
-
-        # Optional function to be executed
-        # by loop manager thread (self._thread) before anything else.
-        self._startup_function = None
+        self._init_done = threading.Event()
 
         # Use the global
         self._background_tasks: Dict[Future, Dict[str, Any]] = BACKGROUND_TASKS
@@ -69,11 +66,6 @@ class AsyncioExecutor(Executor):
         :return: The AbstractEventLoop associated with this instance
         """
         return self._loop
-
-    def set_startup_function(self, function: Callable):
-        print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
-        self._startup_function = function
-        print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 
     def start(self):
         """
@@ -93,6 +85,36 @@ class AsyncioExecutor(Executor):
         if not was_set:
             raise ValueError(f"FAILED to start executor event loop in {timeout} sec")
 
+    def initialize(self, init_function: Callable):
+        """
+        Call initializing function on executor event loop
+        and wait for it to finish.
+        :param init_function: function to call.
+        """
+        if self._shutdown:
+            raise RuntimeError('Cannot schedule new calls after shutdown')
+        if not self._loop.is_running():
+            raise RuntimeError("Loop must be started before any function can "
+                               "be submitted")
+        self._init_done.clear()
+        self._loop.call_soon_threadsafe(self.run_initialization, init_function, self._init_done)
+        timeout: int = EXECUTOR_START_TIMEOUT_SECONDS
+        was_set: bool = self._init_done.wait(timeout=timeout)
+        if not was_set:
+            raise ValueError(f"FAILED to run executor initializer in {timeout} sec")
+
+    @staticmethod
+    def run_initialization(init_function: Callable, init_done: threading.Event):
+        """
+        Run in-loop initialization
+        """
+        try:
+            init_function()
+        except Exception as exc:  # pylint: disable=broad-except
+            print(f"Initializing function raised exception: {exc}")
+        finally:
+            init_done.set()
+
     @staticmethod
     def notify_loop_ready(loop_ready: threading.Event):
         """
@@ -101,28 +123,13 @@ class AsyncioExecutor(Executor):
         loop_ready.set()
 
     @staticmethod
-    def loop_manager(loop: AbstractEventLoop,
-                     loop_ready: threading.Event,
-                     startup_function: Callable):
+    def loop_manager(loop: AbstractEventLoop, loop_ready: threading.Event):
         """
         Entry point static method for the background thread.
 
         :param loop: The AbstractEventLoop to use to run the event loop.
         :param loop_ready: event notifying that loop is ready for execution.
-        :param startup_function: callable object to be executed by loop_manager
-            before anything else
         """
-        print(">>>>>>>>>>>> LOOP MANAGER start")
-        if startup_function is not None:
-            print(">>>>>>>>>>>> HAVE STARTUP FUNCTION!")
-            try:
-                print(">>>>>>>>>>> STARTUP CALL")
-                startup_function()
-                print(">>>>>>>>>>> STARTUP CALL DONE")
-            except Exception as exc:  # pylint: disable=broad-except
-                print(f"Loop manager startup function exception: {exc}")
-        print(">>>>>>>>>>>> LOOP MANAGER end")
-
         asyncio.set_event_loop(loop)
         loop.call_soon(AsyncioExecutor.notify_loop_ready, loop_ready)
         loop.run_forever()
