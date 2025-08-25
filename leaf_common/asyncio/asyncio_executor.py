@@ -14,6 +14,7 @@ See class comment for details.
 """
 from typing import Any
 from typing import Awaitable
+from typing import Callable
 from typing import Dict
 from typing import List
 
@@ -55,6 +56,7 @@ class AsyncioExecutor(Executor):
         self._loop: AbstractEventLoop = asyncio.new_event_loop()
         self._loop.set_exception_handler(AsyncioExecutor.loop_exception_handler)
         self._loop_ready = threading.Event()
+        self._init_done = threading.Event()
 
         # Use the global
         self._background_tasks: Dict[Future, Dict[str, Any]] = BACKGROUND_TASKS
@@ -82,6 +84,36 @@ class AsyncioExecutor(Executor):
         was_set: bool = self._loop_ready.wait(timeout=timeout)
         if not was_set:
             raise ValueError(f"FAILED to start executor event loop in {timeout} sec")
+
+    def initialize(self, init_function: Callable):
+        """
+        Call initializing function on executor event loop
+        and wait for it to finish.
+        :param init_function: function to call.
+        """
+        if self._shutdown:
+            raise RuntimeError('Cannot schedule new calls after shutdown')
+        if not self._loop.is_running():
+            raise RuntimeError("Loop must be started before any function can "
+                               "be submitted")
+        self._init_done.clear()
+        self._loop.call_soon_threadsafe(self.run_initialization, init_function, self._init_done)
+        timeout: int = EXECUTOR_START_TIMEOUT_SECONDS
+        was_set: bool = self._init_done.wait(timeout=timeout)
+        if not was_set:
+            raise ValueError(f"FAILED to run executor initializer in {timeout} sec")
+
+    @staticmethod
+    def run_initialization(init_function: Callable, init_done: threading.Event):
+        """
+        Run in-loop initialization
+        """
+        try:
+            init_function()
+        except Exception as exc:  # pylint: disable=broad-except
+            print(f"Initializing function raised exception: {exc}")
+        finally:
+            init_done.set()
 
     @staticmethod
     def notify_loop_ready(loop_ready: threading.Event):
