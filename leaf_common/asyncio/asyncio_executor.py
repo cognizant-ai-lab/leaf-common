@@ -17,6 +17,7 @@ from typing import Awaitable
 from typing import Callable
 from typing import Dict
 from typing import List
+from typing import Tuple
 
 import asyncio
 import functools
@@ -27,7 +28,7 @@ import traceback
 from asyncio import AbstractEventLoop
 from asyncio import Future
 from concurrent.futures import Executor
-
+from concurrent.futures import TimeoutError
 
 # A global containing a some kind of reference to asyncio tasks running in the background.
 # Some documentation has recommended this practice as some coroutines
@@ -165,12 +166,14 @@ class AsyncioExecutor(Executor):
         formatted_exception = traceback.format_exception(exception)
         print(f"Traceback:\n{formatted_exception}")
 
-    def submit(self, submitter_id: str, function, /, *args, **kwargs) -> Future:
+    def submit(self, submitter_id: str, function, cleanup_function: Callable, /, *args, **kwargs) -> Future:
         """
         Submit a function to be run in the asyncio event loop.
 
         :param submitter_id: A string id denoting who is doing the submitting.
         :param function: The function handle to run
+                :param cleanup_function: The cleanup function to be called for cancelled tasks
+                    to release task resources
         :param /: Positional or keyword arguments.
             See https://realpython.com/python-asterisk-and-slash-special-parameters/
         :param args: args for the function
@@ -193,28 +196,42 @@ class AsyncioExecutor(Executor):
             func = functools.partial(function, *args, **kwargs)
             future = self._loop.run_in_executor(None, func)
 
-        self.track_future(future, submitter_id, function)
+        self.track_future(future, submitter_id, function, cleanup_function)
 
         return future
 
-    def create_task(self, awaitable: Awaitable, submitter_id: str, raise_exception: bool = False) -> Future:
+    def create_task(self, awaitable: Awaitable, submitter_id: str, cleanup_function: Callable, raise_exception: bool = False) -> Future:
         """
         Creates a task for the event loop given an Awaitable
         :param awaitable: The Awaitable to create and schedule a task for
         :param submitter_id: A string id denoting who is doing the submitting.
+        :param cleanup_function: The cleanup function to be called for cancelled tasks
+                    to release task resources
         :param raise_exception: True if exceptions are to be raised in the executor.
                     Default is False.
         :return: The Future corresponding to the results of the scheduled task
         """
+        if self._shutdown:
+            raise RuntimeError('Cannot schedule new futures after shutdown')
+
+        if not self._loop.is_running():
+            raise RuntimeError("Loop must be started before any function can "
+                               "be submitted")
+
         future: Future = self._loop.create_task(awaitable)
-        self.track_future(future, submitter_id, awaitable, raise_exception)
+        self.track_future(future, submitter_id, awaitable, cleanup_function, raise_exception)
         return future
 
-    def track_future(self, future: Future, submitter_id: str, function, raise_exception: bool = False):
+    def track_future(self, future: Future, submitter_id: str,
+                     function,
+                     cleanup_function: Callable,
+                     raise_exception: bool = False):
         """
         :param future: The Future to track
         :param submitter_id: A string id denoting who is doing the submitting.
         :param function: The function handle to be run in the future
+        :param cleanup_function: The cleanup function to be called for cancelled tasks
+                    to release task resources
         :param raise_exception: True if exceptions are to be raised in the executor.
                     Default is False.
         """
@@ -234,11 +251,35 @@ class AsyncioExecutor(Executor):
             "submitter_id": submitter_id,
             "function": function_name,
             "future": future,
+            "cleanup": cleanup_function,
             "raise_exception": raise_exception
         }
         future.add_done_callback(self.submission_done)
 
         return future
+
+    @staticmethod
+    async def _cancel_and_drain(tasks: Tuple[asyncio.Future, ...]):
+        # Request cancellation for tasks that are not already done:
+        pending = []
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+                pending.append(task)
+        _ = await asyncio.gather(pending, return_exceptions=True)
+
+    def cancel_current_tasks(self, timeout: float = 5.0):
+        if not self._loop.is_running():
+            raise RuntimeError("Loop must be running to cancel remaining tasks")
+        tasks_to_cancel = tuple(self._background_tasks.keys())
+        cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
+        try:
+            cancel_task.result(timeout)
+        except TimeoutError:
+            print(f"Timeout {timeout} sec exceeded while cleaning up AsyncioExecutor.")
+            raise
+        finally:
+            self._background_tasks = {}
 
     def submission_done(self, future: Future):
         """
