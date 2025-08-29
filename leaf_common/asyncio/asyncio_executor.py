@@ -166,14 +166,12 @@ class AsyncioExecutor(Executor):
         formatted_exception = traceback.format_exception(exception)
         print(f"Traceback:\n{formatted_exception}")
 
-    def submit(self, submitter_id: str, function, cleanup_function: Callable, /, *args, **kwargs) -> Future:
+    def submit(self, submitter_id: str, function, /, *args, **kwargs) -> Future:
         """
         Submit a function to be run in the asyncio event loop.
 
         :param submitter_id: A string id denoting who is doing the submitting.
         :param function: The function handle to run
-                :param cleanup_function: The cleanup function to be called for cancelled tasks
-                    to release task resources
         :param /: Positional or keyword arguments.
             See https://realpython.com/python-asterisk-and-slash-special-parameters/
         :param args: args for the function
@@ -196,17 +194,15 @@ class AsyncioExecutor(Executor):
             func = functools.partial(function, *args, **kwargs)
             future = self._loop.run_in_executor(None, func)
 
-        self.track_future(future, submitter_id, function, cleanup_function)
+        self.track_future(future, submitter_id, function)
 
         return future
 
-    def create_task(self, awaitable: Awaitable, submitter_id: str, cleanup_function: Callable, raise_exception: bool = False) -> Future:
+    def create_task(self, awaitable: Awaitable, submitter_id: str, raise_exception: bool = False) -> Future:
         """
         Creates a task for the event loop given an Awaitable
         :param awaitable: The Awaitable to create and schedule a task for
         :param submitter_id: A string id denoting who is doing the submitting.
-        :param cleanup_function: The cleanup function to be called for cancelled tasks
-                    to release task resources
         :param raise_exception: True if exceptions are to be raised in the executor.
                     Default is False.
         :return: The Future corresponding to the results of the scheduled task
@@ -219,19 +215,16 @@ class AsyncioExecutor(Executor):
                                "be submitted")
 
         future: Future = self._loop.create_task(awaitable)
-        self.track_future(future, submitter_id, awaitable, cleanup_function, raise_exception)
+        self.track_future(future, submitter_id, awaitable, raise_exception)
         return future
 
     def track_future(self, future: Future, submitter_id: str,
                      function,
-                     cleanup_function: Callable,
                      raise_exception: bool = False):
         """
         :param future: The Future to track
         :param submitter_id: A string id denoting who is doing the submitting.
         :param function: The function handle to be run in the future
-        :param cleanup_function: The cleanup function to be called for cancelled tasks
-                    to release task resources
         :param raise_exception: True if exceptions are to be raised in the executor.
                     Default is False.
         """
@@ -251,7 +244,6 @@ class AsyncioExecutor(Executor):
             "submitter_id": submitter_id,
             "function": function_name,
             "future": future,
-            "cleanup": cleanup_function,
             "raise_exception": raise_exception
         }
         future.add_done_callback(self.submission_done)
