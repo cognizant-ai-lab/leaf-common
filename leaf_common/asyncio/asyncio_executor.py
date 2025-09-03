@@ -17,7 +17,6 @@ from typing import Awaitable
 from typing import Callable
 from typing import Dict
 from typing import List
-from typing import Tuple
 
 import asyncio
 import functools
@@ -251,7 +250,7 @@ class AsyncioExecutor(Executor):
         return future
 
     @staticmethod
-    async def _cancel_and_drain(tasks: Tuple[asyncio.Future, ...]):
+    async def _cancel_and_drain(tasks: List[asyncio.Future]):
         # Request cancellation for tasks that are not already done:
         pending = []
         for task in tasks:
@@ -263,7 +262,7 @@ class AsyncioExecutor(Executor):
     def cancel_current_tasks(self, timeout: float = 5.0):
         if not self._loop.is_running():
             raise RuntimeError("Loop must be running to cancel remaining tasks")
-        tasks_to_cancel = tuple(self._background_tasks.keys())
+        tasks_to_cancel = list(self._background_tasks.keys())
         cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
         try:
             cancel_task.result(timeout)
