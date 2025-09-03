@@ -256,8 +256,10 @@ class AsyncioExecutor(Executor):
         pending = []
         for task in tasks:
             if not task.done():
+                print("TASK cancel <<<<<<")
                 task.cancel()
                 pending.append(task)
+        print(f"PENDING TASKS: {len(pending)}")
         _ = await asyncio.gather(pending, return_exceptions=True)
 
     def cancel_current_tasks(self, timeout: float = 5.0):
@@ -266,7 +268,9 @@ class AsyncioExecutor(Executor):
         tasks_to_cancel: List[Future] = []
         for task_id in self._background_tasks.keys():
             tasks_to_cancel.append(self._background_tasks[task_id])
+        print("111111111111111")
         cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
+        print("22222222222")
         try:
             cancel_task.result(timeout)
         except TimeoutError:
