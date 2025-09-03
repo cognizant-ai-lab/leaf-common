@@ -261,6 +261,7 @@ class AsyncioExecutor(Executor):
                 pending.append(task)
         print(f"PENDING TASKS: {len(pending)}")
         _ = await asyncio.gather(pending, return_exceptions=True)
+        print(f"DONE GATHER!")
 
     def cancel_current_tasks(self, timeout: float = 5.0):
         if not self._loop.is_running():
@@ -272,7 +273,9 @@ class AsyncioExecutor(Executor):
         cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
         print("22222222222")
         try:
+            print("GET RESULT 333333")
             cancel_task.result(timeout)
+            print("GOT RESULT 4444444")
         except TimeoutError:
             print(f"Timeout {timeout} sec exceeded while cleaning up AsyncioExecutor.")
             raise
