@@ -260,7 +260,7 @@ class AsyncioExecutor(Executor):
                 task.cancel()
                 pending.append(task)
         print(f"PENDING TASKS: {len(pending)}")
-        _ = await asyncio.gather(pending, return_exceptions=True)
+        _ = await asyncio.gather(*pending, return_exceptions=True)
         print(f"DONE GATHER!")
 
     def cancel_current_tasks(self, timeout: float = 5.0):
