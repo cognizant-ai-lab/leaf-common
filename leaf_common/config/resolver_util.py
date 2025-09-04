@@ -15,6 +15,7 @@ See class comment for details.
 
 from typing import Any
 from typing import List
+from typing import Tuple
 from typing import Type
 
 from leaf_common.config.resolver import Resolver
@@ -99,3 +100,56 @@ class ResolverUtil:
             )
 
         return class_reference
+
+    @staticmethod
+    def create_type(fully_qualified_name: str,
+                    raise_if_not_found: bool = True,
+                    install_if_missing: str = None) -> Type[Any]:
+        """
+        :param fully_qualified_name: The fully qualified name of the class to create
+        :param raise_if_not_found: Raise an exception if the class is not found when True.
+        :param install_if_missing: The pip package to install if the class is not found
+        :return: The class referenced (*not* an instance of the class).
+                 Can return None if the class is not found and raise_if_not_found is False.
+        """
+        if not fully_qualified_name:
+            return None
+
+        name_split: List[str] = fully_qualified_name.split(".")
+        module_name: str = ".".join(name_split[:-1])
+        class_name: str = name_split[-1]
+
+        resolver = Resolver()
+        class_type: Type[Any] = resolver.resolve_class_in_module(class_name,
+                                                                 module_name=module_name,
+                                                                 raise_if_not_found=raise_if_not_found,
+                                                                 install_if_missing=install_if_missing)
+        return class_type
+
+    @staticmethod
+    def create_type_tuple(type_list: List[str]) -> Tuple[Type[Any], ...]:
+        """
+        Creates a tuple of class types for use in isinstance(obj, <tuple_of_types>)
+        situations.
+
+        :param type_list: A list of fully qualified names of the types to create
+                          (not class instances) to the string name of the package to install
+                          if the class is not found.
+        :return: A tuple of the class types that could be resolved.
+                Can return an empty tuple if nothing in the type_list could be resolved
+        """
+
+        if not type_list:
+            return ()
+
+        tuple_list: List[Type[Any]] = []
+        for class_name in type_list:
+
+            # Try to resolve the single type and append to list if we get it.
+            one_type: Type[Any] = ResolverUtil.create_type(class_name,
+                                                           raise_if_not_found=False,
+                                                           install_if_missing=None)
+            if one_type is not None:
+                tuple_list.append(one_type)
+
+        return tuple(tuple_list)
