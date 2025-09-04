@@ -107,8 +107,10 @@ class ResolverUtil:
                     install_if_missing: str = None) -> Type[Any]:
         """
         :param fully_qualified_name: The fully qualified name of the class to create
+        :param raise_if_not_found: Raise an exception if the class is not found when True.
         :param install_if_missing: The pip package to install if the class is not found
-        :return: The class referenced (not an instance of the class)
+        :return: The class referenced (*not* an instance of the class).
+                 Can return None if the class is not found and raise_if_not_found is False.
         """
         if not fully_qualified_name:
             return None
