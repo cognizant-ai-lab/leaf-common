@@ -87,6 +87,7 @@ class Resolver():
         elif verbose:
             logger.info("Found module %s", use_module_name)
 
+        # The None case here should only fall through if raise_not_found is False.
         my_class: Type[Any] = None
         if found_module is not None:
             my_class = getattr(found_module, class_name)
