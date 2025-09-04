@@ -37,7 +37,7 @@ class Resolver():
         self.packages: List[str] = packages
 
     # pylint: disable=too-many-positional-arguments,too-many-arguments
-    def resolve_class_in_module(self, class_name: str, module_name: str = None,
+    def resolve_class_in_module(self, class_name: str, module_name: str = None,     # noqa: C901
                                 raise_if_not_found: bool = True,
                                 verbose: bool = False,
                                 install_if_missing: str = None) -> Type[Any]:
@@ -87,7 +87,10 @@ class Resolver():
         elif verbose:
             logger.info("Found module %s", use_module_name)
 
-        my_class: Type[Any] = getattr(found_module, class_name)
+        my_class: Type[Any] = None
+        if found_module is not None:
+            my_class = getattr(found_module, class_name)
+
         return my_class
 
     def try_to_import_module(self, module: str, messages: List[str],
