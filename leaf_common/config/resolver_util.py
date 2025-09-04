@@ -103,6 +103,7 @@ class ResolverUtil:
 
     @staticmethod
     def create_type(fully_qualified_name: str,
+                    raise_if_not_found: bool = True,
                     install_if_missing: str = None) -> Type[Any]:
         """
         :param fully_qualified_name: The fully qualified name of the class to create
@@ -119,7 +120,7 @@ class ResolverUtil:
         resolver = Resolver()
         class_type: Type[Any] = resolver.resolve_class_in_module(class_name,
                                                                  module_name=module_name,
-                                                                 raise_if_not_found=False,
+                                                                 raise_if_not_found=raise_if_not_found,
                                                                  install_if_missing=install_if_missing)
         return class_type
 
@@ -143,7 +144,9 @@ class ResolverUtil:
         for class_name in type_list:
 
             # Try to resolve the single type and append to list if we get it.
-            one_type: Type[Any] = ResolverUtil.create_type(class_name, install_if_missing=None)
+            one_type: Type[Any] = ResolverUtil.create_type(class_name,
+                                                           raise_if_not_found=False,
+                                                           install_if_missing=None)
             if one_type is not None:
                 tuple_list.append(one_type)
 
