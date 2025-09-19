@@ -258,18 +258,24 @@ class AsyncioExecutor(Executor):
                 pending.append(task)
         # Don't raise exceptions in the tasks being cancelled -
         # we don't really need to react to them.
+
+        print(f"ASYNCIO-EXECUTOR: Cancelling {len(pending)} tasks")
+
         _ = await asyncio.gather(*pending, return_exceptions=True)
 
     def cancel_current_tasks(self, timeout: float = 5.0):
         if not self._loop.is_running():
             raise RuntimeError("Loop must be running to cancel remaining tasks")
         tasks_to_cancel: List[Future] = []
-        with self._background_tasks_lock:
-            for task_id in self._background_tasks.keys():
-                # We do things safely here:
-                task: Future = self._background_tasks.get(task_id, None)
-                if task:
-                    tasks_to_cancel.append(task)
+        for task in asyncio.all_tasks(self._loop):
+            tasks_to_cancel.append(task)
+
+        # with self._background_tasks_lock:
+        #     for task_id in self._background_tasks.keys():
+        #         # We do things safely here:
+        #         task: Future = self._background_tasks.get(task_id, None)
+        #         if task:
+        #             tasks_to_cancel.append(task)
         cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
         try:
             cancel_task.result(timeout)
