@@ -18,7 +18,6 @@ from typing import Callable
 from typing import Dict
 from typing import List
 
-import copy
 import asyncio
 import functools
 import inspect
@@ -29,11 +28,6 @@ from asyncio import AbstractEventLoop
 from asyncio import Future
 from concurrent.futures import Executor
 from concurrent.futures import TimeoutError
-
-# A global containing a some kind of reference to asyncio tasks running in the background.
-# Some documentation has recommended this practice as some coroutines
-# reportedly operate under weak references.
-BACKGROUND_TASKS: Dict[str, Dict[str, Any]] = {}
 
 EXECUTOR_START_TIMEOUT_SECONDS: int = 5
 
@@ -58,9 +52,10 @@ class AsyncioExecutor(Executor):
         self._loop.set_exception_handler(AsyncioExecutor.loop_exception_handler)
         self._loop_ready = threading.Event()
         self._init_done = threading.Event()
-
-        # Use the global
-        self._background_tasks: Dict[str, Dict[str, Any]] = copy.deepcopy(BACKGROUND_TASKS)
+        self._background_tasks: Dict[int, Dict[str, Any]] = {}
+        # background tasks table will be accessed from different threads,
+        # so protect it:
+        self._background_tasks_lock = threading.Lock()
 
     def get_event_loop(self) -> AbstractEventLoop:
         """
@@ -139,7 +134,9 @@ class AsyncioExecutor(Executor):
         # We should gather any remaining tasks and finish them.
         pending = asyncio.all_tasks(loop=loop)
         if pending:
-            loop.run_until_complete(asyncio.gather(*pending, return_exceptions=False))
+            # We want all possibly pending tasks to execute -
+            # don't need them to raise exceptions.
+            loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
         # Close the event loop to free its related resources
         loop.close()
 
@@ -164,7 +161,7 @@ class AsyncioExecutor(Executor):
 
         exception = context.get("exception", None)
         formatted_exception = traceback.format_exception(exception)
-        print(f"Traceback:\n{formatted_exception}")
+        print(f"Event loop traceback:\n{formatted_exception}")
 
     def submit(self, submitter_id: str, function, /, *args, **kwargs) -> Future:
         """
@@ -240,12 +237,13 @@ class AsyncioExecutor(Executor):
             # Just get the class name
             function_name = function.__class__.__name__
 
-        self._background_tasks[id(future)] = {
-            "submitter_id": submitter_id,
-            "function": function_name,
-            "future": future,
-            "raise_exception": raise_exception
-        }
+        with self._background_tasks_lock:
+            self._background_tasks[id(future)] = {
+                "submitter_id": submitter_id,
+                "function": function_name,
+                "future": future,
+                "raise_exception": raise_exception
+            }
         future.add_done_callback(self.submission_done)
 
         return future
@@ -258,22 +256,23 @@ class AsyncioExecutor(Executor):
             if not task.done():
                 task.cancel()
                 pending.append(task)
-        print(f"PENDING TASKS: {len(pending)}")
+        # Don't raise exceptions in the tasks being cancelled -
+        # we don't really need to react to them.
         _ = await asyncio.gather(*pending, return_exceptions=True)
 
     def cancel_current_tasks(self, timeout: float = 5.0):
         if not self._loop.is_running():
             raise RuntimeError("Loop must be running to cancel remaining tasks")
         tasks_to_cancel: List[Future] = []
-        for task_id in self._background_tasks.keys():
-            tasks_to_cancel.append(self._background_tasks[task_id])
-        print(f">>> CANCEL EXECUTOR loop: {id(self._loop)}")
+        with self._background_tasks_lock:
+            for task_id in self._background_tasks.keys():
+                # We do things safely here:
+                task: Future = self._background_tasks.get(task_id, None)
+                if task:
+                    tasks_to_cancel.append(task)
         cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
-        #print("22222222222")
         try:
-            #print("GET RESULT 333333")
             cancel_task.result(timeout)
-            #print("GOT RESULT 4444444")
         except TimeoutError:
             print(f"Timeout {timeout} sec exceeded while cleaning up AsyncioExecutor.")
             raise
@@ -330,8 +329,9 @@ class AsyncioExecutor(Executor):
                   f"from {origination} that wasn't done")
 
         # As a last gesture, remove the background task from the map
-        # we use to keep its reference around.
-        del self._background_tasks[future_id]
+        # we use to keep its reference around. Do it safely:
+        with self._background_tasks_lock:
+            self._background_tasks.pop(future_id, None)
 
     def shutdown(self, wait: bool = True, *, cancel_futures: bool = False):
         """
