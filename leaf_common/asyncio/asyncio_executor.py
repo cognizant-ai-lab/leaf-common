@@ -26,13 +26,12 @@ import traceback
 
 from asyncio import AbstractEventLoop
 from asyncio import Future
-from concurrent.futures import Executor
-from concurrent.futures import TimeoutError
+from concurrent import futures
 
 EXECUTOR_START_TIMEOUT_SECONDS: int = 5
 
 
-class AsyncioExecutor(Executor):
+class AsyncioExecutor(futures.Executor):
     """
     Class for managing asynchronous background tasks in a single thread
     Riffed from:
@@ -261,18 +260,22 @@ class AsyncioExecutor(Executor):
         _ = await asyncio.gather(*pending, return_exceptions=True)
 
     def cancel_current_tasks(self, timeout: float = 5.0):
+        """
+        Method to cancel the currently submitted tasks for this executor.
+        :param timeout: The maximum time in seconds to cancel the current tasks
+        """
         if not self._loop.is_running():
             raise RuntimeError("Loop must be running to cancel remaining tasks")
         tasks_to_cancel: List[Future] = []
         with self._background_tasks_lock:
-            for task_id in self._background_tasks.keys():
+            for task_id in self._background_tasks:
                 task: Future = self._background_tasks.get(task_id, None)
                 if task:
                     tasks_to_cancel.append(task)
         cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
         try:
             cancel_task.result(timeout)
-        except TimeoutError:
+        except futures.TimeoutError:
             print(f"Timeout {timeout} sec exceeded while cleaning up AsyncioExecutor {id(self)}")
             raise
         finally:
@@ -308,7 +311,7 @@ class AsyncioExecutor(Executor):
                 # StopAsyncIteration is OK
                 pass
 
-            except TimeoutError:
+            except futures.TimeoutError:
                 print(f"Coroutine from {origination} took too long()")
 
             except asyncio.exceptions.CancelledError:
