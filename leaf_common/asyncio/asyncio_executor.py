@@ -236,13 +236,14 @@ class AsyncioExecutor(futures.Executor):
             # Just get the class name
             function_name = function.__class__.__name__
 
-        with self._background_tasks_lock:
-            self._background_tasks[id(future)] = {
-                "submitter_id": submitter_id,
-                "function": function_name,
-                "future": future,
-                "raise_exception": raise_exception
-            }
+        task_info_dict: Dict[str, Any] = {
+            "submitter_id": submitter_id,
+            "function": function_name,
+            "future": future,
+            "raise_exception": raise_exception
+        }
+        future_id = id(future)
+        self._background_tasks[future_id] = task_info_dict
         future.add_done_callback(self.submission_done)
 
         return future
@@ -267,19 +268,23 @@ class AsyncioExecutor(futures.Executor):
         if not self._loop.is_running():
             raise RuntimeError("Loop must be running to cancel remaining tasks")
         tasks_to_cancel: List[Future] = []
+
         with self._background_tasks_lock:
-            for task_id in self._background_tasks:
-                task: Future = self._background_tasks.get(task_id, None)
-                if task:
-                    tasks_to_cancel.append(task)
+            # Clear the background tasks map
+            # and allow next tasks (if any) to be added.
+            # Currently present tasks will be cancelled below.
+            background_tasks_save: Dict[int, Dict[str, Any]] = self._background_tasks
+            self._background_tasks = {}
+
+        for task in background_tasks_save.values():
+            if task:
+                tasks_to_cancel.append(task)
         cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
         try:
             cancel_task.result(timeout)
         except futures.TimeoutError:
             print(f"Timeout {timeout} sec exceeded while cleaning up AsyncioExecutor {id(self)}")
             raise
-        finally:
-            self._background_tasks = {}
 
     def submission_done(self, future: Future):
         """
