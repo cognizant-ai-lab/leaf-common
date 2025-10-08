@@ -276,7 +276,8 @@ class AsyncioExecutor(futures.Executor):
             background_tasks_save: Dict[int, Dict[str, Any]] = self._background_tasks
             self._background_tasks = {}
 
-        for task in background_tasks_save.values():
+        for task_dict in background_tasks_save.values():
+            task: Future = task_dict.get("future", None)
             if task:
                 tasks_to_cancel.append(task)
         cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
