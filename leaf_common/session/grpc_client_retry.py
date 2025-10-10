@@ -306,10 +306,17 @@ class GrpcClientRetry():
                             "Check your ~/.enn/security_config.hocon to be " + \
                             "sure the values for the keys:\n" + \
                             "    auth_client_id\n" + \
-                            "    auth_secret\n" + \
                             "    username\n" + \
                             "    password\n" + \
                             "have been entered correctly."
+
+                    # Note: we used to have this in the error message, but
+                    # Checkmarx flags it as a false positive (see above).
+                    #        "    auth_secret\n" + \
+                    # This was helpful for command line ESP and ENN users.
+                    # but with larger neuro-san audience, it might not be worth it.
+                    # That is: better to have a clean scan.
+
                     host_and_port = f"{self.host}:{self.port}"
                     self.logger.error(error, host_and_port)
                     self.close_channel_and_reset_token()
@@ -379,10 +386,17 @@ class GrpcClientRetry():
                     "Check your ~/.enn/security_config.hocon to be " + \
                     "sure the values for the keys:\n" + \
                     "    auth_client_id\n" + \
-                    "    auth_secret\n" + \
                     "    username\n" + \
                     "    password\n" + \
                     "have been entered correctly."
+
+                # Note: we used to have this in the error message, but
+                # Checkmarx flags it as a false positive (see above).
+                #        "    auth_secret\n" + \
+                # This was helpful for command line ESP and ENN users.
+                # but with larger neuro-san audience, it might not be worth it.
+                # That is: better to have a clean scan.
+
                 host_and_port = f"{self.host}:{self.port}"
                 self.logger.error(error, host_and_port)
             self.close_channel_and_reset_token()
