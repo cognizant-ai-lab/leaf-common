@@ -63,6 +63,7 @@ class AsyncioExecutorPool:
         """
         if self.reuse_mode:
             with self.lock:
+                executor.cancel_current_tasks()
                 self.pool.append(executor)
                 self.logger.debug("Returned to pool: AsyncioExecutor %s pool size: %d", id(executor), len(self.pool))
         else:
