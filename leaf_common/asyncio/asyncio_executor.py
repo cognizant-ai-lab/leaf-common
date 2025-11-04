@@ -253,6 +253,20 @@ class AsyncioExecutor(futures.Executor):
 
         return future
 
+    def ensure_awaitable(self, x: Any) -> Awaitable:
+        """
+        Return an awaitable for x.
+        - Coroutine object / Task / asyncio.Future / objects with __await__ -> returned as is;
+        - concurrent.futures.Future -> wrapped for asyncio event loop;
+        - Otherwise -> raise TypeError
+        """
+        if inspect.isawaitable(x):
+            return x
+        if isinstance(x, futures.Future):
+            # Wrap a thread/process-pool future so it becomes awaitable
+            return asyncio.wrap_future(x, loop=self._loop)
+        raise TypeError(f"Object {x!r} of type {type(x).__name__} is not awaitable.")
+
     @staticmethod
     async def _cancel_and_drain(tasks: List[Future]):
         # Request cancellation for tasks that are not already done:
@@ -284,7 +298,7 @@ class AsyncioExecutor(futures.Executor):
         for task_dict in background_tasks_save.values():
             task: Future = task_dict.get("future", None)
             if task:
-                tasks_to_cancel.append(task)
+                tasks_to_cancel.append(self.ensure_awaitable(task))
         cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
         try:
             cancel_task.result(timeout)
