@@ -326,6 +326,13 @@ class AsyncioExecutor(futures.Executor):
             try:
                 # First see if there was any exception
                 exception = future.exception()
+                if exception:
+                    print(">>>>>>>>>>>>>>>>>>>EVENT LOOP: Exception traceback:")
+                    traceback.print_exception(exception)
+                    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+
+                    print(f"Coroutine from {origination} raised an exception:")
                 if exception is not None and future_info.get("raise_exception"):
                     raise exception
 
