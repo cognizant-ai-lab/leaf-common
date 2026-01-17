@@ -326,7 +326,7 @@ class AsyncioExecutor(futures.Executor):
             try:
                 # First see if there was any exception
                 exception = future.exception()
-                if exception:
+                if exception is not None:
                     print(">>>>>>>>>>>>>>>>>>>EVENT LOOP: Exception traceback:")
                     traceback.print_exception(exception)
                     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
@@ -349,6 +349,8 @@ class AsyncioExecutor(futures.Executor):
             except asyncio.exceptions.CancelledError:
                 # Cancelled task is OK - it may happen for different reasons.
                 print(f"Task from {origination} was cancelled")
+                traceback.print_exc()
+
 
             # pylint: disable=broad-exception-caught
             except Exception as exception:
