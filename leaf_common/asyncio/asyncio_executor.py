@@ -322,6 +322,7 @@ class AsyncioExecutor(futures.Executor):
 
         origination: str = f"{future_info.get('submitter_id')} of {future_info.get('function')}"
 
+
         if future.done():
             try:
                 # First see if there was any exception
@@ -366,7 +367,7 @@ class AsyncioExecutor(futures.Executor):
             # pylint: disable=broad-exception-caught
             except Exception as exc:
                 print(f"^^^^^^^^^^^^^^^^^^^^=======type: {type(exc)}")
-                print(f"^^^^^^^^^^^^^^^^^^^^=======name: {type(exc).__name__}")
+                print(f"^^^^^^^^^^^^^^^^^^^^=======name: {type(exc).__mro__}")
                 print(f">>>>>>>Coroutine from {origination} raised an exception:")
                 traceback.print_exception(exc)
                 print("end trace >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
