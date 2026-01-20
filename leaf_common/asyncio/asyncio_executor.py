@@ -325,7 +325,14 @@ class AsyncioExecutor(futures.Executor):
         if future.done():
             try:
                 # First see if there was any exception
-                exception = future.exception()
+                try:
+                    exception = future.exception()
+                except asyncio.CancelledError:
+                    # Cancelled task is OK - it may happen for different reasons.
+                    print(f">>>>>>>>>>>>>>>>>TASK was CANCELLED!<<<<<<<<<<<<<<<<<<")
+                    exception = None
+
+
                 if exception is not None:
                     print(">>>>>>>>>>>>>>>>>>>EVENT LOOP: Exception traceback:")
                     traceback.print_exception(exception)
@@ -359,7 +366,7 @@ class AsyncioExecutor(futures.Executor):
                 print("end trace >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
 
-                formatted_exception: List[str] = traceback.format_exception(exception)
+                formatted_exception: List[str] = traceback.format_exception(exc)
                 for line in formatted_exception:
                     if line.endswith("\n"):
                         line = line[:-1]
