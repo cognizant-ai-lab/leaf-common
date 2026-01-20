@@ -353,8 +353,12 @@ class AsyncioExecutor(futures.Executor):
 
 
             # pylint: disable=broad-exception-caught
-            except Exception as exception:
+            except Exception as exc:
                 print(f">>>>>>>Coroutine from {origination} raised an exception:")
+                traceback.print_exception(exc)
+                print("end trace >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+
                 formatted_exception: List[str] = traceback.format_exception(exception)
                 for line in formatted_exception:
                     if line.endswith("\n"):
