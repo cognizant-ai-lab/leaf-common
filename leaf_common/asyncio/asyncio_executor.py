@@ -365,6 +365,8 @@ class AsyncioExecutor(futures.Executor):
 
             # pylint: disable=broad-exception-caught
             except Exception as exc:
+                print(f"^^^^^^^^^^^^^^^^^^^^=======type: {type(exc)}")
+                print(f"^^^^^^^^^^^^^^^^^^^^=======name: {type(exc).__name__}")
                 print(f">>>>>>>Coroutine from {origination} raised an exception:")
                 traceback.print_exception(exc)
                 print("end trace >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
