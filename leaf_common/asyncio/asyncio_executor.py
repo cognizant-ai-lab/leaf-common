@@ -328,7 +328,7 @@ class AsyncioExecutor(futures.Executor):
                 # First see if there was any exception
                 try:
                     exception = future.exception()
-                except asyncio.CancelledError:
+                except (asyncio.CancelledError, futures.CancelledError):
                     # Cancelled task is OK - it may happen for different reasons.
                     print(f">>>>>>>>>>>>>>>>>TASK was CANCELLED!<<<<<<<<<<<<<<<<<<")
                     exception = None
