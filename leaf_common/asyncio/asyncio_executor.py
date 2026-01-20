@@ -273,7 +273,7 @@ class AsyncioExecutor(futures.Executor):
         pending = []
         for task in tasks:
             if not task.done():
-                task.cancel()
+                task.cancel("cancel-and-drain")
                 pending.append(task)
         # Don't raise exceptions in the tasks being cancelled -
         # we don't really need to react to them.
@@ -330,7 +330,7 @@ class AsyncioExecutor(futures.Executor):
                     exception = future.exception()
                 except (asyncio.CancelledError, futures.CancelledError) as exc:
                     # Cancelled task is OK - it may happen for different reasons.
-                    print(f">>>>>>>>>>>>>>>>>TASK was CANCELLED!<<<<<<<<<<<<<<<<<<")
+                    print(f">>>>>>>>>>>>>>>>>TASK was CANCELLED! reason: {exc.args}")
                     traceback.print_exception(exc)
                     exception = None
 
