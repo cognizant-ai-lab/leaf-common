@@ -332,6 +332,8 @@ class AsyncioExecutor(futures.Executor):
                     print(f">>>>>>>>>>>>>>>>>TASK was CANCELLED!<<<<<<<<<<<<<<<<<<")
                     exception = None
 
+                print(f"GOT EXCEPTION: {exception} from {origination}")
+
 
                 if exception is not None:
                     print(">>>>>>>>>>>>>>>>>>>EVENT LOOP: Exception traceback:")
@@ -343,8 +345,10 @@ class AsyncioExecutor(futures.Executor):
                 if exception is not None and future_info.get("raise_exception"):
                     raise exception
 
+                print(f"Getting result from coroutine from {origination}")
                 result = future.result()
                 _ = result
+                print(f"GOT result from coroutine from {origination}")
 
             except StopAsyncIteration:
                 # StopAsyncIteration is OK
