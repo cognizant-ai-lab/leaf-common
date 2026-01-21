@@ -251,7 +251,7 @@ class AsyncioExecutor(futures.Executor):
         self._background_tasks[future_id] = task_info_dict
         future.add_done_callback(self.submission_done)
 
-        print(f"!!!!!! >>>>>>>>>>>> Tracking future id {future_id} for {function_name}")
+        print(f"!!!!!! >>>>>>>>>>>> Tracking future id {future_id} for {function_name} table: {self._background_tasks.keys()}")
 
         return future
 
@@ -300,6 +300,7 @@ class AsyncioExecutor(futures.Executor):
         for task_dict in background_tasks_save.values():
             task: Future = task_dict.get("future", None)
             if task:
+                print(f"!!!!!! SCHEDULING to Cancel: future id {id(task)}")
                 tasks_to_cancel.append(self.ensure_awaitable(task))
         cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
         try:
