@@ -24,6 +24,7 @@ from typing import Dict
 from typing import List
 
 import asyncio
+import copy
 import functools
 import inspect
 import threading
@@ -294,8 +295,8 @@ class AsyncioExecutor(futures.Executor):
             # Clear the background tasks map
             # and allow next tasks (if any) to be added.
             # Currently present tasks will be cancelled below.
-            background_tasks_save: Dict[int, Dict[str, Any]] = self._background_tasks
-            self._background_tasks = {}
+            background_tasks_save: Dict[int, Dict[str, Any]] = copy.copy(self._background_tasks)
+            #self._background_tasks = {}
 
         for task_dict in background_tasks_save.values():
             task: Future = task_dict.get("future", None)
