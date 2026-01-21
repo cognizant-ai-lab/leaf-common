@@ -338,7 +338,7 @@ class AsyncioExecutor(futures.Executor):
                     traceback.print_exception(exc)
                     exception = None
 
-                print(f"GOT EXCEPTION: {exception} from {origination}")
+                #print(f"GOT EXCEPTION: {exception} from {origination}")
 
 
                 if exception is not None:
@@ -390,6 +390,7 @@ class AsyncioExecutor(futures.Executor):
         # As a last gesture, remove the background task from the map
         # we use to keep its reference around. Do it safely:
         with self._background_tasks_lock:
+            print(f"!!!!!! Removing future id {future_id} from background tasks")
             self._background_tasks.pop(future_id, None)
 
     def shutdown(self, wait: bool = True, *, cancel_futures: bool = False):
