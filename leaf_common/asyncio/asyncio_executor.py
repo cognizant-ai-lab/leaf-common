@@ -211,7 +211,7 @@ class AsyncioExecutor(futures.Executor):
         def create_in_loop_thread():
             print(f"create_in_loop_thread>>>>> Submitting {task_name}")
             try:
-                if inspect.isawaitable(function):
+                if False and inspect.isawaitable(function):
                     task = self._loop.create_task(function, name=task_name)
                     print(f"Created awaitable task {task.get_name()}")
                 elif inspect.iscoroutinefunction(function):
