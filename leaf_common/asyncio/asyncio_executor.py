@@ -343,6 +343,26 @@ class AsyncioExecutor(futures.Executor):
             print(f"Timeout {timeout} sec exceeded while cleaning up AsyncioExecutor {id(self)}")
             raise
 
+    def _check_task(self, task: Task):
+        """
+        Check status of a task.
+        :param task: The Task to check
+        """
+        task_id: int = id(task)
+        if not task.done():
+            # Something is very wrong if we get here:
+            # submission_done() must only be called when task is done in some way.
+            raise RuntimeError(f"Task {task_id} is not done, but submission_done is called.")
+        if not isinstance(task, Task):
+            # We only register this callback on Tasks, so this is unexpected.
+            raise RuntimeError(f"Future {task_id} is expected to be Task.")
+
+        origination: str = task.get_name()
+        if task_id not in self._background_tasks:
+            # That could happen if the task is being cancelled by us,
+            # and background tasks table is already cleared.
+            print(f"Task {task_id}/{origination} is not present in the tasks table.")
+
     def submission_done(self, task: Task):
         """
         Intended as a "done_callback" method on tasks created by submit() above.
@@ -357,19 +377,8 @@ class AsyncioExecutor(futures.Executor):
         task_info: Dict[str, Any] = {}
         task_info = self._background_tasks.get(task_id, task_info)
 
-        if not task.done():
-            # Something is very wrong if we get here:
-            # submission_done() must only be called when task is done in some way.
-            raise RuntimeError(f"Task {task_id} is not done, but submission_done is called.")
-        if not isinstance(task, Task):
-            # We only register this callback on Tasks, so this is unexpected.
-            raise RuntimeError(f"Future {task_id} is expected to be Task.")
-
+        self._check_task(task)
         origination: str = task.get_name()
-        if task_id not in self._background_tasks:
-            # That could happen if the task is being cancelled by us,
-            # and background tasks table is already cleared.
-            print(f"Task {task_id} is not present in the tasks table.")
 
         try:
             # First see if there was any exception,
