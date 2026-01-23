@@ -211,6 +211,7 @@ class AsyncioExecutor(futures.Executor):
         def create_in_loop_thread():
             if inspect.isawaitable(function):
                 task = self._loop.create_task(function, name=task_name)
+                print(f"Created awaitable task {task.get_name()}")
                 task_creation_future.set_result(task)
                 return task_creation_future
 
@@ -219,16 +220,19 @@ class AsyncioExecutor(futures.Executor):
                     # function is async def -> create task for its coroutine
                     coro = function(*args, **kwargs)
                     task = self._loop.create_task(coro, name=task_name)
+                    print(f"Created coroutine task {task.get_name()}")
                 else:
                     # function is sync -> run it in a worker thread, but task lives in event loop
                     func = functools.partial(function, *args, **kwargs)
                     task = self._loop.create_task(asyncio.to_thread(func), name=task_name)
+                    print(f"Created threaded task {task.get_name()}")
                 task_creation_future.set_result(task)
             except BaseException as exc:
                 task_creation_future.set_exception(exc)
 
         # Ensure task is created in the event loop thread
         self._loop.call_soon_threadsafe(create_in_loop_thread)
+        print(f"Submitted creation for task {task_name}")
         return task_creation_future
 
     def submit(self, submitter_id: str, function, /, *args, **kwargs) -> Task:
@@ -246,7 +250,10 @@ class AsyncioExecutor(futures.Executor):
 
         task_creation_future: futures.Future = self._submit_as_task(submitter_id, function, *args, **kwargs)
         # Wait for task to be created in event loop thread (blocking calling thread)
+
+        print("Waiting for task creation to complete...")
         task: Task = task_creation_future.result()
+        print(f"Task created: {task.get_name()}")
         self.track_task(task)
         return task
 
