@@ -164,7 +164,7 @@ class AsyncioExecutor(futures.Executor):
         message = context.get("message", None)
         exception = context.get("exception", None)
         formatted_exception = traceback.format_exception(exception)
-        print(f"Event loop traceback:\n{formatted_exception}")
+        print(f"Event loop traceback ({message}):\n{formatted_exception}")
 
     def get_function_name(self, function, submitter_id: str) -> str:
         """
@@ -221,7 +221,7 @@ class AsyncioExecutor(futures.Executor):
                     func = functools.partial(function, *args, **kwargs)
                     task = self._loop.create_task(asyncio.to_thread(func), name=task_name)
                 task_creation_future.set_result(task)
-            except BaseException as exc:
+            except BaseException as exc:  # pylint: disable=broad-except
                 task_creation_future.set_exception(exc)
 
         # Ensure task is created in the event loop thread
