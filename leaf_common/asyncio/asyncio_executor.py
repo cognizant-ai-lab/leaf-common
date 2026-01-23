@@ -24,7 +24,6 @@ from typing import Dict
 from typing import List
 
 import asyncio
-import copy
 import functools
 import inspect
 import threading
@@ -163,8 +162,6 @@ class AsyncioExecutor(futures.Executor):
         loop.default_exception_handler(context)
 
         message = context.get("message", None)
-        print(f"Got exception message {message}")
-
         exception = context.get("exception", None)
         formatted_exception = traceback.format_exception(exception)
         print(f"Event loop traceback:\n{formatted_exception}")
@@ -212,29 +209,23 @@ class AsyncioExecutor(futures.Executor):
         task_name: str = self.get_function_name(function, submitter_id)
 
         def create_in_loop_thread():
-            print(f"create_in_loop_thread>>>>> Submitting {task_name}")
             try:
                 if inspect.isawaitable(function):
                     task = self._loop.create_task(function, name=task_name)
-                    print(f"Created awaitable task {task.get_name()}")
                 elif inspect.iscoroutinefunction(function):
                     # function is async def -> create task for its coroutine
                     coro = function(*args, **kwargs)
                     task = self._loop.create_task(coro, name=task_name)
-                    print(f"Created coroutine task {task.get_name()}")
                 else:
                     # function is sync -> run it in a worker thread, but task lives in event loop
                     func = functools.partial(function, *args, **kwargs)
                     task = self._loop.create_task(asyncio.to_thread(func), name=task_name)
-                    print(f"Created threaded task {task.get_name()}")
                 task_creation_future.set_result(task)
             except BaseException as exc:
-                print(f"Exception raised in create_in_loop_thread: {exc}")
                 task_creation_future.set_exception(exc)
 
         # Ensure task is created in the event loop thread
         self._loop.call_soon_threadsafe(create_in_loop_thread)
-        print(f"Submitted creation for task {task_name}")
         return task_creation_future
 
     def submit(self, submitter_id: str, function, /, *args, **kwargs) -> Task:
@@ -259,9 +250,7 @@ class AsyncioExecutor(futures.Executor):
         task_creation_future: futures.Future = self._submit_as_task(submitter_id, function, *args, **kwargs)
 
         # Wait for task to be created in event loop thread (blocking calling thread)
-        print("Waiting for task creation to complete...")
         task: Task = task_creation_future.result()
-        print(f"Task created: {task.get_name()}")
         self.track_task(task)
         return task
 
@@ -284,16 +273,13 @@ class AsyncioExecutor(futures.Executor):
         # Logic is different depending on where the calling client is running:
         # If it is running in the event loop thread, we can create the task directly:
         if self._in_executor_thread():
-            print("Waiting for task creation AAA to complete...")
             task_name: str = self.get_function_name(awaitable, submitter_id)
             task: Task = self._loop.create_task(awaitable, name=task_name)
-            print(f"Task AAA created: {task.get_name()}")
         else:
             # Otherwise, we need to submit a request to create
             # the task in the event loop thread indirectly:
             task_creation_future: futures.Future = self._submit_as_task(submitter_id, awaitable)
             # Wait for task to be created in event loop thread (blocking calling thread)
-            print("Waiting for task creation AAA to complete...")
             task: Task = task_creation_future.result()
         self.track_task(task, raise_exception=raise_exception)
         return task
@@ -316,9 +302,6 @@ class AsyncioExecutor(futures.Executor):
         task_id = id(task)
         self._background_tasks[task_id] = task_info_dict
         task.add_done_callback(self.submission_done)
-
-        print(f"!!!!!! >>>>>>>>>>>> Tracking future id {task_id} for {task.get_name()} table: {self._background_tasks.keys()}")
-
         return task
 
     @staticmethod
@@ -352,7 +335,6 @@ class AsyncioExecutor(futures.Executor):
         for task_dict in background_tasks_save.values():
             task: Task = task_dict.get("task", None)
             if task and not task.done():
-                print(f"!!!!!! SCHEDULING to Cancel: future id {id(task)}")
                 tasks_to_cancel.append(task)
         cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
         try:
