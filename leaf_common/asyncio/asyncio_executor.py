@@ -225,6 +225,7 @@ class AsyncioExecutor(futures.Executor):
                     print(f"Created threaded task {task.get_name()}")
                 task_creation_future.set_result(task)
             except BaseException as exc:
+                print(f"Exception raised in create_in_loop_thread: {exc}")
                 task_creation_future.set_exception(exc)
 
         # Ensure task is created in the event loop thread
@@ -265,7 +266,9 @@ class AsyncioExecutor(futures.Executor):
         """
         task_creation_future: futures.Future = self._submit_as_task(submitter_id, awaitable)
         # Wait for task to be created in event loop thread (blocking calling thread)
+        print("Waiting for task creation AAA to complete...")
         task: Task = task_creation_future.result()
+        print(f"Task AAA created: {task.get_name()}")
         self.track_task(task, raise_exception=raise_exception)
         return task
 
