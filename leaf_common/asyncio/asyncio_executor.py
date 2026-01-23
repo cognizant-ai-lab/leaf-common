@@ -185,6 +185,12 @@ class AsyncioExecutor(futures.Executor):
             function_name = f"{submitter_id}:{function_name}"
         return function_name
 
+    def _in_executor_thread(self) -> bool:
+        """
+        :return: True if we are currently executing in the event loop thread.
+        """
+        return threading.get_ident() == self._thread.ident
+
     def _submit_as_task(self, submitter_id: str, function, /, *args, **kwargs) -> futures.Future:
         """
         Submit a function to be run in the asyncio event loop as a Task.
@@ -197,13 +203,10 @@ class AsyncioExecutor(futures.Executor):
         :param kwargs: keyword args for the function
         :return: A Future object which will return a created Task in our event loop.
         """
-
-        if self._shutdown:
-            raise RuntimeError('Cannot schedule new tasks after shutdown')
-
-        if not self._loop.is_running():
-            raise RuntimeError("Loop must be started before any function can "
-                               "be submitted")
+        # Code below only works if we are calling from outside the event loop thread,
+        # so we need to check:
+        if self._in_executor_thread():
+            raise RuntimeError("Cannot submit new tasks from within the executor thread")
 
         task_creation_future: futures.Future = futures.Future()
         task_name: str = self.get_function_name(function, submitter_id)
@@ -211,7 +214,7 @@ class AsyncioExecutor(futures.Executor):
         def create_in_loop_thread():
             print(f"create_in_loop_thread>>>>> Submitting {task_name}")
             try:
-                if False and inspect.isawaitable(function):
+                if inspect.isawaitable(function):
                     task = self._loop.create_task(function, name=task_name)
                     print(f"Created awaitable task {task.get_name()}")
                 elif inspect.iscoroutinefunction(function):
@@ -246,10 +249,16 @@ class AsyncioExecutor(futures.Executor):
         :param kwargs: keyword args for the function
         :return: An asyncio.Task that corresponds to the submitted task
         """
+        if self._shutdown:
+            raise RuntimeError('Cannot schedule new tasks after shutdown')
+
+        if not self._loop.is_running():
+            raise RuntimeError("Loop must be started before any function can "
+                               "be submitted")
 
         task_creation_future: futures.Future = self._submit_as_task(submitter_id, function, *args, **kwargs)
-        # Wait for task to be created in event loop thread (blocking calling thread)
 
+        # Wait for task to be created in event loop thread (blocking calling thread)
         print("Waiting for task creation to complete...")
         task: Task = task_creation_future.result()
         print(f"Task created: {task.get_name()}")
@@ -263,24 +272,33 @@ class AsyncioExecutor(futures.Executor):
         :param submitter_id: A string id denoting who is doing the submitting.
         :param raise_exception: True if exceptions are to be raised in the executor.
                     Default is False.
-        :return: The Future corresponding to the results of the scheduled task
+        :return: The Task object bound to our event loop
         """
-        print("Waiting for task creation AAA to complete...")
-        task: Task = self._loop.create_task(awaitable)
-        print(f"Task AAA created: {task.get_name()}")
+        if self._shutdown:
+            raise RuntimeError('Cannot schedule new tasks after shutdown')
+
+        if not self._loop.is_running():
+            raise RuntimeError("Loop must be started before any function can "
+                               "be submitted")
+
+        # Logic is different depending on where the calling client is running:
+        # If it is running in the event loop thread, we can create the task directly:
+        if self._in_executor_thread():
+            print("Waiting for task creation AAA to complete...")
+            task_name: str = self.get_function_name(awaitable, submitter_id)
+            task: Task = self._loop.create_task(awaitable, name=task_name)
+            print(f"Task AAA created: {task.get_name()}")
+        else:
+            # Otherwise, we need to submit a request to create
+            # the task in the event loop thread indirectly:
+            task_creation_future: futures.Future = self._submit_as_task(submitter_id, awaitable)
+            # Wait for task to be created in event loop thread (blocking calling thread)
+            print("Waiting for task creation AAA to complete...")
+            task: Task = task_creation_future.result()
         self.track_task(task, raise_exception=raise_exception)
         return task
 
-
-
-        # task_creation_future: futures.Future = self._submit_as_task(submitter_id, awaitable)
-        # # Wait for task to be created in event loop thread (blocking calling thread)
-        # print("Waiting for task creation AAA to complete...")
-        # task: Task = task_creation_future.result()
-        # self.track_task(task, raise_exception=raise_exception)
-        # return task
-
-    def track_task(self, task: Future, raise_exception: bool = False):
+    def track_task(self, task: Task, raise_exception: bool = False):
         """
         :param task: The task to track
         :param raise_exception: True if exceptions are to be raised in the executor.
@@ -292,7 +310,7 @@ class AsyncioExecutor(futures.Executor):
         # https://docs.python.org/3/library/asyncio-task.html#creating-tasks
 
         task_info_dict: Dict[str, Any] = {
-            "future": task,
+            "task": task,
             "raise_exception": raise_exception
         }
         task_id = id(task)
@@ -302,20 +320,6 @@ class AsyncioExecutor(futures.Executor):
         print(f"!!!!!! >>>>>>>>>>>> Tracking future id {task_id} for {task.get_name()} table: {self._background_tasks.keys()}")
 
         return task
-
-    def ensure_awaitable(self, x: Any) -> Awaitable:
-        """
-        Return an awaitable for x.
-        - Coroutine object / Task / asyncio.Future / objects with __await__ -> returned as is;
-        - concurrent.futures.Future -> wrapped for asyncio event loop;
-        - Otherwise -> raise TypeError
-        """
-        if inspect.isawaitable(x):
-            return x
-        if isinstance(x, futures.Future):
-            # Wrap a thread/process-pool future so it becomes awaitable
-            return asyncio.wrap_future(x, loop=self._loop)
-        raise TypeError(f"Object {x!r} of type {type(x).__name__} is not awaitable.")
 
     @staticmethod
     async def _cancel_and_drain(tasks: List[Future]):
@@ -336,20 +340,20 @@ class AsyncioExecutor(futures.Executor):
         """
         if not self._loop.is_running():
             raise RuntimeError("Loop must be running to cancel remaining tasks")
-        tasks_to_cancel: List[Future] = []
+        tasks_to_cancel: List[Task] = []
 
         with self._background_tasks_lock:
             # Clear the background tasks map
             # and allow next tasks (if any) to be added.
             # Currently present tasks will be cancelled below.
-            background_tasks_save: Dict[int, Dict[str, Any]] = copy.copy(self._background_tasks)
-            #self._background_tasks = {}
+            background_tasks_save: Dict[int, Dict[str, Any]] = self._background_tasks
+            self._background_tasks = {}
 
         for task_dict in background_tasks_save.values():
-            task: Future = task_dict.get("future", None)
-            if task:
+            task: Task = task_dict.get("task", None)
+            if task and not task.done():
                 print(f"!!!!!! SCHEDULING to Cancel: future id {id(task)}")
-                tasks_to_cancel.append(self.ensure_awaitable(task))
+                tasks_to_cancel.append(task)
         cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
         try:
             cancel_task.result(timeout)
@@ -357,60 +361,49 @@ class AsyncioExecutor(futures.Executor):
             print(f"Timeout {timeout} sec exceeded while cleaning up AsyncioExecutor {id(self)}")
             raise
 
-    def submission_done(self, future: Future):
+    def submission_done(self, task: Task):
         """
-        Intended as a "done_callback" method on futures created by submit() above.
-        Does some processing on a future that has been marked as done
+        Intended as a "done_callback" method on tasks created by submit() above.
+        Does some processing on a task that has been marked as done
         (for whatever reason).
 
-        :param future: The Future which has completed
+        :param task: The Task which has completed
         """
 
         # Get a dictionary entry describing some metadata about the future itself.
-        future_id: int = id(future)
-        future_info: Dict[str, Any] = {}
-        future_info = self._background_tasks.get(future_id, future_info)
+        task_id: int = id(task)
+        task_info: Dict[str, Any] = {}
+        task_info = self._background_tasks.get(task_id, task_info)
 
-        if not future.done():
+        if not task.done():
             # Something is very wrong if we get here:
             # submission_done() must only be called when task is done in some way.
-            raise RuntimeError(f"Task {future_id} is not done, but submission_done is called.")
-        if not isinstance(future, Task):
+            raise RuntimeError(f"Task {task_id} is not done, but submission_done is called.")
+        if not isinstance(task, Task):
             # We only register this callback on Tasks, so this is unexpected.
-            raise RuntimeError(f"Future {future_id} is expected to be Task.")
+            raise RuntimeError(f"Future {task_id} is expected to be Task.")
 
-        origination: str = future.get_name()
-        if future_id not in self._background_tasks:
-            # Another wrong situation: but this one we can just log and move on.
-            print(f"Task {future_id} is not present in the tasks table.")
+        origination: str = task.get_name()
+        if task_id not in self._background_tasks:
+            # That could happen if the task is being cancelled by us,
+            # and background tasks table is already cleared.
+            print(f"Task {task_id} is not present in the tasks table.")
 
         try:
-            # First see if there was any exception
-            try:
-                exception = future.exception()
-            except (asyncio.CancelledError, futures.CancelledError) as exc:
-                # Cancelled task is OK - it may happen for different reasons.
-                print(f">>>>>>>>>>>>>>>>>TASK was CANCELLED! reason: {exc.args}")
-                traceback.print_exception(exc)
-                exception = None
-
-            #print(f"GOT EXCEPTION: {exception} from {origination}")
-
-
-            if exception is not None:
-                print(">>>>>>>>>>>>>>>>>>>EVENT LOOP: Exception traceback:")
-                traceback.print_exception(exception)
-                print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-
-
-                print(f"==============Coroutine from {origination} raised an exception:")
-            if exception is not None and future_info.get("raise_exception"):
+            # First see if there was any exception,
+            # note that if the task was cancelled,
+            # calling task.exception() itself raises CancelledError.
+            # But it will be handled below in general exception handler.
+            exception = task.exception()
+            if exception is not None and task_info.get("raise_exception"):
                 raise exception
 
-            print(f"Getting result from coroutine from {origination}")
-            result = future.result()
-            _ = result
-            print(f"GOT result from coroutine from {origination}")
+            # If we want to quietly ignore any possible task exception,
+            # we can retrieve the result only if exception is absent,
+            # to avoid exception re-raising right here:
+            if exception is None:
+                result = task.result()
+                _ = result
 
         except StopAsyncIteration:
             # StopAsyncIteration is OK
@@ -422,18 +415,9 @@ class AsyncioExecutor(futures.Executor):
         except asyncio.exceptions.CancelledError:
             # Cancelled task is OK - it may happen for different reasons.
             print(f"Task from {origination} was cancelled")
-            traceback.print_exc()
-
 
         # pylint: disable=broad-exception-caught
         except Exception as exc:
-            print(f"^^^^^^^^^^^^^^^^^^^^=======type: {type(exc)}")
-            print(f"^^^^^^^^^^^^^^^^^^^^=======name: {type(exc).__mro__}")
-            print(f">>>>>>>Coroutine from {origination} raised an exception:")
-            traceback.print_exception(exc)
-            print("end trace >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-
-
             formatted_exception: List[str] = traceback.format_exception(exc)
             for line in formatted_exception:
                 if line.endswith("\n"):
@@ -443,7 +427,7 @@ class AsyncioExecutor(futures.Executor):
         # As a last gesture, remove the background task from the map
         # we use to keep its reference around. Do it safely:
         with self._background_tasks_lock:
-            self._background_tasks.pop(future_id, None)
+            self._background_tasks.pop(task_id, None)
 
     def shutdown(self, wait: bool = True, *, cancel_futures: bool = False):
         """
