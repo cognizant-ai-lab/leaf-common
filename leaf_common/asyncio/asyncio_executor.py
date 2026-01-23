@@ -265,13 +265,20 @@ class AsyncioExecutor(futures.Executor):
                     Default is False.
         :return: The Future corresponding to the results of the scheduled task
         """
-        task_creation_future: futures.Future = self._submit_as_task(submitter_id, awaitable)
-        # Wait for task to be created in event loop thread (blocking calling thread)
         print("Waiting for task creation AAA to complete...")
-        task: Task = task_creation_future.result()
+        task: Task = self._loop.create_task(awaitable)
         print(f"Task AAA created: {task.get_name()}")
         self.track_task(task, raise_exception=raise_exception)
         return task
+
+
+
+        # task_creation_future: futures.Future = self._submit_as_task(submitter_id, awaitable)
+        # # Wait for task to be created in event loop thread (blocking calling thread)
+        # print("Waiting for task creation AAA to complete...")
+        # task: Task = task_creation_future.result()
+        # self.track_task(task, raise_exception=raise_exception)
+        # return task
 
     def track_task(self, task: Future, raise_exception: bool = False):
         """
