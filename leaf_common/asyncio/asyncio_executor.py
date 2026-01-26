@@ -265,10 +265,14 @@ class AsyncioExecutor(futures.Executor):
             raise RuntimeError("Loop must be started before any function can "
                                "be submitted")
 
+        # The execution logic here looks like this:
+        # Call the helper method -> get a Future back ->
+        # block until task submitted to internal event loop runs and creates our Task ->
+        # get this Task as a result of Future happening.
         task_creation_future: futures.Future = self._submit_as_task(submitter_id, function, *args, **kwargs)
-
         # Wait for task to be created in event loop thread (blocking calling thread)
         task: Task = task_creation_future.result()
+
         self.track_task(task)
         return task
 
@@ -461,4 +465,3 @@ class AsyncioExecutor(futures.Executor):
         if wait:
             self._thread.join()
         self._thread = None
-
