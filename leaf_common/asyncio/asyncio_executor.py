@@ -188,9 +188,39 @@ class AsyncioExecutor(futures.Executor):
         """
         return threading.get_ident() == self._thread.ident
 
+    def _create_in_loop_thread(
+            self, function, task_name: str, task_creation_future: futures.Future, /, *args, **kwargs) -> None:
+        """
+        Create a task in the event loop thread and set it as a result on the provided Future.
+        :param function: The function handle to run
+        :param task_name: The name to assign to the task
+        :param task_creation_future: The Future to set result/exception on
+        :param /: Positional or keyword arguments.
+            See https://realpython.com/python-asterisk-and-slash-special-parameters/
+        :param args: args for the function
+        :param kwargs: keyword args for the function
+        """
+        try:
+            if inspect.isawaitable(function):
+                task = self._loop.create_task(function, name=task_name)
+            elif inspect.iscoroutinefunction(function):
+                # function is async def -> create task for its coroutine
+                coro = function(*args, **kwargs)
+                task = self._loop.create_task(coro, name=task_name)
+            else:
+                # function is sync -> run it in a worker thread, but task lives in event loop
+                func = functools.partial(function, *args, **kwargs)
+                task = self._loop.create_task(asyncio.to_thread(func), name=task_name)
+            task_creation_future.set_result(task)
+        except BaseException as exc:  # pylint: disable=broad-except
+            task_creation_future.set_exception(exc)
+
     def _submit_as_task(self, submitter_id: str, function, /, *args, **kwargs) -> futures.Future:
         """
-        Submit a function to be run in the asyncio event loop as a Task.
+        Submit some executable item as a Task from outside of AsyncioExecutor running thread.
+        We should do it by scheduling a "task creation" task on internal event loop,
+        and then get a Future representing this creation task.
+        The result of this Future successful completion will be a Task object we have created.
 
         :param submitter_id: A string id denoting who is doing the submitting.
         :param function: The function handle to run
@@ -207,25 +237,13 @@ class AsyncioExecutor(futures.Executor):
 
         task_creation_future: futures.Future = futures.Future()
         task_name: str = self.get_function_name(function, submitter_id)
-
-        def create_in_loop_thread():
-            try:
-                if inspect.isawaitable(function):
-                    task = self._loop.create_task(function, name=task_name)
-                elif inspect.iscoroutinefunction(function):
-                    # function is async def -> create task for its coroutine
-                    coro = function(*args, **kwargs)
-                    task = self._loop.create_task(coro, name=task_name)
-                else:
-                    # function is sync -> run it in a worker thread, but task lives in event loop
-                    func = functools.partial(function, *args, **kwargs)
-                    task = self._loop.create_task(asyncio.to_thread(func), name=task_name)
-                task_creation_future.set_result(task)
-            except BaseException as exc:  # pylint: disable=broad-except
-                task_creation_future.set_exception(exc)
-
+        # Construct a partial function to create the task in the event loop thread
+        creation_function = functools.partial(self._create_in_loop_thread,
+                                              function, task_name,
+                                              task_creation_future,
+                                              *args, **kwargs)
         # Ensure task is created in the event loop thread
-        self._loop.call_soon_threadsafe(create_in_loop_thread)
+        self._loop.call_soon_threadsafe(creation_function)
         return task_creation_future
 
     def submit(self, submitter_id: str, function, /, *args, **kwargs) -> Task:
@@ -443,3 +461,4 @@ class AsyncioExecutor(futures.Executor):
         if wait:
             self._thread.join()
         self._thread = None
+
