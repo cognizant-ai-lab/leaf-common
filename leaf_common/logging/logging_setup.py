@@ -138,6 +138,10 @@ class LoggingSetup():
                 and isinstance(config, dict):
             config = self.replace_log_file(config)
             logging.config.dictConfig(config)
+            import traceback
+            print("============================Reading logging.json")
+            traceback.print_stack()
+
         else:
             log_level = self.determine_log_level()
             logging.basicConfig(filename=self.log_file,
