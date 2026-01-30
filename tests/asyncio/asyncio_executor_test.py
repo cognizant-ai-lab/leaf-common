@@ -94,7 +94,7 @@ class AsyncioExecutorTest(TestCase):
         """
         Test that get_function_name handles objects without __qualname__.
         """
-        class CallableClass:
+        class CallableClass:  # pylint: disable=missing-class-docstring
             def __call__(self):
                 pass
 
@@ -442,7 +442,7 @@ class AsyncioExecutorTest(TestCase):
         task = self.executor.submit("callback_test", callback_test_task)
         started.wait(timeout=2.0)
 
-        def custom_callback(t):
+        def custom_callback(task):  # pylint: disable=unused-argument
             callback_called.set()
 
         task.add_done_callback(custom_callback)
