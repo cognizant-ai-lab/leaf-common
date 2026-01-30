@@ -47,6 +47,18 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         if self.executor:
             self.executor.shutdown(wait=True)
 
+    def dummy_init(self):
+        """
+        Dummy init function for testing.
+        """
+        pass
+
+    def dummy(self):
+        """
+        Dummy function for testing.
+        """
+        pass
+
     def test_get_function_name_with_regular_function(self):
         """
         Test that get_function_name extracts name from regular function.
@@ -533,11 +545,8 @@ class AsyncioExecutorNotStartedTest(TestCase):
         """
         executor = AsyncioExecutor()
 
-        def dummy_init():
-            pass
-
         with self.assertRaises(RuntimeError) as context:
-            executor.initialize(dummy_init)
+            executor.initialize(self.dummy_init)
         self.assertIn("Loop must be started", str(context.exception))
 
     def test_cancel_current_tasks_raises_when_loop_not_running(self):
