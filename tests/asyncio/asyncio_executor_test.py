@@ -28,7 +28,7 @@ from unittest import TestCase
 from leaf_common.asyncio.asyncio_executor import AsyncioExecutor
 
 
-class AsyncioExecutorTest(TestCase):
+class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
     """
     Tests for AsyncioExecutor task item functionality.
     """
@@ -107,6 +107,7 @@ class AsyncioExecutorTest(TestCase):
         """
         Test that _in_executor_thread returns False from main thread.
         """
+        # pylint: disable=protected-access
         result = self.executor._in_executor_thread()
         self.assertFalse(result)
 
@@ -234,6 +235,7 @@ class AsyncioExecutorTest(TestCase):
         task = self.executor.submit("track_test", simple_task)
         started.wait(timeout=2.0)
         task_id = id(task)
+        # pylint: disable=protected-access
         self.assertIn(task_id, self.executor._background_tasks)
 
     def test_task_name_contains_submitter_and_function(self):
@@ -315,6 +317,7 @@ class AsyncioExecutorTest(TestCase):
         self.assertTrue(task.done())
 
         self.executor.shutdown(wait=True)
+        # pylint: disable=protected-access
         self.assertEqual(len(self.executor._background_tasks), 0)
         self.executor = None
 
@@ -394,6 +397,7 @@ class AsyncioExecutorTest(TestCase):
         """
         Test that calling start() multiple times is safe.
         """
+        # pylint: disable=protected-access
         original_thread = self.executor._thread
         self.executor.start()
         self.executor.start()
