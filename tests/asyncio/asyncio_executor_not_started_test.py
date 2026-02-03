@@ -21,11 +21,8 @@ Unit tests for AsyncioExecutor when not started.
 from unittest import TestCase
 
 from leaf_common.asyncio.asyncio_executor import AsyncioExecutor
-
-from tests.asyncio.asyncio_executor_test_helpers import (
-    dummy_sync_function,
-    dummy_async_coroutine,
-)
+from tests.asyncio.async_test_helpers import AsyncTestHelpers
+from tests.asyncio.sync_test_helpers import SyncTestHelpers
 
 
 class AsyncioExecutorNotStartedTest(TestCase):
@@ -40,7 +37,7 @@ class AsyncioExecutorNotStartedTest(TestCase):
         executor = AsyncioExecutor()
 
         with self.assertRaises(RuntimeError) as context:
-            executor.submit("test", dummy_async_coroutine)
+            executor.submit("test", AsyncTestHelpers.dummy_async_coroutine)
         self.assertIn("Loop must be started", str(context.exception))
 
     def test_create_task_raises_when_loop_not_running(self):
@@ -50,7 +47,7 @@ class AsyncioExecutorNotStartedTest(TestCase):
         executor = AsyncioExecutor()
 
         with self.assertRaises(RuntimeError) as context:
-            executor.create_task(dummy_async_coroutine(), "test")
+            executor.create_task(AsyncTestHelpers.dummy_async_coroutine(), "test")
         self.assertIn("Loop must be started", str(context.exception))
 
     def test_initialize_raises_when_loop_not_running(self):
@@ -60,7 +57,7 @@ class AsyncioExecutorNotStartedTest(TestCase):
         executor = AsyncioExecutor()
 
         with self.assertRaises(RuntimeError) as context:
-            executor.initialize(dummy_sync_function)
+            executor.initialize(SyncTestHelpers.dummy_sync_function)
         self.assertIn("Loop must be started", str(context.exception))
 
     def test_cancel_current_tasks_raises_when_loop_not_running(self):

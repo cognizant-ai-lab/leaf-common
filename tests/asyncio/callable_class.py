@@ -15,13 +15,14 @@
 #
 # END COPYRIGHT
 """
-Helper classes for AsyncioExecutor unit tests.
-
-This module re-exports from the separate helper modules for convenience.
+Callable class for testing get_function_name with class instances.
 """
 
-from tests.asyncio.async_test_helpers import AsyncTestHelpers
-from tests.asyncio.callable_class import CallableClass
-from tests.asyncio.sync_test_helpers import SyncTestHelpers
 
-__all__ = ["AsyncTestHelpers", "CallableClass", "SyncTestHelpers"]
+class CallableClass:
+    """
+    Callable class for testing get_function_name with class instances.
+    """
+
+    def __call__(self):
+        pass

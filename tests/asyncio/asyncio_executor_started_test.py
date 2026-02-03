@@ -18,39 +18,16 @@
 Unit tests for AsyncioExecutor task item handling when executor is started.
 """
 
-import time
 import threading
+import time
 
 from asyncio import Task
 from unittest import TestCase
 
 from leaf_common.asyncio.asyncio_executor import AsyncioExecutor
-
-from tests.asyncio.asyncio_executor_test_helpers import (
-    sample_function,
-    async_sample,
-    CallableClass,
-    sync_function_with_result,
-    async_function_with_result,
-    task_function_with_lock,
-    awaitable_function_with_result,
-    failing_async_function,
-    simple_task_with_event,
-    named_function,
-    long_running_task_with_cancel,
-    long_task_with_locks,
-    quick_task_with_event,
-    cancellable_task_with_event,
-    exception_task,
-    init_function_with_result,
-    dummy_sync_function,
-    dummy_async_coroutine,
-    kwargs_function_with_result,
-    sync_with_args_and_result,
-    callback_test_task_with_event,
-    custom_callback_with_event,
-    thread_task_with_lock,
-)
+from tests.asyncio.async_test_helpers import AsyncTestHelpers
+from tests.asyncio.callable_class import CallableClass
+from tests.asyncio.sync_test_helpers import SyncTestHelpers
 
 
 class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
@@ -76,7 +53,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         """
         Test that get_function_name extracts name from regular function.
         """
-        name = self.executor.get_function_name(sample_function, "test_submitter")
+        name = self.executor.get_function_name(SyncTestHelpers.sample_function, "test_submitter")
         self.assertIn("sample_function", name)
         self.assertIn("test_submitter", name)
 
@@ -84,7 +61,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         """
         Test that get_function_name extracts name from async function.
         """
-        name = self.executor.get_function_name(async_sample, "async_submitter")
+        name = self.executor.get_function_name(AsyncTestHelpers.async_sample, "async_submitter")
         self.assertIn("async_sample", name)
         self.assertIn("async_submitter", name)
 
@@ -92,7 +69,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         """
         Test that get_function_name works without submitter_id.
         """
-        name = self.executor.get_function_name(sample_function, None)
+        name = self.executor.get_function_name(SyncTestHelpers.sample_function, None)
         self.assertIn("sample_function", name)
         self.assertNotIn(":", name)
 
@@ -100,7 +77,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         """
         Test that get_function_name works with empty submitter_id.
         """
-        name = self.executor.get_function_name(sample_function, "")
+        name = self.executor.get_function_name(SyncTestHelpers.sample_function, "")
         self.assertIn("sample_function", name)
 
     def test_get_function_name_with_class_instance(self):
@@ -127,7 +104,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         result_holder = []
         task = self.executor.submit(
             "test_submitter",
-            sync_function_with_result,
+            SyncTestHelpers.sync_function_with_result,
             result_holder,
             42
         )
@@ -142,7 +119,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         result_holder = []
         task = self.executor.submit(
             "test_submitter",
-            async_function_with_result,
+            AsyncTestHelpers.async_function_with_result,
             result_holder,
             100
         )
@@ -161,7 +138,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         for i in range(5):
             task = self.executor.submit(
                 f"submitter_{i}",
-                task_function_with_lock,
+                AsyncTestHelpers.task_function_with_lock,
                 results,
                 lock,
                 i
@@ -182,7 +159,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         self.executor.shutdown(wait=True)
 
         with self.assertRaises(RuntimeError) as context:
-            self.executor.submit("test", dummy_async_coroutine)
+            self.executor.submit("test", AsyncTestHelpers.dummy_async_coroutine)
         self.assertIn("Cannot schedule new tasks after shutdown", str(context.exception))
         self.executor = None
 
@@ -191,7 +168,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         Test that create_task works from outside the executor thread.
         """
         result_holder = []
-        coro = awaitable_function_with_result(result_holder)
+        coro = AsyncTestHelpers.awaitable_function_with_result(result_holder)
         task = self.executor.create_task(coro, "external_submitter")
         self.assertIsInstance(task, Task)
         time.sleep(0.5)
@@ -201,7 +178,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         """
         Test that create_task with raise_exception=False handles exceptions silently.
         """
-        coro = failing_async_function()
+        coro = AsyncTestHelpers.failing_async_function()
         task = self.executor.create_task(coro, "error_submitter", raise_exception=False)
         self.assertIsInstance(task, Task)
         time.sleep(0.5)
@@ -213,7 +190,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         self.executor.shutdown(wait=True)
 
         with self.assertRaises(RuntimeError) as context:
-            self.executor.create_task(dummy_async_coroutine(), "test")
+            self.executor.create_task(AsyncTestHelpers.dummy_async_coroutine(), "test")
         self.assertIn("Cannot schedule new tasks after shutdown", str(context.exception))
         self.executor = None
 
@@ -222,7 +199,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         Test that track_task properly adds task to background tasks dict.
         """
         started = threading.Event()
-        task = self.executor.submit("track_test", simple_task_with_event, started)
+        task = self.executor.submit("track_test", AsyncTestHelpers.simple_task_with_event, started)
         started.wait(timeout=2.0)
         task_id = id(task)
         # pylint: disable=protected-access
@@ -232,7 +209,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         """
         Test that task names contain submitter ID and function name.
         """
-        task = self.executor.submit("my_submitter", named_function)
+        task = self.executor.submit("my_submitter", AsyncTestHelpers.named_function)
         task_name = task.get_name()
         self.assertIn("my_submitter", task_name)
         self.assertIn("named_function", task_name)
@@ -245,7 +222,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         cancelled = []
         self.executor.submit(
             "cancel_test",
-            long_running_task_with_cancel,
+            AsyncTestHelpers.long_running_task_with_cancel,
             started,
             cancelled,
             1
@@ -269,7 +246,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         for i in range(3):
             self.executor.submit(
                 f"cancel_test_{i}",
-                long_task_with_locks,
+                AsyncTestHelpers.long_task_with_locks,
                 started_count,
                 started_lock,
                 cancelled,
@@ -288,7 +265,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         Verifies by checking that after shutdown, all tasks are cleaned up.
         """
         completed = threading.Event()
-        task = self.executor.submit("tracking_test", quick_task_with_event, completed)
+        task = self.executor.submit("tracking_test", AsyncTestHelpers.quick_task_with_event, completed)
         completed.wait(timeout=2.0)
         self.assertTrue(task.done())
 
@@ -304,7 +281,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         started = threading.Event()
         task = self.executor.submit(
             "cancel_handling",
-            cancellable_task_with_event,
+            AsyncTestHelpers.cancellable_task_with_event,
             started
         )
         started.wait(timeout=2.0)
@@ -316,7 +293,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         """
         Test that submission_done handles tasks that raise exceptions.
         """
-        task = self.executor.submit("exception_test", exception_task)
+        task = self.executor.submit("exception_test", AsyncTestHelpers.exception_task)
         time.sleep(0.5)
         self.assertTrue(task.done())
 
@@ -325,7 +302,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         Test that initialize() runs a function in the event loop.
         """
         init_result = []
-        self.executor.initialize(lambda: init_function_with_result(init_result))
+        self.executor.initialize(lambda: SyncTestHelpers.init_function_with_result(init_result))
         self.assertEqual(init_result, ["initialized"])
 
     def test_initialize_raises_after_shutdown(self):
@@ -335,7 +312,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         self.executor.shutdown(wait=True)
 
         with self.assertRaises(RuntimeError) as context:
-            self.executor.initialize(dummy_sync_function)
+            self.executor.initialize(SyncTestHelpers.dummy_sync_function)
         self.assertIn("Cannot schedule new calls after shutdown", str(context.exception))
         self.executor = None
 
@@ -375,7 +352,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         result_holder = []
         task = self.executor.submit(
             "kwargs_test",
-            kwargs_function_with_result,
+            AsyncTestHelpers.kwargs_function_with_result,
             result_holder,
             1,
             2,
@@ -392,7 +369,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         result_holder = []
         task = self.executor.submit(
             "sync_args_test",
-            sync_with_args_and_result,
+            SyncTestHelpers.sync_with_args_and_result,
             result_holder,
             5,
             3,
@@ -409,11 +386,11 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         callback_called = threading.Event()
         started = threading.Event()
 
-        task = self.executor.submit("callback_test", callback_test_task_with_event, started)
+        task = self.executor.submit("callback_test", AsyncTestHelpers.callback_test_task_with_event, started)
         started.wait(timeout=2.0)
 
         task.add_done_callback(
-            lambda t: custom_callback_with_event(callback_called, t)
+            lambda t: SyncTestHelpers.custom_callback_with_event(callback_called, t)
         )
         callback_called.wait(timeout=2.0)
         self.assertTrue(callback_called.is_set())
@@ -433,7 +410,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
             for task_id in range(tasks_per_thread):
                 self.executor.submit(
                     f"thread_{thread_id}",
-                    thread_task_with_lock,
+                    AsyncTestHelpers.thread_task_with_lock,
                     results,
                     results_lock,
                     thread_id,
