@@ -190,7 +190,7 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         self.executor.shutdown(wait=True)
 
         with self.assertRaises(RuntimeError) as context:
-            self.executor.create_task(AsyncTestHelpers.dummy_async_coroutine(), "test")
+            self.executor.create_task(AsyncTestHelpers.dummy_async_coroutine, "test")
         self.assertIn("Cannot schedule new tasks after shutdown", str(context.exception))
         self.executor = None
 

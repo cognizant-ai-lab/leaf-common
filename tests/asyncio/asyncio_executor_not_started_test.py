@@ -47,7 +47,7 @@ class AsyncioExecutorNotStartedTest(TestCase):
         executor = AsyncioExecutor()
 
         with self.assertRaises(RuntimeError) as context:
-            executor.create_task(AsyncTestHelpers.dummy_async_coroutine(), "test")
+            executor.create_task(AsyncTestHelpers.dummy_async_coroutine, "test")
         self.assertIn("Loop must be started", str(context.exception))
 
     def test_initialize_raises_when_loop_not_running(self):
