@@ -26,6 +26,7 @@ from typing import List
 import asyncio
 import functools
 import inspect
+import logging
 import threading
 import traceback
 
@@ -46,6 +47,7 @@ class AsyncioExecutor(TasksExecutor):
     https://stackoverflow.com/questions/38387443/how-to-implement-a-async-grpc-python-server/63020796#63020796
     """
 
+    # pylint: disable=too-many-instance-attributes
     def __init__(self):
         """
         Constructor
@@ -63,6 +65,7 @@ class AsyncioExecutor(TasksExecutor):
         # background tasks table will be accessed from different threads,
         # so protect it:
         self._background_tasks_lock = threading.Lock()
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def get_event_loop(self) -> AbstractEventLoop:
         """
@@ -95,7 +98,7 @@ class AsyncioExecutor(TasksExecutor):
         :param init_function: function to call.
         """
         if self._shutdown:
-            raise RuntimeError('Cannot schedule new calls after shutdown')
+            raise RuntimeError("Cannot schedule new calls after shutdown")
         if not self._loop.is_running():
             raise RuntimeError("Loop must be started before any function can "
                                "be submitted")
@@ -261,7 +264,7 @@ class AsyncioExecutor(TasksExecutor):
         :return: An asyncio.Task that corresponds to the submitted task
         """
         if self._shutdown:
-            raise RuntimeError('Cannot schedule new tasks after shutdown')
+            raise RuntimeError("Cannot schedule new tasks after shutdown")
 
         if not self._loop.is_running():
             raise RuntimeError("Loop must be started before any function can "
@@ -288,7 +291,7 @@ class AsyncioExecutor(TasksExecutor):
         :return: The Task object bound to our event loop
         """
         if self._shutdown:
-            raise RuntimeError('Cannot schedule new tasks after shutdown')
+            raise RuntimeError("Cannot schedule new tasks after shutdown")
 
         if not self._loop.is_running():
             raise RuntimeError("Loop must be started before any function can "
@@ -364,7 +367,7 @@ class AsyncioExecutor(TasksExecutor):
         try:
             cancel_task.result(timeout)
         except futures.TimeoutError:
-            print(f"Timeout {timeout} sec exceeded while cleaning up AsyncioExecutor {id(self)}")
+            self.logger.info("Timeout %f sec exceeded while cleaning up AsyncioExecutor %s", timeout, id(self))
             raise
 
     def _check_task(self, task: Task):
@@ -385,7 +388,7 @@ class AsyncioExecutor(TasksExecutor):
         if task_id not in self._background_tasks:
             # That could happen if the task is being cancelled by us,
             # and background tasks table is already cleared.
-            print(f"Task {task_id}/{origination} is not present in the tasks table.")
+            self.logger.info("Task %s/%s is not present in the tasks table.", task_id, origination)
 
     def submission_done(self, task: Task):
         """
@@ -425,11 +428,11 @@ class AsyncioExecutor(TasksExecutor):
             pass
 
         except futures.TimeoutError:
-            print(f"Task from {origination} took too long()")
+            self.logger.info("Task from %s took too long", origination)
 
         except asyncio.exceptions.CancelledError:
             # Cancelled task is OK - it may happen for different reasons.
-            print(f"Task from {origination} was cancelled")
+            self.logger.info("Task from %s was cancelled", origination)
 
         # pylint: disable=broad-exception-caught
         except Exception as exc:
@@ -437,7 +440,7 @@ class AsyncioExecutor(TasksExecutor):
             for line in formatted_exception:
                 if line.endswith("\n"):
                     line = line[:-1]
-                print(line)
+                self.logger.info("%s", line)
 
         # As a last gesture, remove the background task from the map
         # we use to keep its reference around. Do it safely:
