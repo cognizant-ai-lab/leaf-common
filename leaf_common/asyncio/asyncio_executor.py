@@ -35,12 +35,12 @@ from asyncio import Future
 from asyncio import Task
 from concurrent import futures
 
-from leaf_common.interfaces.tasks_executor import TasksExecutor
+from leaf_common.asyncio.task_executor import TaskExecutor
 
 EXECUTOR_START_TIMEOUT_SECONDS: int = 5
 
 
-class AsyncioExecutor(TasksExecutor):
+class AsyncioExecutor(TaskExecutor):
     """
     Class for managing asynchronous background tasks in a single thread
     Riffed from:

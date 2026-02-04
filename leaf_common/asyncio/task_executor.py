@@ -17,13 +17,15 @@
 """
 See class comment for details.
 """
+from typing import Awaitable
 from typing import Callable
 
 from asyncio import AbstractEventLoop
 from asyncio import Task
+from asyncio import Future
 
 
-class TasksExecutor:
+class TaskExecutor:
     """
     Interface contract for a class managing execution
     of dynamic collection of asynchronous tasks in an event loop.
@@ -40,7 +42,7 @@ class TasksExecutor:
         Starts the executor.
         Do this separately from constructor for more control.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def initialize(self, init_function: Callable):
         """
@@ -49,7 +51,7 @@ class TasksExecutor:
         Used for setting up executor tasks run-time state before any tasks are submitted.
         :param init_function: function to call.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def submit(self, submitter_id: str, function, /, *args, **kwargs) -> Task:
         """
@@ -65,7 +67,18 @@ class TasksExecutor:
         :param kwargs: keyword args for the function
         :return: An asyncio.Task that corresponds to the submitted task
         """
-        raise NotImplementedError()
+        raise NotImplementedError
+
+    def create_task(self, awaitable: Awaitable, submitter_id: str, raise_exception: bool = False) -> Future:
+        """
+        Creates a task for the event loop given an Awaitable
+        :param awaitable: The Awaitable to create and schedule a task for
+        :param submitter_id: A string id denoting who is doing the submitting.
+        :param raise_exception: True if exceptions are to be raised in the executor.
+                    Default is False.
+        :return: The Task object bound to our event loop
+        """
+        raise NotImplementedError
 
     def shutdown(self, wait: bool = True, *, cancel_futures: bool = False):
         """
@@ -74,4 +87,4 @@ class TasksExecutor:
                      False otherwise.  Default is True.
         :param cancel_futures: Ignored? Default is False.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
