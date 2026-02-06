@@ -21,6 +21,8 @@ See class comment for details.
 from typing import Any
 from typing import List
 from typing import Type
+from typing import Union
+from types import ModuleType
 
 from importlib import import_module
 from logging import getLogger
@@ -46,7 +48,7 @@ class Resolver():
                                 module_name: str = None,
                                 raise_if_not_found: bool = True,
                                 verbose: bool = False,
-                                install_if_missing: str = None) -> Type[Any]:
+                                install_if_missing: str = None) -> Union[Type[Any], ModuleType]:
         """
         :param class_name: The name of the class we are looking for.
                         Can be None, in which case the module is returned
@@ -57,7 +59,8 @@ class Resolver():
                         the class could not be resolved.
         :param verbose: Controls how chatty the process is. Default False.
         :param install_if_missing: Optional name of a package to install if the module is missing.
-        :return: a reference to the Python class, if the class could be resolved
+        :return: a reference to the Python class, if the class could be resolved,
+                 or the module if class_name is None.
                  None otherwise.
         """
 
