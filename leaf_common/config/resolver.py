@@ -42,12 +42,14 @@ class Resolver():
         self.packages: List[str] = packages
 
     # pylint: disable=too-many-positional-arguments,too-many-arguments
-    def resolve_class_in_module(self, class_name: str, module_name: str = None,     # noqa: C901
+    def resolve_class_in_module(self, class_name: str = None,       # noqa: C901
+                                module_name: str = None,
                                 raise_if_not_found: bool = True,
                                 verbose: bool = False,
                                 install_if_missing: str = None) -> Type[Any]:
         """
         :param class_name: The name of the class we are looking for.
+                        Can be None, in which case the module is returned
         :param module_name: The name of the module the class should be in.
                         Can be None, in which case the module name is taken
                         as the underscores version of the class name.
@@ -91,6 +93,10 @@ class Resolver():
                 raise ValueError(str(messages))
         elif verbose:
             logger.info("Found module %s", use_module_name)
+
+        if class_name is None:
+            # Can still be None if raise_not_found is False
+            return found_module
 
         # The None case here should only fall through if raise_not_found is False.
         my_class: Type[Any] = None
