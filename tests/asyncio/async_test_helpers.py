@@ -160,3 +160,13 @@ class AsyncTestHelpers:
         await asyncio.sleep(0.1)
         with results_lock:
             results.append((thread_id, task_id))
+
+    @staticmethod
+    async def submit_from_executor(executor, result_holder):
+        """
+        Coroutine that submits a task from within the executor.
+        """
+        coro = AsyncTestHelpers.awaitable_function_with_result(result_holder)
+        task = executor.submit("executor_submitter", coro)
+        if isinstance(task, asyncio.Task):
+            raise TypeError("Expected an asyncio.Task from executor.create_task")

@@ -222,10 +222,13 @@ class AsyncioExecutor(TaskExecutor):
 
     def _submit_as_task(self, submitter_id: str, function, /, *args, **kwargs) -> futures.Future:
         """
-        Submit some executable item as a Task from outside of AsyncioExecutor running thread.
-        We should do it by scheduling a "task creation" task on internal event loop,
+        Submit some executable item as a Task in executor event loop.
+        If call is from the outside of AsyncioExecutor running thread,
+        we should do it by scheduling a "task creation" task on internal event loop,
         and then get a Future representing this creation task.
         The result of this Future successful completion will be a Task object we have created.
+        If call is from the inside of AsyncioExecutor running thread, we can just create the Task directly
+        and set it as a result on the Future we will return to the caller.
 
         :param submitter_id: A string id denoting who is doing the submitting.
         :param function: The function handle to run
@@ -235,14 +238,17 @@ class AsyncioExecutor(TaskExecutor):
         :param kwargs: keyword args for the function
         :return: A Future object which will return a created Task in our event loop.
         """
-        # Code below only works if we are calling from outside the event loop thread,
-        # so we need to check:
-        if self._in_executor_thread():
-            raise RuntimeError("Cannot submit new tasks from within the executor thread")
-
         task_creation_future: futures.Future = futures.Future()
         task_name: str = self.get_function_name(function, submitter_id)
-        # Construct a partial function to create the task in the event loop thread
+        if self._in_executor_thread():
+            # We are already in the event loop thread:
+            self._create_in_loop_thread(function, task_name, task_creation_future, *args, **kwargs)
+            # We should have already set the result on the task_creation_future, so just return it:
+            return task_creation_future
+
+        # If we are not in the event loop thread,
+        # we need to schedule a task to create the resulting Task in the event loop thread.
+        # Construct a partial function to create the task:
         creation_function = functools.partial(self._create_in_loop_thread,
                                               function, task_name,
                                               task_creation_future,
@@ -297,17 +303,10 @@ class AsyncioExecutor(TaskExecutor):
             raise RuntimeError("Loop must be started before any function can "
                                "be submitted")
 
-        # Logic is different depending on where the calling client is running:
-        # If it is running in the event loop thread, we can create the task directly:
-        if self._in_executor_thread():
-            task_name: str = self.get_function_name(awaitable, submitter_id)
-            task: Task = self._loop.create_task(awaitable, name=task_name)
-        else:
-            # Otherwise, we need to submit a request to create
-            # the task in the event loop thread indirectly:
-            task_creation_future: futures.Future = self._submit_as_task(submitter_id, awaitable)
-            # Wait for task to be created in event loop thread (blocking calling thread)
-            task: Task = task_creation_future.result()
+        # self._submit_as_task will handle the logic of whether we are in the event loop thread or not.
+        task_creation_future: futures.Future = self._submit_as_task(submitter_id, awaitable)
+        # Wait for task to be created and returned as the result of the Future (blocking calling thread)
+        task: Task = task_creation_future.result()
         self.track_task(task, raise_exception=raise_exception)
         return task
 

@@ -163,6 +163,28 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         self.assertIn("Cannot schedule new tasks after shutdown", str(context.exception))
         self.executor = None
 
+    def test_submit_task_from_executor_thread(self):
+        """
+        Test that create_task works from within the executor thread.
+        """
+        result_holder = []
+        self.executor.submit(
+            "submitter",
+            AsyncTestHelpers.submit_from_executor, self.executor, result_holder)
+        time.sleep(0.5)
+        self.assertEqual(result_holder, ["completed"])
+
+    def test_create_task_from_executor_thread(self):
+        """
+        Test that create_task works from within the executor thread.
+        """
+        result_holder = []
+        self.executor.create_task(
+            AsyncTestHelpers.submit_from_executor(self.executor, result_holder),
+            "submitter")
+        time.sleep(0.5)
+        self.assertEqual(result_holder, ["completed"])
+
     def test_create_task_from_outside_executor_thread(self):
         """
         Test that create_task works from outside the executor thread.
