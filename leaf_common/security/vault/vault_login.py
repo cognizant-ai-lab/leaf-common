@@ -19,8 +19,12 @@ See class comment for details.
 """
 from typing import Any
 from typing import Dict
+from typing import Type
 
-from hvac import Client as VaultClient
+from leaf_common.config.resolver_util import ResolverUtil
+
+# Define a type for a lazily-loaded VaultClient
+LazyVaultClient: Type[Any] = ResolverUtil.create_type("hvac.VaultClient", install_if_missing="hvac")
 
 
 # pylint: disable=too-few-public-methods
@@ -31,7 +35,7 @@ class VaultLogin:
     """
 
     def login(self, vault_url: str, config: Dict[str, Any],
-              vault_cacert: str = None) -> VaultClient:
+              vault_cacert: str = None) -> LazyVaultClient:
         """
         This method can raise an exception if authentication with the
         Vault server fails in any way.

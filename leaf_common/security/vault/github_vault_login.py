@@ -22,8 +22,7 @@ from typing import Dict
 
 import logging
 
-from hvac import Client as VaultClient
-
+from leaf_common.security.vault.vault_login import LazyVaultClient
 from leaf_common.security.vault.vault_login import VaultLogin
 
 
@@ -64,7 +63,7 @@ class GithubVaultLogin(VaultLogin):
     """
 
     def login(self, vault_url: str, config: Dict[str, Any],
-              vault_cacert: str = None) -> VaultClient:
+              vault_cacert: str = None) -> LazyVaultClient:
         """
         This method can raise an exception if authentication with the
         Vault server fails in any way.
@@ -107,7 +106,9 @@ class GithubVaultLogin(VaultLogin):
             logger.warning("GitHub token missing from security_config spec")
             return None
 
-        vault_client = VaultClient(url=vault_url, verify=vault_cacert)
+        # Use lazy loading to prevent installing the world
+        # pylint: disable=invalid-name
+        vault_client = LazyVaultClient(url=vault_url, verify=vault_cacert)
         _ = vault_client.auth.github.login(token=use_token, mount_point=use_path)
 
         return vault_client
