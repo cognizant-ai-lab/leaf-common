@@ -23,8 +23,8 @@ from typing import Dict
 import logging
 import os
 
-from hvac import Client as VaultClient
-
+from leaf_common.config.resolver import Resolver
+from leaf_common.security.vault.vault_login import LazyVaultClient
 from leaf_common.security.vault.vault_login import VaultLogin
 
 
@@ -36,7 +36,7 @@ class TokenVaultLogin(VaultLogin):
     """
 
     def login(self, vault_url: str, config: Dict[str, Any],
-              vault_cacert: str = None) -> VaultClient:
+              vault_cacert: str = None) -> LazyVaultClient:
         """
         This method can raise an exception if authentication with the
         Vault server fails in any way.
@@ -66,6 +66,10 @@ class TokenVaultLogin(VaultLogin):
         if use_token is None:
             logger.info("vault_login token missing. Using VAULT_TOKEN.")
             use_token = os.environ.get("VAULT_TOKEN", None)
+
+        # Use lazy loading to prevent installing the world
+        # pylint: disable=invalid-name
+        VaultClient = Resolver().resolve_class_in_module("VaultClient", module_name="hvac", install_if_missing="hvac")
 
         vault_client = VaultClient(url=vault_url, token=use_token, verify=vault_cacert)
         return vault_client

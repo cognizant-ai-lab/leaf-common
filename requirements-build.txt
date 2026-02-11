@@ -2,6 +2,8 @@
 # We separate out requirements that are specific to builds, but not
 # necessary for operation to minimize the size of containers
 
+# For vault access
+hvac>=1.1.0
 
 # Tests
 pytest==8.3.3

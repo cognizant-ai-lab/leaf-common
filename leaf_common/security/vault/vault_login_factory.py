@@ -24,11 +24,10 @@ from typing import Union
 
 import logging
 
-from hvac import Client as VaultClient
-
 from leaf_common.security.vault.github_vault_login import GithubVaultLogin
 from leaf_common.security.vault.kubernetes_vault_login import KubernetesVaultLogin
 from leaf_common.security.vault.token_vault_login import TokenVaultLogin
+from leaf_common.security.vault.vault_login import LazyVaultClient
 from leaf_common.security.vault.vault_login import VaultLogin
 
 
@@ -46,7 +45,7 @@ class VaultLoginFactory(VaultLogin):
     def login(self, vault_url: str,
               config: Union[Dict[str, Any], List[Dict[str, Any]]],
               vault_cacert: str = None,
-              cacert_temp_pem_file: str = DEFAULT_TEMP_PEM_FILE) -> VaultClient:
+              cacert_temp_pem_file: str = DEFAULT_TEMP_PEM_FILE) -> LazyVaultClient:
         """
         This method can raise an exception if authentication with the
         Vault server fails in any way.
@@ -110,7 +109,7 @@ class VaultLoginFactory(VaultLogin):
     def _login_one(self, vault_url: str,
                    config: Dict[str, Any],
                    cacert_temp_pem_file: str,
-                   vault_cacert: str = None) -> VaultClient:
+                   vault_cacert: str = None) -> LazyVaultClient:
         """
         This method can raise an exception if authentication with the
         Vault server fails in any way.
@@ -183,7 +182,7 @@ class VaultLoginFactory(VaultLogin):
         vault_client = vault_login.login(vault_url, config=use_config, vault_cacert=verify)
         return vault_client
 
-    def is_connection_valid(self, vault_client: VaultClient,
+    def is_connection_valid(self, vault_client: LazyVaultClient,
                             verbose: bool = True) -> bool:
         """
         :param vault_client: The VaultClient to test against
