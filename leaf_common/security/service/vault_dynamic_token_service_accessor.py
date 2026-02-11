@@ -23,8 +23,7 @@ from typing import Dict
 
 import logging
 
-from hvac import Client as VaultClient
-
+from leaf_common.security.vault.vault_login import LazyVaultClient
 from leaf_common.security.service.service_accessor import ServiceAccessor
 from leaf_common.security.vault.vault_login_factory import VaultLoginFactory
 
@@ -109,9 +108,9 @@ class VaultDynamicTokenServiceAccessor(ServiceAccessor):
                 used to set up a secure gRPC connection.
         """
         login_factory = VaultLoginFactory()
-        vault_client: VaultClient = login_factory.login(self.vault_url,
-                                                        config=self.vault_login,
-                                                        vault_cacert=self.vault_cacert)
+        vault_client: LazyVaultClient = login_factory.login(self.vault_url,
+                                                            config=self.vault_login,
+                                                            vault_cacert=self.vault_cacert)
         if not login_factory.is_connection_valid(vault_client, verbose=True):
             return None
 
