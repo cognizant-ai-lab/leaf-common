@@ -26,7 +26,6 @@ from os.path import isfile
 
 import logging
 
-from leaf_common.config.resolver import Resolver
 from leaf_common.security.vault.vault_login import LazyVaultClient
 from leaf_common.security.vault.vault_login import VaultLogin
 
@@ -117,10 +116,7 @@ class KubernetesVaultLogin(VaultLogin):
         mount_point = config.get("path", "kubernetes")
 
         # Use lazy loading to prevent installing the world
-        # pylint: disable=invalid-name
-        VaultClient = Resolver().resolve_class_in_module("VaultClient", module_name="hvac", install_if_missing="hvac")
-
-        vault_client = VaultClient(url=vault_url, verify=vault_cacert)
+        vault_client = LazyVaultClient(url=vault_url, verify=vault_cacert)
         _ = vault_client.auth.kubernetes.login(role=role,
                                                jwt=jwt,
                                                mount_point=mount_point)

@@ -23,7 +23,6 @@ from typing import Dict
 import logging
 import os
 
-from leaf_common.config.resolver import Resolver
 from leaf_common.security.vault.vault_login import LazyVaultClient
 from leaf_common.security.vault.vault_login import VaultLogin
 
@@ -68,8 +67,5 @@ class TokenVaultLogin(VaultLogin):
             use_token = os.environ.get("VAULT_TOKEN", None)
 
         # Use lazy loading to prevent installing the world
-        # pylint: disable=invalid-name
-        VaultClient = Resolver().resolve_class_in_module("VaultClient", module_name="hvac", install_if_missing="hvac")
-
-        vault_client = VaultClient(url=vault_url, token=use_token, verify=vault_cacert)
+        vault_client = LazyVaultClient(url=vault_url, token=use_token, verify=vault_cacert)
         return vault_client

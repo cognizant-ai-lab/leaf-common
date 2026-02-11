@@ -22,7 +22,6 @@ from typing import Dict
 
 import logging
 
-from leaf_common.config.resolver import Resolver
 from leaf_common.security.vault.vault_login import LazyVaultClient
 from leaf_common.security.vault.vault_login import VaultLogin
 
@@ -109,9 +108,7 @@ class GithubVaultLogin(VaultLogin):
 
         # Use lazy loading to prevent installing the world
         # pylint: disable=invalid-name
-        VaultClient = Resolver().resolve_class_in_module("VaultClient", module_name="hvac", install_if_missing="hvac")
-
-        vault_client = VaultClient(url=vault_url, verify=vault_cacert)
+        vault_client = LazyVaultClient(url=vault_url, verify=vault_cacert)
         _ = vault_client.auth.github.login(token=use_token, mount_point=use_path)
 
         return vault_client
