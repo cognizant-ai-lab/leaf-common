@@ -19,11 +19,12 @@ See class comment for details.
 """
 from typing import Any
 from typing import Dict
+from typing import Type
 
 from leaf_common.config.resolver_util import ResolverUtil
 
 # Define a type for a lazily-loaded VaultClient
-LazyVaultClient = ResolverUtil.create_type("hvac.VaultClient", install_if_not_found="hvac")
+LazyVaultClient: Type[Any] = ResolverUtil.create_type("hvac.VaultClient", install_if_missing="hvac")
 
 
 # pylint: disable=too-few-public-methods
