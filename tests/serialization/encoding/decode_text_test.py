@@ -25,6 +25,10 @@ from leaf_common.serialization.util.bytes_decoder import BytesDecoder
 
 
 class DecodeTextTest(TestCase):
+    """
+    Test class for the BytesDecoder utility class,
+    which is responsible for decoding bytes data to strings when the original encoding is unknown.
+    """
 
     def test_decode_utf8_first(self):
         """
