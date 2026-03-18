@@ -72,7 +72,7 @@ class DecodeTextTest(TestCase):
         Test that a HOCON file encoded in Windows-1252 is correctly decoded,
         and that the resulting text contains the expected HOCON content.
         This test ensures that the decoder can handle real-world HOCON files that may be encoded in Windows-1252,
-        which is common for files containing certain special characters
+        which is common for files containing certain special characters.
         """
         hocon_text = (
             'include "base.conf"\n'
