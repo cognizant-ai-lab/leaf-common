@@ -41,7 +41,7 @@ class BytesDecoder:
         sequentially using the list of common encodings until one succeeds or all fail.
 
         :param bytes_data: The bytes data to decode.
-        :source_name: Optional name of the source of the bytes data, used for logging purposes.
+        :param source_name: Optional name of the source of the bytes data, used for logging purposes.
         :return: The tuple of decoded string and the encoding used for decoding.
         """
         for encoding in BytesDecoder.COMMON_ENCODINGS:
