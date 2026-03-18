@@ -30,8 +30,6 @@ class BytesDecoder:
 
     COMMON_ENCODINGS = [
         "utf-8",
-        "utf-8-sig",
-        "utf-16",
         "cp1252",
         "latin-1"
     ]
