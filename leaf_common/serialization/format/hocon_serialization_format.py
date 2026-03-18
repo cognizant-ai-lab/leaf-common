@@ -24,6 +24,7 @@ from pyhocon import ConfigFactory
 
 from leaf_common.serialization.format.json_serialization_format \
     import JsonSerializationFormat
+from leaf_common.serialization.util.bytes_decoder import BytesDecoder
 
 
 class HoconSerializationFormat(JsonSerializationFormat):
@@ -48,7 +49,7 @@ class HoconSerializationFormat(JsonSerializationFormat):
         pruned_dict = None
         if fileobj is not None:
             hocon_bytes = fileobj.getvalue()
-            hocon_string = hocon_bytes.decode("utf-8")
+            hocon_string, _ = BytesDecoder.decode_bytes(hocon_bytes)
 
             # Load the HOCON into a dictionary
             pruned_dict = ConfigFactory.parse_string(hocon_string)
