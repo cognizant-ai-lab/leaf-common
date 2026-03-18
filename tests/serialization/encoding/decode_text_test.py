@@ -27,6 +27,9 @@ from leaf_common.serialization.util.bytes_decoder import BytesDecoder
 class DecodeTextTest(TestCase):
 
     def test_decode_utf8_first(self):
+        """
+        Test that UTF-8 is attempted first and succeeds when the bytes are UTF-8 encoded.
+        """
         original_text = 'include "base.conf"\nkey = "Привет"\n'
         fileobj = io.BytesIO(original_text.encode("utf-8"))
 
@@ -36,6 +39,11 @@ class DecodeTextTest(TestCase):
         self.assertEqual(used_encoding, "utf-8")
 
     def test_fallback_to_windows_cp1252(self):
+        """
+        Test that if UTF-8 decoding fails, the decoder falls back to trying Windows-1252 encoding.
+        This test uses characters that are valid in Windows-1252 but not in UTF-8 to ensure
+        that the fallback is working correctly.
+        """
         original_text = 'include "base.conf"\nkey = "café €"\n'
         fileobj = io.BytesIO(original_text.encode("cp1252"))
 
@@ -45,6 +53,10 @@ class DecodeTextTest(TestCase):
         self.assertEqual(used_encoding, "cp1252")
 
     def test_fallback_to_latin(self):
+        """
+        Test that if UTF-8 and Windows-1252 decoding both fail, the decoder falls back to trying Latin-1 encoding.
+        This test uses bytes that are valid in Latin-1 but not in UTF-8 or Windows-1252 to ensure
+        """
         fileobj = io.BytesIO(b"\x81\x8d\x8f\x90\x9d")
 
         _, used_encoding = BytesDecoder.decode_bytes(fileobj.read())
@@ -52,6 +64,12 @@ class DecodeTextTest(TestCase):
         self.assertEqual(used_encoding, "latin-1")
 
     def test_decode_hocon_windows_cp1252(self):
+        """
+        Test that a HOCON file encoded in Windows-1252 is correctly decoded,
+        and that the resulting text contains the expected HOCON content.
+        This test ensures that the decoder can handle real-world HOCON files that may be encoded in Windows-1252,
+        which is common for files containing certain special characters
+        """
         hocon_text = (
             'include "base.conf"\n'
             'app {\n'
