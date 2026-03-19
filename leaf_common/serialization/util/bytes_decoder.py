@@ -23,9 +23,13 @@ from typing import Tuple
 
 class BytesDecoder:
     """
-    Utility class for decoding bytes to a string if bytes original encoding is unknown.
-    By default, we will try for UTF-8 encoding, but if that fails, we go over the list
-    of widely used encodings.
+    Utility class for best-effort decoding of bytes to a string when the original encoding is
+    unknown. The encodings listed in ``COMMON_ENCODINGS`` are tried in order until one
+    succeeds.
+
+    Note that the default list includes ``latin-1``, which can decode any byte sequence.
+    This means decoding is expected to always succeed, but the resulting text may be
+    meaningless if the input was not actually text or used an unexpected encoding.
     """
 
     COMMON_ENCODINGS = [
@@ -37,8 +41,13 @@ class BytesDecoder:
     @staticmethod
     def decode_bytes(bytes_data, source_name: str = "") -> Tuple[str, str]:
         """
-        Decodes the given bytes data to a string
-        sequentially using the list of common encodings until one succeeds or all fail.
+        Decodes the given bytes data to a string by sequentially trying the encodings listed
+        in :attr:`COMMON_ENCODINGS` and returning as soon as one succeeds.
+
+        With the default encodings (including ``latin-1``), this method is expected to always
+        return a decoded string, although the content may be garbled for non-text or
+        unexpectedly encoded inputs. The final ``UnicodeDecodeError`` is only raised if none
+        of the configured encodings can decode the data.
 
         :param bytes_data: The bytes data to decode.
         :param source_name: Optional name of the source of the bytes data, used for logging purposes.
