@@ -59,7 +59,8 @@ class DecodeTextTest(TestCase):
     def test_fallback_to_latin(self):
         """
         Test that if UTF-8 and Windows-1252 decoding both fail, the decoder falls back to trying Latin-1 encoding.
-        This test uses bytes that are valid in Latin-1 but not in UTF-8 or Windows-1252 to ensure that Latin-1 is selected as the fallback encoding.
+        This test uses bytes that are valid in Latin-1 but not in UTF-8 or Windows-1252
+        to ensure that Latin-1 is selected as the fallback encoding.
         """
         fileobj = io.BytesIO(b"\x81\x8d\x8f\x90\x9d")
 
