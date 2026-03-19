@@ -50,4 +50,4 @@ class BytesDecoder:
             except UnicodeDecodeError:
                 continue
 
-        raise UnicodeDecodeError(f"Unable to decode bytes data from source '{source_name}'")
+        raise UnicodeError(f"Unable to decode bytes data from source '{source_name}'")
