@@ -87,8 +87,7 @@ class ResolverUtil:
                              "must be of the form <package_name>.<module_name>.<ClassName>"
                              "or <package_name>.<ClassName>")
 
-
-         # Extract module and class details
+        # Extract module and class details
         if len(class_split) <= 2:
             packages: List[str] = [class_split[0]]
             module_name = class_split[0]
