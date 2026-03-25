@@ -80,6 +80,11 @@ class Resolver():
                 fully_qualified_module: str = f"{package}.{use_module_name}"
                 found_module: Any = self.try_to_import_module(fully_qualified_module,
                                                               messages, install_if_missing)
+                # check main package
+                check_main_package: Any = self.try_to_import_module(package,
+                                                              messages, install_if_missing)
+                found_module = found_module if found_module is not None else check_main_package
+                
                 if found_module is not None:
                     break
         else:
