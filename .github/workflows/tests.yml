@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 jobs:
-  quality-gate:
+  test:
     # 455db3c = build-common 1.0.0
     # https://github.com/cognizant-ai-lab/build-common/releases
     uses: cognizant-ai-lab/build-common/.github/workflows/_python-quality-gate.yml@455db3cc40e9ed6a0fb9bbaf8188888c1ae315c2
