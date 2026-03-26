@@ -80,18 +80,23 @@ class ResolverUtil:
         if class_name is None or len(class_name) == 0:
             return None
 
+        value_error_message: str = (f"Value from {class_name_source} '{class_name}' "
+                                    "must be of the form <package_name>.<module_name>.<ClassName> "
+                                    "or <package_name>.<ClassName> "
+                                    "For example: langchain_mistralai.ChatMistralAI "
+                                    "or langchain_mistralai.chat_mistral_ai.ChatMistralAI")
         # Split the single string into package, module, and class name
         class_split: List[str] = class_name.split(".")
         if len(class_split) < 2:
-            raise ValueError(f"Value from {class_name_source} '{class_name}' "
-                             "must be of the form <package_name>.<module_name>.<ClassName>"
-                             "or <package_name>.<ClassName>")
+            raise ValueError(value_error_message)
 
         # Extract module and class details
         if len(class_split) <= 2:
+            # handles <package_name>.<ClassName>
             packages: List[str] = [class_split[0]]
             module_name = class_split[0]
         else:
+            # handles <package_name>.<module_name>.<ClassName>
             packages: List[str] = [".".join(class_split[:-2])]
             module_name = class_split[-2]
         class_name: str = class_split[-1]
