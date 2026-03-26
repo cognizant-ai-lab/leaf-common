@@ -104,7 +104,7 @@ class Resolver():
         """
         Searches for a module by name, trying each configured package in turn.
         Also tries the module name as a top-level module if packages are configured.
-        
+
         :param use_module_name: The module name to search for
         :param messages: a list of messages where logs of failed attempts can go
         :param install_if_missing: Optional name of a package to install if the module is missing.
