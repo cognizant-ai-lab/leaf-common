@@ -19,7 +19,7 @@ jobs:
       lint-toolchain: "legacy"
       python-version: "3.12"
       pylint-command: "build_scripts/run_pylint.sh"
-      run-shellcheck: false
+      run-shellcheck: true
       pytest-markers: "not integration"
       pytest-extra-args: "--timer-top-n 10 --cov-config=.coveragerc --cov"
       check-readme-pypi: true
