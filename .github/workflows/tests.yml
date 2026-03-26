@@ -16,12 +16,12 @@ jobs:
     # 455db3c = build-common 1.0.0
     uses: cognizant-ai-lab/build-common/.github/workflows/_python-quality-gate.yml@455db3cc40e9ed6a0fb9bbaf8188888c1ae315c2
     with:
-      lint-toolchain: 'legacy'
-      python-version: '3.12'
-      pylint-command: 'build_scripts/run_pylint.sh'
+      lint-toolchain: "legacy"
+      python-version: "3.12"
+      pylint-command: "build_scripts/run_pylint.sh"
       run-shellcheck: false
-      pytest-markers: 'not integration'
-      pytest-extra-args: '--timer-top-n 10 --cov-config=.coveragerc --cov'
+      pytest-markers: "not integration"
+      pytest-extra-args: "--timer-top-n 10 --cov-config=.coveragerc --cov"
       check-readme-pypi: true
     secrets:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
