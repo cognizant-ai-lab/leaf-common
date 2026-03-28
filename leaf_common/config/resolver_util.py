@@ -80,20 +80,30 @@ class ResolverUtil:
         if class_name is None or len(class_name) == 0:
             return None
 
+        value_error_message: str = (f"Value from {class_name_source} '{class_name}' "
+                                    "must be of the form <package_name>.<module_name>.<ClassName> "
+                                    "or <package_name>.<ClassName> ")
         # Split the single string into package, module, and class name
         class_split: List[str] = class_name.split(".")
-        if len(class_split) <= 2:
-            raise ValueError(f"Value from {class_name_source} '{class_name}' "
-                             "must be of the form <package_name>.<module_name>.<ClassName>")
+        if len(class_split) < 2:
+            raise ValueError(value_error_message)
 
-        packages: List[str] = [".".join(class_split[:-2])]
+        # Extract module and class details
+        if len(class_split) <= 2:
+            # handles <package_name>.<ClassName>
+            packages: List[str] = [class_split[0]]
+            module_name = class_split[0]
+        else:
+            # handles <package_name>.<module_name>.<ClassName>
+            packages: List[str] = [".".join(class_split[:-2])]
+            module_name = class_split[-2]
         class_name: str = class_split[-1]
         resolver = Resolver(packages)
 
         # Resolve the class name
         class_reference: Type[Any] = None
         try:
-            class_reference = resolver.resolve_class_in_module(class_name, module_name=class_split[-2])
+            class_reference = resolver.resolve_class_in_module(class_name, module_name=module_name)
         except AttributeError as exception:
             raise ValueError(f"Class '{class_name}' from {class_name_source} "
                              "not found in PYTHONPATH") from exception
