@@ -82,9 +82,7 @@ class ResolverUtil:
 
         value_error_message: str = (f"Value from {class_name_source} '{class_name}' "
                                     "must be of the form <package_name>.<module_name>.<ClassName> "
-                                    "or <package_name>.<ClassName> "
-                                    "For example: langchain_mistralai.ChatMistralAI "
-                                    "or langchain_mistralai.chat_mistral_ai.ChatMistralAI")
+                                    "or <package_name>.<ClassName> ")
         # Split the single string into package, module, and class name
         class_split: List[str] = class_name.split(".")
         if len(class_split) < 2:
