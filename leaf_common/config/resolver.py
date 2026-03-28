@@ -114,20 +114,20 @@ class Resolver():
         if self.packages is None:
             return self.try_to_import_module(use_module_name, messages, install_if_missing)
 
-        # check main package
-        check_main_package: Any = self.try_to_import_module(package,
-                                                            messages, install_if_missing)
-        if check_main_package is not None:
-            return check_main_package
-            
         for package in self.packages:
             fully_qualified_module: str = f"{package}.{use_module_name}"
             found_module: Any = self.try_to_import_module(fully_qualified_module,
                                                           messages, install_if_missing)
-            
+
             if found_module is not None:
                 return found_module
-            
+
+            # check main package
+            check_main_package: Any = self.try_to_import_module(package,
+                                                                messages, install_if_missing)
+            if check_main_package is not None:
+                return check_main_package
+
         return None
 
     def try_to_import_module(self, module: str, messages: List[str],
