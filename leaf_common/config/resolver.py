@@ -75,16 +75,7 @@ class Resolver():
         if verbose:
             logger.info("Attempting to resolve module %s", use_module_name)
 
-        if self.packages is not None:
-            for package in self.packages:
-                fully_qualified_module: str = f"{package}.{use_module_name}"
-                found_module: Any = self.try_to_import_module(fully_qualified_module,
-                                                              messages, install_if_missing)
-                if found_module is not None:
-                    break
-        else:
-            found_module: Any = self.try_to_import_module(use_module_name, messages,
-                                                          install_if_missing)
+        found_module: Any = self._find_module(use_module_name, messages, install_if_missing)
 
         if found_module is None:
             message: str = f"Could not find code for {use_module_name}"
@@ -107,6 +98,37 @@ class Resolver():
             my_class = getattr(found_module, class_name)
 
         return my_class
+
+    def _find_module(self, use_module_name: str, messages: List[str],
+                     install_if_missing: str = None) -> Any:
+        """
+        Searches for a module by name, trying each configured package in turn.
+        Also tries the module name as a top-level module if packages are configured.
+
+        :param use_module_name: The module name to search for
+        :param messages: a list of messages where logs of failed attempts can go
+        :param install_if_missing: Optional name of a package to install if the module is missing.
+        :return: The python module if found. None if not found.
+        """
+
+        if self.packages is None:
+            return self.try_to_import_module(use_module_name, messages, install_if_missing)
+
+        for package in self.packages:
+            fully_qualified_module: str = f"{package}.{use_module_name}"
+            found_module: Any = self.try_to_import_module(fully_qualified_module,
+                                                          messages, install_if_missing)
+
+            if found_module is not None:
+                return found_module
+
+            # check main package
+            check_main_package: Any = self.try_to_import_module(package,
+                                                                messages, install_if_missing)
+            if check_main_package is not None:
+                return check_main_package
+
+        return None
 
     def try_to_import_module(self, module: str, messages: List[str],
                              install_if_missing: str = None) -> Any:

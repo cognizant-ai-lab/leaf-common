@@ -2,11 +2,11 @@
 
 # set -euo pipefail
 
-UP_TO_SNUFF_DIRS=`ls -1`
+UP_TO_SNUFF_DIRS=$(ls -1)
 IGNORE="build_scripts"
 
 dirs=$1
-if [ "x${dirs}" == "x" ]
+if [ "${dirs}" == "" ]
 then
     dirs=${UP_TO_SNUFF_DIRS}
 fi
@@ -26,18 +26,18 @@ do
     # See if it's a directory we specifically want to ignore
     for ignore_dir in ${IGNORE}
     do
-        if [ "x${ignore_dir}" == $"x${dir}" ]
+        if [ "${ignore_dir}" == "${dir}" ]
         then
             ignore_this=${dir}
         fi
     done
 
     # If we do not need to ignore...
-    if [ "x" == "x${ignore_this}" ]
+    if [ "" == "${ignore_this}" ]
     then
         echo "Running flake8 on directory '${dir}':"
-        find "${dir}" -iname "*.py" | \
-            xargs flake8 -j 0
+        find "${dir}" -iname "*.py" -print0 | \
+            xargs --null flake8 --jobs 0
         current_retval=$?
         if [ ${current_retval} -ne 0 ]
         then
