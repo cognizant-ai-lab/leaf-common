@@ -15,13 +15,11 @@ ignore=.git, extension_packaging.py
 # number of processors available to use.
 jobs=0
 
-# Set reasonable line length
-max-line-length=120
-
-# When enabled, pylint would attempt to guess common misconfiguration and emit
-# user-friendly hints instead of false-positive error messages.
-suggestion-mode=yes
-
 # Not useful warning
 disable=too-few-public-methods,
         duplicate-code
+
+[FORMAT]
+
+# Set reasonable line length
+max-line-length=120
