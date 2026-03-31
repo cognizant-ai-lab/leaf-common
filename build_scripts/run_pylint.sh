@@ -5,7 +5,7 @@
 RCFILE=./.pylintrc
 UP_TO_SNUFF_DIRS=$(ls -1)
 DEPENDENCY_DIRS=""
-IGNORE="${DEPENDENCY_DIRS} build_scripts $(ls -1d ./*.egg-info 2>/dev/null)"
+IGNORE="${DEPENDENCY_DIRS} build_scripts dist $(ls -1d *egg-info 2>/dev/null)"
 
 dirs=$1
 if [ "${dirs}" == "" ]

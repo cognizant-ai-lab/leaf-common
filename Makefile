@@ -1,8 +1,10 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install lint test check build readme-check clean
+# Makefile for developer convenience only - not part of build infrastructure
+.PHONY: help install lint test check build
 
 help:
+	@echo "Makefile for developer convenience only"
 	@echo "Usage: make <target>"
 	@echo ""
 	@echo "Targets:"
@@ -11,8 +13,6 @@ help:
 	@echo "  test          Run pytest (excluding integration tests)"
 	@echo "  check         Run lint + test (mirrors CI)"
 	@echo "  build         Build the package distribution"
-	@echo "  readme-check  Verify README renders correctly on PyPI"
-	@echo "  clean         Remove build artifacts and cache files"
 
 install:
 	pip install -r requirements-build.txt
@@ -24,15 +24,9 @@ lint:
 
 test:
 	pytest --verbose -m "not integration" --timer-top-n 10 --cov-config=.coveragerc --cov
+	rm -rf .coverage
 
 check: lint test
 
 build:
 	python -m build
-
-readme-check:
-	pip install readme_renderer readme_renderer[md]
-	python -m readme_renderer README.md
-
-clean:
-	rm -rf .coverage
