@@ -9,7 +9,8 @@
 
 # Add files or directories to the blacklist. They should be base names, not
 # paths.
-ignore=.git, extension_packaging.py
+ignore=.git, dist, extension_packaging.py
+ignore-patterns=.*egg-info
 
 # Use multiple processes to speed up Pylint. Specifying 0 will auto-detect the
 # number of processors available to use.
