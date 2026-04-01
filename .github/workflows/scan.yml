@@ -1,0 +1,58 @@
+name: IP Ready Scans
+on: [push]
+ 
+jobs: 
+  checkmarx_scan:
+    uses: CognizantCodeHub/IPReady_workflows/.github/workflows/checkmarx_scan.yml@Rel-1.0
+    with:
+      ProjectName: ${{ github.event.repository.name }}
+      locationPathExclude: 'build_scripts/**,**/tests/**'
+    secrets: inherit
+    
+  blackduck_scan: 
+    name: Blackduck Scan
+    if: startsWith(github.ref, 'refs/heads/oss/')
+    runs-on: codebuild-cdhb-ubuntu-cdbuild-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Start the Synopsys Detect scan
+      run: |
+        bash <(curl -s -L ${{ secrets.SYNOPSIS_URL }}) \
+        --blackduck.url=${{ secrets.BLACKDUCK_URL }} \
+        --blackduck.api.token=${{ secrets.BLACKDUCK_TOKEN }} \
+        --detect.project.name=${{ github.event.repository.name }} \
+        --detect.project.group.name="IPR" \
+        --detect.project.version.name='ver.0.6.0' \
+        --detect.included.detector.types=PIP,GIT \
+        --blackduck.trust.cert=true \
+        --detect.timeout=3600 \
+        --detect.detector.search.depth=5 \
+        --detect.tools='ALL,IAC_SCAN' \
+        --detect.blackduck.signature.scanner.individual.file.matching=ALL \
+        --detect.accuracy.required="NONE" \
+        --detect.detector.search.continue=true \
+        --logging.level.com.synopsys.integration=DEBUG \
+        --detect.risk.report.pdf=true \
+        --detect.risk.report.pdf.path="report" \
+        --detect.blackduck.signature.scanner.snippet.matching=SNIPPET_MATCHING \
+        --detect.excluded.directories=.git
+      shell: bash
+    - name: Upload Synopsys Detect scan report
+      uses: actions/upload-artifact@v4.4.3
+      with:
+        name: BDH Artifact - ${{ github.event.repository.name }}
+        path: ${{ github.workspace }}/report
+ 
+  SonarQube_scan:
+    uses: CognizantCodeHub/IPReady_workflows/.github/workflows/sonarqube_generic_scan.yml@Rel-1.0
+    with:
+      ProjectName: ${{ github.event.repository.name }} 
+    secrets: inherit     
