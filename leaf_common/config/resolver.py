@@ -81,8 +81,9 @@ class Resolver():
             message: str = f"Could not find code for {use_module_name}"
             messages.append(message)
             for message in messages:
-                # Always print a message when we couldn't find something
-                logger.info(message)
+                # Only print a message when we couldn't find something if verbose.
+                if verbose:
+                    logger.warning(message)
             if raise_if_not_found:
                 raise ValueError(str(messages))
         elif verbose:
