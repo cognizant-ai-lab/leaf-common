@@ -1,12 +1,14 @@
 name: IP Ready Scans
 on: [push]
  
-jobs: 
+jobs:
   checkmarx_scan:
+    if: startsWith(github.ref, 'refs/heads/sast/')
+    name: SAST Scan
     uses: CognizantCodeHub/IPReady_workflows/.github/workflows/checkmarx_scan.yml@Rel-1.0
     with:
-      ProjectName: ${{ github.event.repository.name }}
-      locationPathExclude: 'build_scripts/**,**/tests/**'
+      project_name: ${{ github.event.repository.name }}
+      location_path_exclude: 'build_scripts/**,**/tests/**'
     secrets: inherit
     
   blackduck_scan: 
