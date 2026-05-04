@@ -57,6 +57,7 @@ class TextFileReaderTest(TestCase):
 
     def setUp(self):
         """Create a fresh temporary directory for each test."""
+        # pylint: disable=consider-using-with
         self._tmp_dir = tempfile.TemporaryDirectory()
         self.tmp_path = self._tmp_dir.name
 
