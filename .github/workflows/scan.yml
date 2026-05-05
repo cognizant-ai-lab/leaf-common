@@ -7,7 +7,7 @@ jobs:
     name: SAST Scan
     uses: CognizantCodeHub/IPReady_workflows/.github/workflows/checkmarx_scan.yml@Rel-1.0
     with:
-      project_name: ${{ github.event.repository.name }}
+      ProjectName: ${{ github.event.repository.name }}
       location_path_exclude: 'build_scripts/**,**/tests/**'
     secrets: inherit
     
