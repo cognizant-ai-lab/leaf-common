@@ -68,7 +68,8 @@ class AsyncioExecutorPool:
         result = AsyncioExecutor()
         result.start()
         self.logger.debug("Creating AsyncioExecutor %s", id(result))
-        self.pool_used.append(result)
+        with self.lock:
+            self.pool_used.append(result)
         return result
 
     def return_executor(self, executor: AsyncioExecutor):
@@ -113,10 +114,12 @@ class AsyncioExecutorPool:
         total_threads: int = 0
         for executor in used_copy:
             threads, running = executor.get_threads_metrics()
+            print(f"Used executor {id(executor)} threads: {threads} running: {running}")
             used_threads += threads
             used_running += running
         for executor in available_copy:
             threads, running = executor.get_threads_metrics()
+            print(f"Available executor {id(executor)} threads: {threads} running: {running}")
             available_threads += threads
             available_running += running
         total_threads = used_threads + len(used_copy) + available_threads + len(available_copy)
