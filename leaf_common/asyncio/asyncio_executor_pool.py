@@ -122,11 +122,11 @@ class AsyncioExecutorPool:
             print(f"Available executor {id(executor)} threads: {threads} running: {running}")
             available_threads += threads
             available_running += running
-        total_threads = used_threads + len(used_copy) + available_threads + len(available_copy)
         result_dict = {
-            "total_threads": total_threads,
+            "used_executors": len(used_copy),
             "used_threads": used_threads,
             "used_running": used_running,
+            "available_executors": len(available_copy),
             "available_threads": available_threads,
             "available_running": available_running
         }
