@@ -20,6 +20,7 @@ See class comment for details.
 from typing import Tuple
 from concurrent.futures import ThreadPoolExecutor
 import logging
+import functools
 import threading
 
 class AsyncioThreadPoolExecutor(ThreadPoolExecutor):
@@ -33,6 +34,17 @@ class AsyncioThreadPoolExecutor(ThreadPoolExecutor):
         self.running: int = 0
         self.lock: threading.Lock = threading.Lock()
         self.logger = logging.getLogger(self.__class__.__name__)
+
+    def _format_callable(self, fn):
+        if isinstance(fn, functools.partial):
+            return (
+                f"partial("
+                f"{self._format_callable(fn.func)}, "
+                f"args={fn.args!r}, "
+                f"kwargs={fn.keywords!r})"
+            )
+
+        return f"{fn.__module__}.{fn.__qualname__}"
 
     def submit(self, fn, /, *args, **kwargs):
         """
@@ -48,7 +60,7 @@ class AsyncioThreadPoolExecutor(ThreadPoolExecutor):
                 with self.lock:
                     self.running -= 1
 
-        name = f"{fn.__module__}.{fn.__name__}"
+        name = self._format_callable(fn)
         print(f"======================Submitting task {name} [{self.running}] to {self.__class__.__name__}")
         return super().submit(wrapped, *args, **kwargs)
 
