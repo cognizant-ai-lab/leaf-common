@@ -48,7 +48,7 @@ class AsyncioThreadPoolExecutor(ThreadPoolExecutor):
                 with self.lock:
                     self.running -= 1
 
-        name = f"{fn.__module__}.{fn.__qualname__}"
+        name = f"{fn.__module__}.{fn.__name__}"
         print(f"======================Submitting task {name} [{self.running}] to {self.__class__.__name__}")
         return super().submit(wrapped, *args, **kwargs)
 
