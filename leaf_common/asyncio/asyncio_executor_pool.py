@@ -85,7 +85,8 @@ class AsyncioExecutorPool:
             with self.lock:
                 self.pool_used.remove(executor)
                 self.pool_available.append(executor)
-                self.logger.debug("Returned to pool: AsyncioExecutor %s pool size: %d", id(executor), len(self.pool_available))
+                self.logger.debug("Returned to pool: AsyncioExecutor %s pool size: %d",
+                                  id(executor), len(self.pool_available))
         else:
             # Shutdown AsyncioExecutor outside of lock
             # to avoid potentially longer locked periods
@@ -97,12 +98,12 @@ class AsyncioExecutorPool:
 
     def get_threads_metrics(self) -> Dict[str, Any]:
         """
-        Get metrics related to threads in the pool of executors, including:
-        - total_threads: Total number of threads across all executors in the pool (including both used and available executors).
-        - used_threads: Total number of threads across all currently used executors in the pool.
-        - used_running: Total number of currently running threads across all currently used executors in the pool.
-        - available_threads: Total number of threads across all currently available executors in the pool.
-        - available_running: Total number of currently running threads across all currently available executors in the pool.
+        Get metrics related to threads in the pool of executors:
+        for both collections of used and available executors,
+        get the total number of executors in this collection "executors",
+        the total number of work threads across all executors in this collection "work_threads",
+        and the total number of currently running work threads
+        across all executors in this collection "threads_running".
         """
         with self.lock:
             available_copy = copy.copy(self.pool_available)
@@ -111,23 +112,24 @@ class AsyncioExecutorPool:
         used_running: int = 0
         available_threads: int = 0
         available_running: int = 0
-        total_threads: int = 0
         for executor in used_copy:
             threads, running = executor.get_threads_metrics()
-            print(f"Used executor {id(executor)} threads: {threads} running: {running}")
             used_threads += threads
             used_running += running
         for executor in available_copy:
             threads, running = executor.get_threads_metrics()
-            print(f"Available executor {id(executor)} threads: {threads} running: {running}")
             available_threads += threads
             available_running += running
         result_dict = {
-            "used_executors": len(used_copy),
-            "used_threads": used_threads,
-            "used_running": used_running,
-            "available_executors": len(available_copy),
-            "available_threads": available_threads,
-            "available_running": available_running
+            "used": {
+                "executors": len(used_copy),
+                "work_threads": used_threads,
+                "threads_running": used_running
+            },
+            "available": {
+                "executors": len(available_copy),
+                "work_threads": available_threads,
+                "threads_running": available_running
+            }
         }
         return result_dict
