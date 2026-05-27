@@ -44,7 +44,7 @@ class AsyncioThreadPoolExecutor(ThreadPoolExecutor):
                 f"kwargs={fn.keywords!r})"
             )
 
-        return f"{fn.__module__}.{fn.__qualname__}"
+        return f"{fn.__module__}/{fn.__qualname__}"
 
     def submit(self, fn, /, *args, **kwargs):
         """
