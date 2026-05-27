@@ -46,7 +46,7 @@ class AsyncioExecutorPool:
         # List of currently used AsyncioExecutor instances in the pool.
         self.pool_used = []
 
-        self.lock: threading.Lock = threading.Lock()
+        self.lock = threading.Lock()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.debug("AsyncioExecutorPool created: %s reuse: %s",
                           id(self), str(self.reuse_mode))
@@ -77,24 +77,23 @@ class AsyncioExecutorPool:
         Return AsyncioExecutor instance back to the pool of available instances.
         :param executor: AsyncioExecutor to return.
         """
-        if executor not in self.pool_used:
-            raise ValueError(f"Returned executor {id(executor)} is not in the pool of used executors")
+        with self.lock:
+            if executor not in self.pool_used:
+                raise ValueError(f"Returned executor {id(executor)} is not in the pool of used executors")
+            self.pool_used.remove(executor)
 
+        # Executor clean up: cancel current tasks and shutdown if not in reuse mode.
         if self.reuse_mode:
             executor.cancel_current_tasks()
+        else:
+            self.logger.debug("Shutting down: AsyncioExecutor %s", id(executor))
+            executor.shutdown()
+
+        if self.reuse_mode:
             with self.lock:
-                self.pool_used.remove(executor)
                 self.pool_available.append(executor)
                 self.logger.debug("Returned to pool: AsyncioExecutor %s pool size: %d",
                                   id(executor), len(self.pool_available))
-        else:
-            # Shutdown AsyncioExecutor outside of lock
-            # to avoid potentially longer locked periods
-            self.logger.debug("Shutting down: AsyncioExecutor %s", id(executor))
-            with self.lock:
-                self.pool_used.remove(executor)
-            # Note: shutdown is called outside of lock to avoid potentially long shutdown execution.
-            executor.shutdown()
 
     def get_threads_metrics(self) -> Dict[str, Any]:
         """
