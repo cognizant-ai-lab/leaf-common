@@ -64,8 +64,8 @@ class AsyncioThreadPoolExecutor(ThreadPoolExecutor):
         if hasattr(self, "_threads"):
             num_threads = len(self._threads)
         elif not self.no_threads_warning_logged:
-                self.logger.warning("ThreadPoolExecutor does not have _threads attribute, "
-                                    "number of threads in the pool will be reported as 0")
-                self.no_threads_warning_logged = True
+            self.logger.warning("ThreadPoolExecutor does not have _threads attribute, "
+                                "number of threads in the pool will be reported as 0")
+            self.no_threads_warning_logged = True
         with self.lock:
             return num_threads, self.running
