@@ -423,6 +423,7 @@ class AsyncioExecutor(TaskExecutor):
                 _ = result
 
         except StopAsyncIteration:
+            # This is a common way for async generators to signal that they are done,
             # StopAsyncIteration is OK
             pass
 
