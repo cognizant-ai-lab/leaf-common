@@ -34,6 +34,10 @@ class AsyncioThreadPoolExecutor(ThreadPoolExecutor):
         self.running: int = 0
         self.lock: threading.Lock = threading.Lock()
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.has_threads_attr: bool = hasattr(self, "_threads")
+        if not self.has_threads_attr:
+            self.logger.info("ThreadPoolExecutor does not have _threads attribute, "
+                             "number of threads in the pool will not be available")
 
     def submit(self, fn, /, *args, **kwargs):
         """
@@ -60,9 +64,7 @@ class AsyncioThreadPoolExecutor(ThreadPoolExecutor):
                which may not be available in all implementations of ThreadPoolExecutor.
         """
         num_threads: int = 0
-        try:
+        if self.has_threads_attr:
             num_threads = len(self._threads)
-        except AttributeError:
-            self.logger.info("FAILED to get number of threads from %s", self.__class__.__name__)
         with self.lock:
             return num_threads, self.running
