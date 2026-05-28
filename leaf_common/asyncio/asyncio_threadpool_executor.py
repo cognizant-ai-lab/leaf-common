@@ -32,7 +32,7 @@ class AsyncioThreadPoolExecutor(ThreadPoolExecutor):
         """Constructor."""
         super().__init__(*args, **kwargs)
         self.running: int = 0
-        self.lock: threading.Lock = threading.Lock()
+        self.lock = threading.Lock()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.has_threads_attr: bool = hasattr(self, "_threads")
         if not self.has_threads_attr:
