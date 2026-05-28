@@ -36,3 +36,9 @@ jobs:
         version: 'ver.0.6.0'
         include_detector_types: 'PIP'
         bdh_accuracy_required: 'NONE' 
+ 
+  SonarQube_scan:
+    uses: CognizantCodeHub/IPReady_workflows/.github/workflows/sonarqube_generic_scan.yml@Rel-1.0
+    with:
+      ProjectName: ${{ github.event.repository.name }} 
+    secrets: inherit     
