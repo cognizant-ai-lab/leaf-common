@@ -27,19 +27,7 @@ import threading
 from unittest import TestCase
 
 from leaf_common.asyncio.asyncio_executor import AsyncioExecutor
-
-
-# Module-level helper (no nested defs inside test methods).
-def block_on_event(start_event: threading.Event,
-                   release_event: threading.Event):
-    """
-    Helper task body: signals start_event when picked up by a worker thread,
-    then blocks on release_event until the test side releases it. Used to
-    pin one worker thread in the "running" state long enough for the test
-    to observe the metric via the AsyncioExecutor wrapper.
-    """
-    start_event.set()
-    release_event.wait(timeout=5.0)
+from tests.asyncio.sync_test_helpers import SyncTestHelpers
 
 
 class AsyncioExecutorMetricsTest(TestCase):
@@ -86,7 +74,7 @@ class AsyncioExecutorMetricsTest(TestCase):
 
         # pylint: disable=protected-access
         threadpool = self.executor._threadpool_executor
-        future = threadpool.submit(block_on_event, start_event, release_event)
+        future = threadpool.submit(SyncTestHelpers.block_on_event, start_event, release_event)
         self.assertTrue(
             start_event.wait(timeout=5.0),
             "Helper task never entered its body within 5s.",

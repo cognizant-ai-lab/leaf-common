@@ -27,23 +27,7 @@ import threading
 from unittest import TestCase
 
 from leaf_common.asyncio.asyncio_threadpool_executor import AsyncioThreadPoolExecutor
-
-
-# Module-level helpers (no nested defs inside test methods).
-def block_on_event(start_event: threading.Event,
-                   release_event: threading.Event):
-    """
-    Helper task body: signals start_event when picked up by a worker thread,
-    then blocks on release_event until the test side releases it. Used to
-    pin one worker thread in the "running" state long enough for the test
-    to observe the metric.
-    """
-    start_event.set()
-    release_event.wait(timeout=5.0)
-
-
-def quick_noop():
-    """Helper task body: returns immediately. Used to force lazy worker creation."""
+from tests.asyncio.sync_test_helpers import SyncTestHelpers
 
 
 class AsyncioThreadPoolExecutorMetricsTest(TestCase):
@@ -52,6 +36,10 @@ class AsyncioThreadPoolExecutorMetricsTest(TestCase):
     tuple in each lifecycle state: empty, mid-task, post-task, and under
     multi-task concurrency.
     """
+
+    @staticmethod
+    def quick_noop():
+        """Helper task body: returns immediately. Used to force lazy worker creation."""
 
     def setUp(self):
         """Create a fresh executor sized so concurrency tests fit within it."""
@@ -85,7 +73,7 @@ class AsyncioThreadPoolExecutorMetricsTest(TestCase):
         """
         start_event = threading.Event()
         release_event = threading.Event()
-        future = self.executor.submit(block_on_event, start_event, release_event)
+        future = self.executor.submit(SyncTestHelpers.block_on_event, start_event, release_event)
         # Wait until the worker has actually entered the wrapped callable.
         self.assertTrue(
             start_event.wait(timeout=5.0),
@@ -114,7 +102,7 @@ class AsyncioThreadPoolExecutorMetricsTest(TestCase):
         After a submitted task completes, running should fall back to 0.
         num_threads stays at whatever the pool grew to (typically 1).
         """
-        future = self.executor.submit(quick_noop)
+        future = self.executor.submit(self.quick_noop)
         future.result(timeout=5.0)
 
         num_threads, num_running = self.executor.get_threads_metrics()
@@ -139,7 +127,7 @@ class AsyncioThreadPoolExecutorMetricsTest(TestCase):
         start_events = [threading.Event() for _ in range(concurrent)]
         release_event = threading.Event()
         futures = [
-            self.executor.submit(block_on_event, start_events[i], release_event)
+            self.executor.submit(SyncTestHelpers.block_on_event, start_events[i], release_event)
             for i in range(concurrent)
         ]
         for i, start_event in enumerate(start_events):
@@ -174,7 +162,7 @@ class AsyncioThreadPoolExecutorMetricsTest(TestCase):
         that by clearing the attribute via delattr.
         """
         # First submit one task so the executor would normally have threads.
-        self.executor.submit(quick_noop).result(timeout=5.0)
+        self.executor.submit(self.quick_noop).result(timeout=5.0)
         # Snapshot and remove _threads to simulate the missing-attribute
         # environment, then restore it in finally so tearDown's shutdown
         # (which also reads _threads) can still succeed.

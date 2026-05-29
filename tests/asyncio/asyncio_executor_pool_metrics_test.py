@@ -32,23 +32,23 @@ from unittest.mock import MagicMock
 from leaf_common.asyncio.asyncio_executor_pool import AsyncioExecutorPool
 
 
-def make_metrics_executor(threads: int, running: int) -> MagicMock:
-    """
-    Build a mock AsyncioExecutor whose get_threads_metrics() returns
-    the given (threads, running) tuple. Used to drive the aggregation
-    arithmetic without depending on real thread scheduling.
-    """
-    mock = MagicMock()
-    mock.get_threads_metrics.return_value: Tuple[int, int] = (threads, running)
-    return mock
-
-
 class AsyncioExecutorPoolMetricsTest(TestCase):
     """
     Verifies that get_threads_metrics() correctly partitions executors
     between the "used" and "available" buckets and sums their per-executor
     thread counts.
     """
+
+    @staticmethod
+    def make_metrics_executor(threads: int, running: int) -> MagicMock:
+        """
+        Build a mock AsyncioExecutor whose get_threads_metrics() returns
+        the given (threads, running) tuple. Used to drive the aggregation
+        arithmetic without depending on real thread scheduling.
+        """
+        mock = MagicMock()
+        mock.get_threads_metrics.return_value: Tuple[int, int] = (threads, running)
+        return mock
 
     def tearDown(self):
         """
@@ -93,7 +93,7 @@ class AsyncioExecutorPoolMetricsTest(TestCase):
         # threads/running counts are deterministic.
         self.pool.get_executor()
         self.pool.pool_used[0].shutdown(wait=True)
-        self.pool.pool_used[0] = make_metrics_executor(threads=2, running=1)
+        self.pool.pool_used[0] = self.make_metrics_executor(threads=2, running=1)
 
         metrics = self.pool.get_threads_metrics()
 
@@ -119,7 +119,7 @@ class AsyncioExecutorPoolMetricsTest(TestCase):
         # Swap in a mock with deterministic metrics, mirroring what would
         # happen if the real executor were idle after a return.
         self.pool.pool_used[0].shutdown(wait=True)
-        mock_executor = make_metrics_executor(threads=2, running=0)
+        mock_executor = self.make_metrics_executor(threads=2, running=0)
         self.pool.pool_used[0] = mock_executor
 
         self.pool.return_executor(mock_executor)
@@ -154,7 +154,7 @@ class AsyncioExecutorPoolMetricsTest(TestCase):
         # Replace with a mock to make the assertion that shutdown() was
         # called clean and to avoid a real shutdown race.
         self.pool.pool_used[0].shutdown(wait=True)
-        mock_executor = make_metrics_executor(threads=2, running=1)
+        mock_executor = self.make_metrics_executor(threads=2, running=1)
         self.pool.pool_used[0] = mock_executor
 
         self.pool.return_executor(mock_executor)
@@ -183,13 +183,13 @@ class AsyncioExecutorPoolMetricsTest(TestCase):
         # pylint: disable=attribute-defined-outside-init
         self.pool = AsyncioExecutorPool(reuse_mode=True)
         self.pool.pool_used = [
-            make_metrics_executor(threads=4, running=2),
-            make_metrics_executor(threads=3, running=3),
-            make_metrics_executor(threads=2, running=0),
+            self.make_metrics_executor(threads=4, running=2),
+            self.make_metrics_executor(threads=3, running=3),
+            self.make_metrics_executor(threads=2, running=0),
         ]
         self.pool.pool_available = [
-            make_metrics_executor(threads=5, running=0),
-            make_metrics_executor(threads=1, running=0),
+            self.make_metrics_executor(threads=5, running=0),
+            self.make_metrics_executor(threads=1, running=0),
         ]
 
         metrics = self.pool.get_threads_metrics()
