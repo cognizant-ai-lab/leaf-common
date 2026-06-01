@@ -17,7 +17,10 @@
 """
 See class comments
 """
+from typing import Any
+from typing import Dict
 
+import copy
 import logging
 import threading
 from leaf_common.asyncio.asyncio_executor import AsyncioExecutor
@@ -37,8 +40,13 @@ class AsyncioExecutorPool:
                                  and shutdown on return (backward compatible mode)
         """
         self.reuse_mode: bool = reuse_mode
-        self.pool = []
-        self.lock: threading.Lock = threading.Lock()
+        # List of available (not currently used) AsyncioExecutor instances in the pool.
+        self.pool_available = []
+
+        # List of currently used AsyncioExecutor instances in the pool.
+        self.pool_used = []
+
+        self.lock = threading.Lock()
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.debug("AsyncioExecutorPool created: %s reuse: %s",
                           id(self), str(self.reuse_mode))
@@ -50,15 +58,18 @@ class AsyncioExecutorPool:
         """
         if self.reuse_mode:
             with self.lock:
-                if len(self.pool) > 0:
-                    result = self.pool.pop(0)
+                if len(self.pool_available) > 0:
+                    result = self.pool_available.pop(0)
                     self.logger.debug("Reusing AsyncioExecutor %s", id(result))
+                    self.pool_used.append(result)
                     return result
         # Create AsyncioExecutor outside of lock
         # to avoid potentially longer locked periods
         result = AsyncioExecutor()
         result.start()
         self.logger.debug("Creating AsyncioExecutor %s", id(result))
+        with self.lock:
+            self.pool_used.append(result)
         return result
 
     def return_executor(self, executor: AsyncioExecutor):
@@ -66,13 +77,58 @@ class AsyncioExecutorPool:
         Return AsyncioExecutor instance back to the pool of available instances.
         :param executor: AsyncioExecutor to return.
         """
+        with self.lock:
+            if executor not in self.pool_used:
+                raise ValueError(f"Returned executor {id(executor)} is not in the pool of used executors")
+            self.pool_used.remove(executor)
+
+        # Executor clean up: cancel current tasks and shutdown if not in reuse mode.
         if self.reuse_mode:
-            with self.lock:
-                executor.cancel_current_tasks()
-                self.pool.append(executor)
-                self.logger.debug("Returned to pool: AsyncioExecutor %s pool size: %d", id(executor), len(self.pool))
+            executor.cancel_current_tasks()
         else:
-            # Shutdown AsyncioExecutor outside of lock
-            # to avoid potentially longer locked periods
             self.logger.debug("Shutting down: AsyncioExecutor %s", id(executor))
             executor.shutdown()
+
+        if self.reuse_mode:
+            with self.lock:
+                self.pool_available.append(executor)
+                self.logger.debug("Returned to pool: AsyncioExecutor %s pool size: %d",
+                                  id(executor), len(self.pool_available))
+
+    def get_threads_metrics(self) -> Dict[str, Any]:
+        """
+        Get metrics related to threads in the pool of executors:
+        for both collections of used and available executors,
+        get the total number of executors in this collection "executors",
+        the total number of work threads across all executors in this collection "work_threads",
+        and the total number of currently running work threads
+        across all executors in this collection "threads_running".
+        """
+        with self.lock:
+            available_copy = copy.copy(self.pool_available)
+            used_copy = copy.copy(self.pool_used)
+        used_threads: int = 0
+        used_running: int = 0
+        available_threads: int = 0
+        available_running: int = 0
+        for executor in used_copy:
+            threads, running = executor.get_threads_metrics()
+            used_threads += threads
+            used_running += running
+        for executor in available_copy:
+            threads, running = executor.get_threads_metrics()
+            available_threads += threads
+            available_running += running
+        result_dict = {
+            "used": {
+                "executors": len(used_copy),
+                "work_threads": used_threads,
+                "threads_running": used_running
+            },
+            "available": {
+                "executors": len(available_copy),
+                "work_threads": available_threads,
+                "threads_running": available_running
+            }
+        }
+        return result_dict

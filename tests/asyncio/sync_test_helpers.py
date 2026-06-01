@@ -64,3 +64,14 @@ class SyncTestHelpers:
         Custom callback that signals when called.
         """
         callback_called.set()
+
+    @staticmethod
+    def block_on_event(start_event, release_event):
+        """
+        Helper task body for thread-pool metrics tests: signals start_event
+        when the calling worker thread enters the body, then blocks on
+        release_event until the test side releases it. Lets a test pin one
+        worker in the "running" state long enough to observe the metric.
+        """
+        start_event.set()
+        release_event.wait(timeout=5.0)

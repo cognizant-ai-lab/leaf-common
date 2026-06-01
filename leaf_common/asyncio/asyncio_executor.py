@@ -22,6 +22,7 @@ from typing import Awaitable
 from typing import Callable
 from typing import Dict
 from typing import List
+from typing import Tuple
 
 import asyncio
 import functools
@@ -36,6 +37,7 @@ from asyncio import Task
 from concurrent import futures
 
 from leaf_common.asyncio.task_executor import TaskExecutor
+from leaf_common.asyncio.asyncio_threadpool_executor import AsyncioThreadPoolExecutor
 
 EXECUTOR_START_TIMEOUT_SECONDS: int = 5
 
@@ -57,8 +59,10 @@ class AsyncioExecutor(TaskExecutor):
         self._thread: threading.Thread = None
         # We are going to start new thread for this Executor,
         # so we need a new event loop bound to this particular thread:
+        self._threadpool_executor: AsyncioThreadPoolExecutor = AsyncioThreadPoolExecutor()
         self._loop: AbstractEventLoop = asyncio.new_event_loop()
         self._loop.set_exception_handler(AsyncioExecutor.loop_exception_handler)
+        self._loop.set_default_executor(self._threadpool_executor)
         self._loop_ready = threading.Event()
         self._init_done = threading.Event()
         self._background_tasks: Dict[int, Dict[str, Any]] = {}
@@ -445,6 +449,16 @@ class AsyncioExecutor(TaskExecutor):
         # we use to keep its reference around. Do it safely:
         with self._background_tasks_lock:
             self._background_tasks.pop(task_id, None)
+
+    def get_threads_metrics(self) -> Tuple[int, int]:
+        """
+        For ThreadExecutorPool used by our event loop,
+        get number of created threads and number of currently running threads.
+         :return: Tuple of (number of threads in the pool, number of currently running threads)
+        """
+        if self._threadpool_executor:
+            return self._threadpool_executor.get_threads_metrics()
+        return 0, 0
 
     def shutdown(self, wait: bool = True, *, cancel_futures: bool = False):
         """
