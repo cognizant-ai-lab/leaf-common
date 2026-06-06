@@ -30,11 +30,11 @@ class EventLoopFactory:
     """
     Factory for creating asyncio event loops with a platform-appropriate type.
 
-    On Windows the factory produces SelectorEventLoop instances; on other
-    platforms it defers to asyncio's platform default. This is the
-    forward-compatible replacement for the asyncio.set_event_loop_policy()
-    pattern (using asyncio.WindowsSelectorEventLoopPolicy on Windows), which
-    is deprecated in Python 3.14 and slated for removal.
+    On Windows the factory produces SelectorEventLoop instances (note: this loop
+    does not support asyncio subprocess APIs); on other platforms it defers to
+    asyncio's platform default. This is the forward-compatible replacement for the
+    asyncio.set_event_loop_policy() pattern (using asyncio.WindowsSelectorEventLoopPolicy
+    on Windows), which is deprecated in Python 3.14 and slated for removal.
 
     Two entry points are provided so callers can pick what matches their
     existing call site:
