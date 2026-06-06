@@ -18,11 +18,11 @@
 See class comment for details.
 """
 
+import asyncio
 import os
 import tempfile
 from unittest import TestCase
 
-from leaf_common.asyncio.event_loop_factory import EventLoopFactory
 from leaf_common.serialization.util.text_file_reader import TextFileReader
 
 
@@ -108,31 +108,31 @@ class TextFileReaderTest(TestCase):
     def test_async_read_text_file_decodes_utf8(self):
         """A UTF-8 encoded file is decoded via the utf-8 branch (async)."""
         path = self._write_bytes(UTF8_BYTES)
-        result = EventLoopFactory.run(TextFileReader.async_read_text_file(path))
+        result = asyncio.run(TextFileReader.async_read_text_file(path))
         self.assertEqual(result, UTF8_EXPECTED)
 
     def test_async_read_text_file_decodes_cp1252(self):
         """A cp1252-only byte sequence falls through utf-8 and is decoded as cp1252 (async)."""
         path = self._write_bytes(CP1252_BYTES)
-        result = EventLoopFactory.run(TextFileReader.async_read_text_file(path))
+        result = asyncio.run(TextFileReader.async_read_text_file(path))
         self.assertEqual(result, CP1252_EXPECTED)
 
     def test_async_read_text_file_decodes_latin1(self):
         """A latin-1-only byte sequence falls through utf-8 and cp1252, decoded as latin-1 (async)."""
         path = self._write_bytes(LATIN1_BYTES)
-        result = EventLoopFactory.run(TextFileReader.async_read_text_file(path))
+        result = asyncio.run(TextFileReader.async_read_text_file(path))
         self.assertEqual(result, LATIN1_EXPECTED)
 
     def test_async_read_text_file_empty_file_returns_empty_string(self):
         """An empty file decodes to an empty string (async)."""
         path = self._write_bytes(b"")
-        result = EventLoopFactory.run(TextFileReader.async_read_text_file(path))
+        result = asyncio.run(TextFileReader.async_read_text_file(path))
         self.assertEqual(result, "")
 
     def test_async_read_text_file_raises_file_not_found(self):
         """A missing file raises FileNotFoundError (async)."""
         with self.assertRaises(FileNotFoundError):
-            EventLoopFactory.run(
+            asyncio.run(
                 TextFileReader.async_read_text_file(
                     os.path.join(self.tmp_path, "does_not_exist.txt")
                 )

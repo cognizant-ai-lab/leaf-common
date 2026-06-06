@@ -21,8 +21,6 @@ import asyncio
 import sys
 
 from asyncio import AbstractEventLoop
-from typing import Any
-from typing import Awaitable
 from typing import Callable
 from typing import Optional
 
@@ -37,16 +35,18 @@ class EventLoopFactory:
     pattern (using asyncio.WindowsSelectorEventLoopPolicy on Windows), which
     is deprecated in Python 3.14 and slated for removal.
 
-    Three entry points are provided so callers can pick what matches their
+    Two entry points are provided so callers can pick what matches their
     existing call site:
       - loop_factory(): returns a callable suitable for the loop_factory=
-            keyword on asyncio.run() and asyncio.Runner(). Returns None on
-            platforms where asyncio's default is appropriate; None is the
-            documented sentinel for "use default", so the result can be
-            passed through unchanged on any platform.
+            keyword on asyncio.run() (Python 3.12+) and asyncio.Runner()
+            (Python 3.11+). Returns None on platforms where asyncio's
+            default is appropriate; None is the documented sentinel for
+            "use default", so the result can be passed through unchanged
+            on any platform.
       - new_event_loop(): drop-in replacement for asyncio.new_event_loop()
-            at sites that construct a loop directly.
-      - run(): drop-in replacement for asyncio.run().
+            at sites that construct a loop directly. Combine with
+            asyncio.set_event_loop() to install the loop for the current
+            thread before frameworks (e.g. Tornado) wrap it.
     """
 
     @staticmethod
@@ -75,15 +75,3 @@ class EventLoopFactory:
         if factory is not None:
             return factory()
         return asyncio.new_event_loop()
-
-    @staticmethod
-    def run(main: Awaitable, *, debug: Optional[bool] = None) -> Any:
-        """
-        Drop-in replacement for asyncio.run() that uses a platform-appropriate
-        loop type.
-
-        :param main: The coroutine to run.
-        :param debug: Optional debug flag, passed through to asyncio.run().
-        :return: The result of the coroutine.
-        """
-        return asyncio.run(main, debug=debug, loop_factory=EventLoopFactory.loop_factory())
