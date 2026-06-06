@@ -17,12 +17,13 @@
 """
 See class comment for details.
 """
+from typing import Callable
+from typing import Optional
+
 import asyncio
 import sys
 
 from asyncio import AbstractEventLoop
-from typing import Callable
-from typing import Optional
 
 
 class EventLoopFactory:
