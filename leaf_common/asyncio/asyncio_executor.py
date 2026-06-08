@@ -36,6 +36,7 @@ from asyncio import Future
 from asyncio import Task
 from concurrent import futures
 
+from leaf_common.asyncio.event_loop_factory import EventLoopFactory
 from leaf_common.asyncio.task_executor import TaskExecutor
 from leaf_common.asyncio.asyncio_threadpool_executor import AsyncioThreadPoolExecutor
 
@@ -60,7 +61,7 @@ class AsyncioExecutor(TaskExecutor):
         # We are going to start new thread for this Executor,
         # so we need a new event loop bound to this particular thread:
         self._threadpool_executor: AsyncioThreadPoolExecutor = AsyncioThreadPoolExecutor()
-        self._loop: AbstractEventLoop = asyncio.new_event_loop()
+        self._loop: AbstractEventLoop = EventLoopFactory.new_event_loop()
         self._loop.set_exception_handler(AsyncioExecutor.loop_exception_handler)
         self._loop.set_default_executor(self._threadpool_executor)
         self._loop_ready = threading.Event()
