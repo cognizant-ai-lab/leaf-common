@@ -15,15 +15,15 @@
 #
 # END COPYRIGHT
 """
-Unit tests for AsyncioExecutorPool's idle-executor garbage collection.
+Unit tests for AsyncioExecutorPool's active idle-executor garbage
+collection.
 
-The pool keeps a parallel _returned_at timestamp per executor in
-pool_available. A passive sweep (_collect_idle_executors) runs on every
-get_executor() and return_executor() call. The sweep removes any executor
-whose idle time exceeds idle_timeout_seconds and enqueues it on the
-background GC thread for shutdown. Tests drive _collect_idle_executors
-with an explicit `now` to avoid real-time waits, and use _gc_queue.join()
-to wait for the GC thread to finish before asserting on shutdown.
+The GC runs on a dedicated daemon thread which periodically calls
+_sweep_once(): identify executors in pool_available whose idle period
+exceeds idle_timeout_seconds, remove them, and shut them down. Most
+tests drive _sweep_once() directly with a synthetic `now` to verify
+behavior deterministically without waiting on real time; one end-to-end
+test exercises the periodic thread with a tight sweep interval.
 """
 import threading
 import time
@@ -36,9 +36,10 @@ from leaf_common.asyncio.asyncio_executor_pool import AsyncioExecutorPool
 
 class AsyncioExecutorPoolGcTest(TestCase):
     """
-    Verifies the idle-executor GC policy: stale executors are removed
-    synchronously and shut down asynchronously on the background GC
-    thread; fresh ones are kept; non-reuse mode is unaffected.
+    Verifies the active idle-executor GC: the sweep correctly partitions
+    stale vs fresh executors, the periodic GC thread runs sweeps on its
+    own schedule, and the lifecycle (start / shutdown / exception safety)
+    is robust.
     """
 
     def tearDown(self):
@@ -55,11 +56,10 @@ class AsyncioExecutorPoolGcTest(TestCase):
             except Exception:  # pylint: disable=broad-exception-caught
                 pass
 
-    def test_idle_executor_collected_after_timeout(self):
+    def test_sweep_collects_idle_executor_after_timeout(self):
         """
-        An executor returned to the pool whose idle time exceeds
-        idle_timeout_seconds is removed from pool_available synchronously
-        and shut down asynchronously by the GC thread.
+        _sweep_once() removes and shuts down an executor whose idle period
+        exceeds idle_timeout_seconds.
         """
         # pylint: disable=attribute-defined-outside-init,protected-access
         self.pool = AsyncioExecutorPool(reuse_mode=True, idle_timeout_seconds=10.0)
@@ -68,9 +68,8 @@ class AsyncioExecutorPoolGcTest(TestCase):
         self.pool._returned_at[id(mock_executor)] = 100.0
 
         # Simulate 100 seconds elapsed (> 10s threshold).
-        self.pool._collect_idle_executors(now=200.0)
+        self.pool._sweep_once(now=200.0)
 
-        # Sync side-effects are visible immediately.
         self.assertEqual(
             [], self.pool.pool_available,
             "Expected the stale executor to be removed from pool_available."
@@ -79,14 +78,12 @@ class AsyncioExecutorPoolGcTest(TestCase):
             {}, self.pool._returned_at,
             "Expected the stale executor's timestamp to be cleared."
         )
-        # Shutdown happens on the GC thread; wait for it.
-        self.pool._gc_queue.join()
         mock_executor.shutdown.assert_called_once_with(wait=True)
 
-    def test_fresh_executor_not_collected_within_timeout(self):
+    def test_sweep_preserves_fresh_executor_within_timeout(self):
         """
         An executor whose idle time is below idle_timeout_seconds is left
-        in pool_available, never enqueued for shutdown.
+        in pool_available and not shut down.
         """
         # pylint: disable=attribute-defined-outside-init,protected-access
         self.pool = AsyncioExecutorPool(reuse_mode=True, idle_timeout_seconds=10.0)
@@ -95,8 +92,7 @@ class AsyncioExecutorPoolGcTest(TestCase):
         self.pool._returned_at[id(mock_executor)] = 100.0
 
         # 5 seconds elapsed (< 10s threshold).
-        self.pool._collect_idle_executors(now=105.0)
-        self.pool._gc_queue.join()
+        self.pool._sweep_once(now=105.0)
 
         self.assertEqual(
             [mock_executor], self.pool.pool_available,
@@ -108,11 +104,11 @@ class AsyncioExecutorPoolGcTest(TestCase):
         )
         mock_executor.shutdown.assert_not_called()
 
-    def test_gc_preserves_fresh_executors_following_stale_ones(self):
+    def test_sweep_preserves_fresh_executors_following_stale_ones(self):
         """
         With a mix of stale and fresh executors in pool_available (oldest
-        first), GC removes the stale prefix and stops at the first fresh
-        entry. Fresh executors after a fresh one are also preserved.
+        first), the sweep removes the stale prefix and stops at the first
+        fresh entry. Fresh executors after a fresh one are also preserved.
         """
         # pylint: disable=attribute-defined-outside-init,protected-access
         self.pool = AsyncioExecutorPool(reuse_mode=True, idle_timeout_seconds=10.0)
@@ -129,8 +125,7 @@ class AsyncioExecutorPoolGcTest(TestCase):
         }
 
         # now=200.0: stale_a idle 100s, stale_b idle 99s, fresh_c idle 5s, fresh_d idle 2s.
-        self.pool._collect_idle_executors(now=200.0)
-        self.pool._gc_queue.join()
+        self.pool._sweep_once(now=200.0)
 
         self.assertEqual(
             [fresh_c, fresh_d], self.pool.pool_available,
@@ -145,64 +140,10 @@ class AsyncioExecutorPoolGcTest(TestCase):
         fresh_c.shutdown.assert_not_called()
         fresh_d.shutdown.assert_not_called()
 
-    def test_gc_runs_on_return_executor(self):
+    def test_sweep_is_noop_in_non_reuse_mode(self):
         """
-        Calling return_executor triggers the passive GC sweep. A stale
-        executor sitting in pool_available is collected when another
-        executor is returned.
-        """
-        # pylint: disable=attribute-defined-outside-init,protected-access
-        self.pool = AsyncioExecutorPool(reuse_mode=True, idle_timeout_seconds=10.0)
-
-        stale_executor = MagicMock(name="stale")
-        self.pool.pool_available = [stale_executor]
-        self.pool._returned_at[id(stale_executor)] = -10_000.0
-
-        returning_executor = MagicMock(name="returning")
-        self.pool.pool_used = [returning_executor]
-
-        self.pool.return_executor(returning_executor)
-        self.pool._gc_queue.join()
-
-        self.assertEqual(
-            [returning_executor], self.pool.pool_available,
-            "Expected the stale executor to be GC'd and only the returning one to remain."
-        )
-        stale_executor.shutdown.assert_called_once_with(wait=True)
-
-    def test_gc_runs_on_get_executor(self):
-        """
-        Calling get_executor triggers the passive GC sweep. If the only
-        executor in pool_available is stale, it is collected and
-        get_executor falls through to construct a fresh one.
-        """
-        # pylint: disable=attribute-defined-outside-init,protected-access
-        self.pool = AsyncioExecutorPool(reuse_mode=True, idle_timeout_seconds=10.0)
-
-        stale_executor = MagicMock(name="stale")
-        self.pool.pool_available = [stale_executor]
-        self.pool._returned_at[id(stale_executor)] = -10_000.0
-
-        result = self.pool.get_executor()
-        self.pool._gc_queue.join()
-
-        self.assertIsNot(
-            result, stale_executor,
-            "Expected get_executor to skip the stale entry rather than reuse it."
-        )
-        self.assertNotIn(
-            stale_executor, self.pool.pool_available,
-            "Expected the stale executor to be removed from pool_available."
-        )
-        stale_executor.shutdown.assert_called_once_with(wait=True)
-        # Tidy up the real executor get_executor() just constructed.
-        self.pool.pool_used.remove(result)
-        result.shutdown(wait=True)
-
-    def test_gc_is_noop_in_non_reuse_mode(self):
-        """
-        In reuse_mode=False, _collect_idle_executors is a no-op and no GC
-        thread is started.
+        In reuse_mode=False, _sweep_once() is a no-op and no GC thread is
+        started.
         """
         # pylint: disable=attribute-defined-outside-init,protected-access
         self.pool = AsyncioExecutorPool(reuse_mode=False, idle_timeout_seconds=10.0)
@@ -210,7 +151,7 @@ class AsyncioExecutorPoolGcTest(TestCase):
         self.pool.pool_available = [mock_executor]
         self.pool._returned_at[id(mock_executor)] = 100.0
 
-        self.pool._collect_idle_executors(now=10_000.0)
+        self.pool._sweep_once(now=10_000.0)
 
         self.assertEqual(
             [mock_executor], self.pool.pool_available,
@@ -222,10 +163,84 @@ class AsyncioExecutorPoolGcTest(TestCase):
             "Expected no GC thread to be started in non-reuse mode."
         )
 
-    def test_default_idle_timeout_is_set(self):
+    def test_get_and_return_do_not_sweep(self):
         """
-        A pool constructed without idle_timeout_seconds picks up the
-        documented class default.
+        get_executor() and return_executor() must not perform a sweep -
+        sweeping is the GC thread's exclusive responsibility. A stale
+        executor sitting in pool_available is not shut down by caller-side
+        calls.
+        """
+        # pylint: disable=attribute-defined-outside-init,protected-access
+        # Long sweep interval so the GC thread doesn't race the assertions.
+        self.pool = AsyncioExecutorPool(
+            reuse_mode=True,
+            idle_timeout_seconds=10.0,
+            gc_sweep_interval_seconds=3600.0,
+        )
+
+        stale_executor = MagicMock(name="stale")
+        self.pool.pool_available = [stale_executor]
+        self.pool._returned_at[id(stale_executor)] = -10_000.0
+
+        # Put a different executor through the get/return cycle.
+        returning = MagicMock(name="returning")
+        self.pool.pool_used = [returning]
+        self.pool.return_executor(returning)
+
+        # The stale executor is still there: no caller-side sweep.
+        self.assertIn(
+            stale_executor, self.pool.pool_available,
+            "Expected return_executor() not to sweep the stale executor."
+        )
+        stale_executor.shutdown.assert_not_called()
+
+        # get_executor() can reuse a stale entry, but still does not shut it down.
+        # FIFO order: stale_executor was added first, so it's at the head.
+        result = self.pool.get_executor()
+        self.assertIs(
+            result, stale_executor,
+            "Expected get_executor() to reuse the head entry without sweeping."
+        )
+        stale_executor.shutdown.assert_not_called()
+
+    def test_active_gc_thread_collects_idle_executor_on_its_own_schedule(self):
+        """
+        With no get_executor() / return_executor() activity, the GC thread
+        still wakes on its interval and collects stale executors.
+        """
+        # pylint: disable=attribute-defined-outside-init,protected-access
+        # Tight schedule: any stale executor is collected within tens of ms.
+        self.pool = AsyncioExecutorPool(
+            reuse_mode=True,
+            idle_timeout_seconds=0.001,        # 1 ms -> any backdated entry is stale
+            gc_sweep_interval_seconds=0.01,    # sweep every 10 ms
+        )
+
+        mock_executor = MagicMock()
+        with self.pool.lock:
+            self.pool.pool_available = [mock_executor]
+            # Backdate the entry so it's stale immediately.
+            self.pool._returned_at[id(mock_executor)] = 0.0
+
+        # Wait long enough for the GC thread to tick at least once after we
+        # inserted the entry. 200 ms is generous; the typical case clears
+        # the entry on the next ~10 ms tick.
+        deadline = time.monotonic() + 0.5
+        while time.monotonic() < deadline:
+            if not self.pool.pool_available:
+                break
+            time.sleep(0.01)
+
+        self.assertEqual(
+            [], self.pool.pool_available,
+            "Expected the active GC thread to collect the stale executor on its own."
+        )
+        mock_executor.shutdown.assert_called_once_with(wait=True)
+
+    def test_default_config_values_are_set(self):
+        """
+        A pool constructed without overrides picks up the documented
+        class-level defaults for both idle timeout and sweep interval.
         """
         # pylint: disable=attribute-defined-outside-init
         self.pool = AsyncioExecutorPool(reuse_mode=True)
@@ -234,57 +249,23 @@ class AsyncioExecutorPoolGcTest(TestCase):
             self.pool.idle_timeout_seconds,
             "Expected the default idle timeout to be DEFAULT_IDLE_TIMEOUT_SECONDS."
         )
-
-    def test_sweep_returns_quickly_even_when_shutdowns_are_slow(self):
-        """
-        The hybrid design moves the expensive shutdown(wait=True) off
-        the caller's path. Even when each per-executor shutdown is
-        deliberately slow, _collect_idle_executors must return in time
-        bounded by the list/dict mutation only -- well under the slow
-        per-shutdown time.
-        """
-        # pylint: disable=attribute-defined-outside-init,protected-access
-        self.pool = AsyncioExecutorPool(reuse_mode=True, idle_timeout_seconds=10.0)
-
-        # Each mock's shutdown will block for 50 ms. With sequential
-        # synchronous shutdown of 5 stale executors, a passive sweep
-        # would take >=250 ms. With the hybrid design, the sweep should
-        # return in single-digit ms.
-        def slow_shutdown(*_args, **_kwargs):
-            time.sleep(0.05)
-
-        stale_executors = [MagicMock(name=f"stale_{i}") for i in range(5)]
-        for executor in stale_executors:
-            executor.shutdown.side_effect = slow_shutdown
-
-        self.pool.pool_available = list(stale_executors)
-        self.pool._returned_at = {id(executor): 0.0 for executor in stale_executors}
-
-        start = time.perf_counter()
-        self.pool._collect_idle_executors(now=1_000.0)
-        sweep_elapsed = time.perf_counter() - start
-
-        # Caller-visible sweep should be much faster than the synchronous
-        # alternative (5 * 50ms = 250ms). 50 ms is a generous bound that
-        # still proves the shutdowns aren't on the caller's thread.
-        self.assertLess(
-            sweep_elapsed, 0.05,
-            f"Sweep should return without waiting on slow shutdowns; "
-            f"actually took {sweep_elapsed*1000:.1f} ms."
+        self.assertEqual(
+            AsyncioExecutorPool.DEFAULT_GC_SWEEP_INTERVAL_SECONDS,
+            self.pool.gc_sweep_interval_seconds,
+            "Expected the default sweep interval to be DEFAULT_GC_SWEEP_INTERVAL_SECONDS."
         )
-
-        # Verify the GC thread actually does shut them all down.
-        self.pool._gc_queue.join()
-        for executor in stale_executors:
-            executor.shutdown.assert_called_once_with(wait=True)
 
     def test_shutdown_stops_gc_thread(self):
         """
-        pool.shutdown() drains the GC queue and stops the GC thread.
-        After shutdown(), the thread is no longer running.
+        pool.shutdown() signals the stop event and joins the GC thread.
+        After shutdown(), the thread is not alive.
         """
         # pylint: disable=attribute-defined-outside-init,protected-access
-        self.pool = AsyncioExecutorPool(reuse_mode=True, idle_timeout_seconds=10.0)
+        # Long sweep interval to make sure shutdown actually interrupts the wait.
+        self.pool = AsyncioExecutorPool(
+            reuse_mode=True,
+            gc_sweep_interval_seconds=3600.0,
+        )
         gc_thread = self.pool._gc_thread
         self.assertIsNotNone(gc_thread, "Expected GC thread to be started in reuse mode.")
         self.assertTrue(gc_thread.is_alive(), "Expected GC thread to be alive after construction.")
@@ -296,10 +277,11 @@ class AsyncioExecutorPoolGcTest(TestCase):
         # Second shutdown() call is idempotent.
         self.pool.shutdown()
 
-    def test_gc_thread_survives_shutdown_exception(self):
+    def test_gc_thread_survives_sweep_exception(self):
         """
-        If one executor's shutdown raises, the GC thread logs and moves on
-        to the next item rather than dying.
+        If a per-executor shutdown raises during sweep, the GC thread
+        logs and continues; subsequent stale executors are still
+        collected on the same sweep.
         """
         # pylint: disable=attribute-defined-outside-init,protected-access
         self.pool = AsyncioExecutorPool(reuse_mode=True, idle_timeout_seconds=10.0)
@@ -314,28 +296,26 @@ class AsyncioExecutorPoolGcTest(TestCase):
             id(good_executor): 0.0,
         }
 
-        self.pool._collect_idle_executors(now=1_000.0)
-        self.pool._gc_queue.join()
+        # Drive sweep synchronously on the test thread.
+        self.pool._sweep_once(now=1_000.0)
 
         bad_executor.shutdown.assert_called_once_with(wait=True)
         good_executor.shutdown.assert_called_once_with(wait=True)
-        # GC thread must still be alive after handling the exception.
+        self.assertEqual([], self.pool.pool_available)
         self.assertTrue(
             self.pool._gc_thread.is_alive(),
-            "Expected GC thread to survive a per-executor shutdown exception."
+            "Expected the GC thread itself to remain alive."
         )
 
-    def test_no_extra_gc_threads_leak_across_pools(self):
+    def test_no_gc_threads_leak_across_pools(self):
         """
         Each pool starts exactly one GC thread; shutdown() reliably stops
         it. Constructing and shutting down many pools must not leak
         threads.
         """
-        # pylint: disable=attribute-defined-outside-init
         pools = [AsyncioExecutorPool(reuse_mode=True) for _ in range(5)]
         for pool in pools:
             pool.shutdown()
-        # The current TestCase's pool is None; tearDown is a no-op.
         live_gc_threads = [
             t for t in threading.enumerate()
             if t.name.startswith("AsyncioExecutorPool-GC-") and t.is_alive()
