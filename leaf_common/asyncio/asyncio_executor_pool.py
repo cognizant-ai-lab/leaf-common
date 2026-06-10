@@ -17,49 +17,134 @@
 """
 See class comments
 """
+from collections.abc import Sequence
 from typing import Any
 from typing import Dict
+from typing import List
+from typing import Optional
 
 import copy
 import logging
 import threading
+import time
+
 from leaf_common.asyncio.asyncio_executor import AsyncioExecutor
 
 
 class AsyncioExecutorPool:
+    # pylint: disable=too-many-instance-attributes
     """
     Class maintaining a dynamic set of reusable AsyncioExecutor instances.
+
+    Garbage collection policy
+    -------------------------
+    When reuse_mode is True, executors are returned to pool_available rather
+    than shut down. Each time an executor is returned, its return timestamp
+    is recorded.
+
+    Garbage collection is performed by a dedicated daemon GC thread that
+    runs on its own schedule, independent of any get_executor() /
+    return_executor() activity. Every gc_sweep_interval_seconds the thread
+    wakes, identifies any executor whose idle period exceeds
+    idle_timeout_seconds, removes it from pool_available, and shuts it
+    down. This keeps the caller of get_executor / return_executor off both
+    the sweep and the shutdown latency paths entirely.
+
+    Both the idle threshold and the sweep interval are internally
+    configurable via constructor parameters, with defaults given by
+    DEFAULT_IDLE_TIMEOUT_SECONDS and DEFAULT_GC_SWEEP_INTERVAL_SECONDS.
+
+    Lifecycle: callers should invoke shutdown() to stop the GC thread when
+    the pool is no longer needed. The GC thread holds a strong reference to
+    the pool, so omitting shutdown() will keep the pool (and its state) alive
+    for the lifetime of the process. The GC thread is a daemon so it will not
+    block process exit, but explicit shutdown is cleaner for tests and managed
+    long-running services.
     """
 
-    def __init__(self, reuse_mode: bool = True):
+    # Internal configuration: default idle time (seconds) after which an
+    # executor sitting in pool_available is shut down and removed.
+    DEFAULT_IDLE_TIMEOUT_SECONDS: float = 3 * 60.0
+
+    # Internal configuration: default interval (seconds) at which the GC
+    # thread wakes to look for stale executors.
+    DEFAULT_GC_SWEEP_INTERVAL_SECONDS: float = 30.0
+
+    def __init__(self, reuse_mode: bool = True, *,
+                 idle_timeout_seconds: float = DEFAULT_IDLE_TIMEOUT_SECONDS,
+                 gc_sweep_interval_seconds: float = DEFAULT_GC_SWEEP_INTERVAL_SECONDS):
         """
         Constructor.
         :param reuse_mode: True, if requested executor instances
                                  are taken from pool of available ones (pool mode);
                            False, if requested executor instances are created new
                                  and shutdown on return (backward compatible mode)
+        Note that 2 parameters below are keyword-only, to make it more explicit when configuring the GC policy.
+        :param idle_timeout_seconds: Idle time threshold in seconds. An
+                                 AsyncioExecutor sitting in pool_available
+                                 longer than this is shut down and removed
+                                 by the background GC thread. Only applies
+                                 when reuse_mode is True.
+        :param gc_sweep_interval_seconds: Interval at which the GC thread
+                                 checks pool_available for stale executors.
+                                 Stale executors linger at most one sweep
+                                 interval beyond the idle timeout before
+                                 being collected. Only applies when
+                                 reuse_mode is True.
         """
         self.reuse_mode: bool = reuse_mode
+        self.idle_timeout_seconds: float = idle_timeout_seconds
+        self.gc_sweep_interval_seconds: float = gc_sweep_interval_seconds
+        if self.reuse_mode:
+            if self.gc_sweep_interval_seconds <= 0:
+                raise ValueError("gc_sweep_interval_seconds must be > 0 when reuse_mode=True")
+            if self.idle_timeout_seconds < 0:
+                raise ValueError("idle_timeout_seconds must be >= 0 when reuse_mode=True")
         # List of available (not currently used) AsyncioExecutor instances in the pool.
-        self.pool_available = []
+        self.pool_available: List[AsyncioExecutor] = []
 
         # List of currently used AsyncioExecutor instances in the pool.
-        self.pool_used = []
+        self.pool_used: List[AsyncioExecutor] = []
+
+        # Maps id(executor) -> monotonic timestamp when the executor was
+        # returned to pool_available. Only contains entries for executors
+        # currently in pool_available; pruned on get_executor() and on sweep.
+        self._returned_at: Dict[int, float] = {}
 
         self.lock = threading.Lock()
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.debug("AsyncioExecutorPool created: %s reuse: %s",
-                          id(self), str(self.reuse_mode))
+
+        # Active GC: a daemon thread runs _gc_loop, sweeping on its own
+        # schedule. The stop event lets shutdown() interrupt the sweep
+        # interval wait promptly.
+        self._gc_stop_event: threading.Event = threading.Event()
+        self._gc_thread: Optional[threading.Thread] = None
+        if self.reuse_mode:
+            self._gc_thread = threading.Thread(
+                target=self._gc_loop,
+                name=f"AsyncioExecutorPool-GC-{id(self)}",
+                daemon=True,
+            )
+            self._gc_thread.start()
+
+        self.logger.debug(
+            "AsyncioExecutorPool created: %s reuse: %s idle_timeout: %.1fs sweep_interval: %.1fs",
+            id(self), str(self.reuse_mode), self.idle_timeout_seconds, self.gc_sweep_interval_seconds)
 
     def get_executor(self) -> AsyncioExecutor:
         """
-        Get active (running) executor from the pool
+        Get active (running) executor from the pool. Does not sweep;
+        sweeping is the GC thread's responsibility. If a stale executor
+        happens to sit at the head of pool_available before the next
+        sweep, get_executor() will reuse it -- which is fine, since
+        "stale" only means "would otherwise be collected as idle".
         :return: AsyncioExecutor instance
         """
         if self.reuse_mode:
             with self.lock:
                 if len(self.pool_available) > 0:
                     result = self.pool_available.pop(0)
+                    self._returned_at.pop(id(result), None)
                     self.logger.debug("Reusing AsyncioExecutor %s", id(result))
                     self.pool_used.append(result)
                     return result
@@ -75,6 +160,8 @@ class AsyncioExecutorPool:
     def return_executor(self, executor: AsyncioExecutor):
         """
         Return AsyncioExecutor instance back to the pool of available instances.
+        Does not sweep; the GC thread handles stale collection on its own
+        schedule.
         :param executor: AsyncioExecutor to return.
         """
         with self.lock:
@@ -92,8 +179,100 @@ class AsyncioExecutorPool:
         if self.reuse_mode:
             with self.lock:
                 self.pool_available.append(executor)
+                self._returned_at[id(executor)] = time.monotonic()
                 self.logger.debug("Returned to pool: AsyncioExecutor %s pool size: %d",
                                   id(executor), len(self.pool_available))
+
+    def shutdown(self, wait: bool = True) -> None:
+        """
+        Stop the background GC thread. After this returns, the pool no
+        longer reaps idle executors. Idempotent. Executors still held in
+        pool_used or pool_available are NOT shut down here; callers that
+        want those gone should handle them explicitly.
+        """
+        with self.lock:
+            gc_thread = self._gc_thread
+            if gc_thread is None:
+                return
+            # Clear first to make concurrent shutdown() calls safe.
+            self._gc_thread = None
+
+        self._gc_stop_event.set()
+        if wait and threading.current_thread() is not gc_thread:
+            gc_thread.join()
+
+    def _gc_loop(self) -> None:
+        """
+        Active GC loop: sweep, then wait for either the configured
+        interval or the stop event, whichever comes first. Exits cleanly
+        when shutdown() sets the stop event.
+
+        Exceptions from _sweep_once are logged but do not stop the loop,
+        so a single bad executor cannot leak the rest of the pool.
+        """
+        while not self._gc_stop_event.is_set():
+            try:
+                self._sweep_once()
+            except Exception as exc:  # pylint: disable=broad-exception-caught
+                self.logger.warning("GC: sweep raised %s; continuing", exc, exc_info=True)
+            # Sleep until the next sweep tick or until shutdown is signaled.
+            self._gc_stop_event.wait(timeout=self.gc_sweep_interval_seconds)
+
+    def _collect_executors(self, executors: Sequence[AsyncioExecutor]) -> None:
+        for executor in executors:
+            try:
+                self.logger.debug("GC: shutting down idle AsyncioExecutor %s", id(executor))
+                executor.shutdown(wait=True)
+            except Exception as exc:  # pylint: disable=broad-exception-caught
+                self.logger.warning(
+                    "GC: shutdown failed for AsyncioExecutor %s: %s", id(executor), exc, exc_info=True)
+
+    def _sweep_once(self, now: Optional[float] = None) -> None:
+        """
+        Identify any executors in pool_available whose idle time exceeds
+        idle_timeout_seconds, remove them from the pool, and shut them
+        down. No-op when not in reuse mode.
+
+        pool_available is FIFO-ordered by return time (oldest at the head),
+        so the scan stops at the first non-stale entry.
+
+        Run by the GC thread on its periodic schedule; tests may call it
+        directly with a synthetic `now` for deterministic verification.
+
+        :param now: Optional override for the current time, in the same
+                    units as time.monotonic(). Intended for tests; production
+                    callers should omit this and let it default to
+                    time.monotonic().
+        """
+        if not self.reuse_mode:
+            return
+        if now is None:
+            now = time.monotonic()
+        to_collect: List[AsyncioExecutor] = []
+        with self.lock:
+            keep_from: int = 0
+            prev_returned_at: float = 0.0
+            for executor in self.pool_available:
+                if id(executor) not in self._returned_at:
+                    # This should never happen, but log this and record executor
+                    # as returned at the same time as the previous one - to keep sequence invariant still valid.
+                    self.logger.warning(
+                        "GC: executor %s in pool_available but missing return timestamp; fixing",
+                        id(executor))
+                    self._returned_at[id(executor)] = prev_returned_at
+                returned_at: float = self._returned_at.get(id(executor), prev_returned_at)
+                if now - returned_at > self.idle_timeout_seconds:
+                    to_collect.append(executor)
+                    keep_from += 1
+                    prev_returned_at = returned_at
+                else:
+                    break
+            if keep_from > 0:
+                for executor in self.pool_available[:keep_from]:
+                    self._returned_at.pop(id(executor), None)
+                del self.pool_available[:keep_from]
+        # Shutdown outside the lock to keep the critical section short.
+        self._collect_executors(to_collect)
 
     def get_threads_metrics(self) -> Dict[str, Any]:
         """
