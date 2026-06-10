@@ -76,6 +76,7 @@ class AsyncioExecutorPool:
                                  are taken from pool of available ones (pool mode);
                            False, if requested executor instances are created new
                                  and shutdown on return (backward compatible mode)
+        Note that 2 parameters below are keyword-only, to make it more explicit when configuring the GC policy.
         :param idle_timeout_seconds: Idle time threshold in seconds. An
                                  AsyncioExecutor sitting in pool_available
                                  longer than this is shut down and removed
