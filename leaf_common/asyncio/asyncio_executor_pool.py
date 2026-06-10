@@ -223,7 +223,7 @@ class AsyncioExecutorPool:
                 executor.shutdown(wait=True)
             except Exception as exc:  # pylint: disable=broad-exception-caught
                 self.logger.warning(
-                    "GC: shutdown failed for AsyncioExecutor %s: %s", id(executor), exc)
+                    "GC: shutdown failed for AsyncioExecutor %s: %s", id(executor), exc, exc_info=True)
 
     def _sweep_once(self, now: Optional[float] = None) -> None:
         """
