@@ -313,14 +313,18 @@ class AsyncioExecutorPoolGcTest(TestCase):
         it. Constructing and shutting down many pools must not leak
         threads.
         """
+        baseline_gc_threads = {
+            t.name for t in threading.enumerate()
+            if t.name.startswith("AsyncioExecutorPool-GC-") and t.is_alive()
+        }
         pools = [AsyncioExecutorPool(reuse_mode=True) for _ in range(5)]
         for pool in pools:
             pool.shutdown()
         live_gc_threads = [
             t for t in threading.enumerate()
-            if t.name.startswith("AsyncioExecutorPool-GC-") and t.is_alive()
+            if t.name.startswith("AsyncioExecutorPool-GC-") and t.is_alive() and t.name not in baseline_gc_threads
         ]
         self.assertEqual(
             [], live_gc_threads,
-            f"Expected no GC threads to remain after shutdown(); found {live_gc_threads}."
+            f"Expected no new GC threads to remain after shutdown(); found {live_gc_threads}."
         )
