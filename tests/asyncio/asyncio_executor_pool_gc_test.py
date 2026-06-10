@@ -180,13 +180,13 @@ class AsyncioExecutorPoolGcTest(TestCase):
             idle_timeout_seconds=10.0,
             gc_sweep_interval_seconds=3600.0,
         )
+        # Stop the GC thread before mutating internal state to avoid racing the initial sweep.
+        self.pool.shutdown()
 
         stale_executor = MagicMock(name="stale")
-        self.pool.pool_available = [stale_executor]
-        self.pool._returned_at[id(stale_executor)] = -10_000.0
-
-        # Stop the GC thread so it doesn't interfere with the test
-        self.pool.shutdown()
+        with self.pool.lock:
+            self.pool.pool_available = [stale_executor]
+            self.pool._returned_at[id(stale_executor)] = -10_000.0
 
         # Put a different executor through the get/return cycle.
         returning = MagicMock(name="returning")
