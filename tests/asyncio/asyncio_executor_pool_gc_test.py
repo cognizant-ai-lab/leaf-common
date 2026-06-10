@@ -233,12 +233,16 @@ class AsyncioExecutorPoolGcTest(TestCase):
         # the entry on the next ~10 ms tick.
         deadline = time.monotonic() + 0.5
         while time.monotonic() < deadline:
-            if not self.pool.pool_available:
+            with self.pool.lock:
+                is_empty = not self.pool.pool_available
+            if is_empty:
                 break
             time.sleep(0.01)
 
+        with self.pool.lock:
+            remaining = list(self.pool.pool_available)
         self.assertEqual(
-            [], self.pool.pool_available,
+            [], remaining,
             "Expected the active GC thread to collect the stale executor on its own."
         )
         mock_executor.shutdown.assert_called_once_with(wait=True)
