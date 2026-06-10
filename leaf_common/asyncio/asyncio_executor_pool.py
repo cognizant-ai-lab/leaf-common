@@ -55,9 +55,11 @@ class AsyncioExecutorPool:
     DEFAULT_IDLE_TIMEOUT_SECONDS and DEFAULT_GC_SWEEP_INTERVAL_SECONDS.
 
     Lifecycle: callers should invoke shutdown() to stop the GC thread when
-    the pool is no longer needed. The GC thread is a daemon so it will not
-    block process exit if shutdown() is not called, but explicit shutdown
-    is cleaner for tests and managed long-running services.
+    the pool is no longer needed. The GC thread holds a strong reference to
+    the pool, so omitting shutdown() will keep the pool (and its state) alive
+    for the lifetime of the process. The GC thread is a daemon so it will not
+    block process exit, but explicit shutdown is cleaner for tests and managed
+    long-running services.
     """
 
     # Internal configuration: default idle time (seconds) after which an
