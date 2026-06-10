@@ -67,7 +67,7 @@ class AsyncioExecutorPool:
     # thread wakes to look for stale executors.
     DEFAULT_GC_SWEEP_INTERVAL_SECONDS: float = 30.0
 
-    def __init__(self, reuse_mode: bool = True,
+    def __init__(self, reuse_mode: bool = True, *,
                  idle_timeout_seconds: float = DEFAULT_IDLE_TIMEOUT_SECONDS,
                  gc_sweep_interval_seconds: float = DEFAULT_GC_SWEEP_INTERVAL_SECONDS):
         """
