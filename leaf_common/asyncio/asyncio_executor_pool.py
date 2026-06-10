@@ -189,7 +189,8 @@ class AsyncioExecutorPool:
         if self._gc_thread is None:
             return
         self._gc_stop_event.set()
-        self._gc_thread.join()
+        if threading.current_thread() is not self._gc_thread:
+            self._gc_thread.join()
         self._gc_thread = None
 
     def _gc_loop(self) -> None:
