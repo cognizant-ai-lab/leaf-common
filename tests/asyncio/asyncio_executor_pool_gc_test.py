@@ -63,6 +63,7 @@ class AsyncioExecutorPoolGcTest(TestCase):
         """
         # pylint: disable=attribute-defined-outside-init,protected-access
         self.pool = AsyncioExecutorPool(reuse_mode=True, idle_timeout_seconds=10.0)
+        self.pool.shutdown()  # stop background GC; this test drives _sweep_once() manually
         mock_executor = MagicMock()
         self.pool.pool_available = [mock_executor]
         self.pool._returned_at[id(mock_executor)] = 100.0
