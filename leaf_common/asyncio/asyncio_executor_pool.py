@@ -17,6 +17,7 @@
 """
 See class comments
 """
+from collections.abc import Sequence
 from typing import Any
 from typing import Dict
 from typing import List
@@ -211,9 +212,18 @@ class AsyncioExecutorPool:
             try:
                 self._sweep_once()
             except Exception as exc:  # pylint: disable=broad-exception-caught
-                self.logger.warning("GC: sweep raised %s; continuing", exc)
+                self.logger.warning("GC: sweep raised %s; continuing", exc, exc_info=True)
             # Sleep until the next sweep tick or until shutdown is signaled.
             self._gc_stop_event.wait(timeout=self.gc_sweep_interval_seconds)
+
+    def _collect_executors(self, executors: Sequence[AsyncioExecutor]) -> None:
+        for executor in executors:
+            try:
+                self.logger.debug("GC: shutting down idle AsyncioExecutor %s", id(executor))
+                executor.shutdown(wait=True)
+            except Exception as exc:  # pylint: disable=broad-exception-caught
+                self.logger.warning(
+                    "GC: shutdown failed for AsyncioExecutor %s: %s", id(executor), exc)
 
     def _sweep_once(self, now: Optional[float] = None) -> None:
         """
@@ -239,11 +249,20 @@ class AsyncioExecutorPool:
         to_collect: List[AsyncioExecutor] = []
         with self.lock:
             keep_from: int = 0
+            prev_returned_at: float = 0.0
             for executor in self.pool_available:
-                returned_at: float = self._returned_at.get(id(executor), now)
+                if id(executor) not in self._returned_at:
+                    # This should never happen, but log this and record executor
+                    # as returned at the same time as the previous one - to keep sequence invariant still valid.
+                    self.logger.warning(
+                        "GC: executor %s in pool_available but missing return timestamp; fixing",
+                        id(executor))
+                    self._returned_at[id(executor)] = prev_returned_at
+                returned_at: float = self._returned_at.get(id(executor), prev_returned_at)
                 if now - returned_at > self.idle_timeout_seconds:
                     to_collect.append(executor)
                     keep_from += 1
+                    prev_returned_at = returned_at
                 else:
                     break
             if keep_from > 0:
@@ -251,13 +270,7 @@ class AsyncioExecutorPool:
                     self._returned_at.pop(id(executor), None)
                 del self.pool_available[:keep_from]
         # Shutdown outside the lock to keep the critical section short.
-        for executor in to_collect:
-            try:
-                self.logger.debug("GC: shutting down idle AsyncioExecutor %s", id(executor))
-                executor.shutdown(wait=True)
-            except Exception as exc:  # pylint: disable=broad-exception-caught
-                self.logger.warning(
-                    "GC: shutdown failed for AsyncioExecutor %s: %s", id(executor), exc)
+        self._collect_executors(to_collect)
 
     def get_threads_metrics(self) -> Dict[str, Any]:
         """

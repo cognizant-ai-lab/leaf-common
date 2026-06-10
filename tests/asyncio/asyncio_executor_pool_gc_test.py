@@ -185,6 +185,9 @@ class AsyncioExecutorPoolGcTest(TestCase):
         self.pool.pool_available = [stale_executor]
         self.pool._returned_at[id(stale_executor)] = -10_000.0
 
+        # Stop the GC thread so it doesn't interfere with the test
+        self.pool.shutdown()
+
         # Put a different executor through the get/return cycle.
         returning = MagicMock(name="returning")
         self.pool.pool_used = [returning]
