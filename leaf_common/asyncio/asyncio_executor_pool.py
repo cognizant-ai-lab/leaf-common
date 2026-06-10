@@ -180,20 +180,23 @@ class AsyncioExecutorPool:
                 self.logger.debug("Returned to pool: AsyncioExecutor %s pool size: %d",
                                   id(executor), len(self.pool_available))
 
-    def shutdown(self) -> None:
+    def shutdown(self, wait: bool = True) -> None:
         """
         Stop the background GC thread. After this returns, the pool no
         longer reaps idle executors. Idempotent. Executors still held in
         pool_used or pool_available are NOT shut down here; callers that
         want those gone should handle them explicitly.
         """
-        if self._gc_thread is None:
-            return
-        self._gc_stop_event.set()
-        if threading.current_thread() is not self._gc_thread:
-            self._gc_thread.join()
-        self._gc_thread = None
+        with self.lock:
+            gc_thread = self._gc_thread
+            if gc_thread is None:
+                return
+            # Clear first to make concurrent shutdown() calls safe.
+            self._gc_thread = None
 
+        self._gc_stop_event.set()
+        if wait and threading.current_thread() is not gc_thread:
+            gc_thread.join()
     def _gc_loop(self) -> None:
         """
         Active GC loop: sweep, then wait for either the configured
