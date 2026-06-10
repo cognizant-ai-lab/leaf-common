@@ -293,14 +293,16 @@ class AsyncioExecutorPoolGcTest(TestCase):
         bad_executor.shutdown.side_effect = RuntimeError("simulated shutdown failure")
         good_executor = MagicMock(name="good")
 
-        self.pool.pool_available = [bad_executor, good_executor]
-        self.pool._returned_at = {
-            id(bad_executor): 0.0,
-            id(good_executor): 0.0,
-        }
+        base = time.monotonic()
+        with self.pool.lock:
+            self.pool.pool_available = [bad_executor, good_executor]
+            self.pool._returned_at = {
+                id(bad_executor): base,
+                id(good_executor): base,
+            }
 
-        # Drive sweep synchronously on the test thread.
-        self.pool._sweep_once(now=1_000.0)
+        # Drive sweep synchronously on the test thread with a synthetic time.
+        self.pool._sweep_once(now=base + self.pool.idle_timeout_seconds + 1.0)
 
         bad_executor.shutdown.assert_called_once_with(wait=True)
         good_executor.shutdown.assert_called_once_with(wait=True)
