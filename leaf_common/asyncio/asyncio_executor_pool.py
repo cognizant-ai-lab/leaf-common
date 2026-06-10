@@ -91,7 +91,11 @@ class AsyncioExecutorPool:
         self.reuse_mode: bool = reuse_mode
         self.idle_timeout_seconds: float = idle_timeout_seconds
         self.gc_sweep_interval_seconds: float = gc_sweep_interval_seconds
-
+        if self.reuse_mode:
+            if self.gc_sweep_interval_seconds <= 0:
+                raise ValueError("gc_sweep_interval_seconds must be > 0 when reuse_mode=True")
+            if self.idle_timeout_seconds < 0:
+                raise ValueError("idle_timeout_seconds must be >= 0 when reuse_mode=True")
         # List of available (not currently used) AsyncioExecutor instances in the pool.
         self.pool_available: List[AsyncioExecutor] = []
 
