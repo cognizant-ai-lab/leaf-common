@@ -197,6 +197,7 @@ class AsyncioExecutorPool:
         self._gc_stop_event.set()
         if wait and threading.current_thread() is not gc_thread:
             gc_thread.join()
+
     def _gc_loop(self) -> None:
         """
         Active GC loop: sweep, then wait for either the configured
