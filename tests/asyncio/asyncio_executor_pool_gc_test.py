@@ -222,22 +222,22 @@ class AsyncioExecutorPoolGcTest(TestCase):
             gc_sweep_interval_seconds=0.01,    # sweep every 10 ms
         )
 
+        shutdown_called = threading.Event()
         mock_executor = MagicMock()
+
+        def _mark_shutdown(*_args, **_kwargs):
+            shutdown_called.set()
+
+        mock_executor.shutdown.side_effect = _mark_shutdown
         with self.pool.lock:
             self.pool.pool_available = [mock_executor]
             # Backdate the entry so it's stale immediately.
             self.pool._returned_at[id(mock_executor)] = 0.0
 
-        # Wait long enough for the GC thread to tick at least once after we
-        # inserted the entry. 200 ms is generous; the typical case clears
-        # the entry on the next ~10 ms tick.
-        deadline = time.monotonic() + 0.5
-        while time.monotonic() < deadline:
-            with self.pool.lock:
-                is_empty = not self.pool.pool_available
-            if is_empty:
-                break
-            time.sleep(0.01)
+        self.assertTrue(
+            shutdown_called.wait(timeout=0.5),
+            "Expected the active GC thread to call shutdown() on the stale executor on its own.",
+        )
 
         with self.pool.lock:
             remaining = list(self.pool.pool_available)
