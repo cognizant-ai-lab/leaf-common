@@ -22,7 +22,7 @@ from logging import Logger
 from os import getenv
 
 
-class SensitiveLogger(Logger):
+class SensitiveLogger:
     """
     Wraps a logger to mask sensitive information.
     Uses the same general Logger interface as the whole world already uses.
@@ -39,7 +39,6 @@ class SensitiveLogger(Logger):
 
         :param logger: The wrapped logger to redirect write() calls to.
         """
-        super().__init__(logger.name)
         self.logger: Logger = logger
         self._should_log: bool = getenv('LEAF_LOG_SENSITIVE', 'true').lower() == 'true'
 
