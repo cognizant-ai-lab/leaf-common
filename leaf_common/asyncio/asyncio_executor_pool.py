@@ -221,13 +221,13 @@ class AsyncioExecutorPool:
             self._gc_stop_event.wait(timeout=self.gc_sweep_interval_seconds)
 
     def _collect_executors(self, executors: Sequence[AsyncioExecutor]) -> None:
+        sensitive_logger = SensitiveLogger(self.logger)
         for executor in executors:
             try:
-                sensitive_logger = SensitiveLogger(self.logger)
                 sensitive_logger.debug("GC: shutting down idle AsyncioExecutor %s", id(executor))
                 executor.shutdown(wait=True)
             except Exception as exc:  # pylint: disable=broad-exception-caught
-                self.logger.warning(
+                sensitive_logger.warning(
                     "GC: shutdown failed for AsyncioExecutor %s: %s", id(executor), exc, exc_info=True)
 
     def _sweep_once(self, now: Optional[float] = None) -> None:

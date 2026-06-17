@@ -270,9 +270,9 @@ class GrpcClientRetry():
                 # See if the error is an RpcError with status codes
                 # that are registered as limited-retry.
                 if self.debug:
-                    self.logger.error(exception)
-                    error = traceback.format_exc()
                     sensitive_logger = SensitiveLogger(self.logger)
+                    sensitive_logger.error(exception)
+                    error = traceback.format_exc()
                     sensitive_logger.error(error)
 
                 log_exception = True
