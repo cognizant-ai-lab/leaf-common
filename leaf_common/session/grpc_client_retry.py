@@ -195,7 +195,7 @@ class GrpcClientRetry():
 
         return stub_instance
 
-    # pylint: disable=too-many-branches
+    # pylint: disable=too-many-branches,too-many-locals
     def must_have_response(self, method_name, rpc_call_from_stub, *args):   # noqa: C901
         """
         Keeps trying to connect to the gRPC service to make a single
