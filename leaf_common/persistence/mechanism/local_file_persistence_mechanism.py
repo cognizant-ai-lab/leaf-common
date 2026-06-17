@@ -66,6 +66,9 @@ class LocalFilePersistenceMechanism(AbstractPersistenceMechanism):
             if self.must_exist():
                 raise ex
 
+        # CheckMarx false-positive.  This is flagged as an Improper Resource Shutdown or Release
+        # This is simply how the contract works with these classes.
+        # We return a fileobj so a higher-level abstract API can close it.
         return fileobj
 
     def open_dest_for_write(self, send_from_fileobj,

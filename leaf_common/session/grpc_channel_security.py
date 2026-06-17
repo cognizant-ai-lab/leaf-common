@@ -33,6 +33,7 @@ from grpc import composite_call_credentials
 from grpc import composite_channel_credentials
 from grpc import ssl_channel_credentials
 
+from leaf_common.logging.sensitive_logger import SensitiveLogger
 from leaf_common.time.timeout import Timeout
 from leaf_common.security.service.service_accessor_factory \
     import ServiceAccessorFactory
@@ -206,9 +207,10 @@ class GrpcChannelSecurity():
         except Exception as err:
             frameinfo = getframeinfo(currentframe())
             logger = logging.getLogger(__name__)
-            logger.warning("%s %s %s", str(err),
-                           str(frameinfo.filename),
-                           str(frameinfo.lineno))
+            sensitive_logger = SensitiveLogger(logger)
+            sensitive_logger.warning("%s %s %s", str(err),
+                                     str(frameinfo.filename),
+                                     str(frameinfo.lineno))
             raise err
 
         # Any one of the certs provided can be None.

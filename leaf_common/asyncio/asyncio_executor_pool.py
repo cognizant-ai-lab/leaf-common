@@ -29,6 +29,7 @@ import threading
 import time
 
 from leaf_common.asyncio.asyncio_executor import AsyncioExecutor
+from leaf_common.logging.sensitive_logger import SensitiveLogger
 
 
 class AsyncioExecutorPool:
@@ -214,14 +215,16 @@ class AsyncioExecutorPool:
             try:
                 self._sweep_once()
             except Exception as exc:  # pylint: disable=broad-exception-caught
-                self.logger.warning("GC: sweep raised %s; continuing", exc, exc_info=True)
+                sensitive_logger = SensitiveLogger(self.logger)
+                sensitive_logger.warning("GC: sweep raised %s; continuing", exc, exc_info=True)
             # Sleep until the next sweep tick or until shutdown is signaled.
             self._gc_stop_event.wait(timeout=self.gc_sweep_interval_seconds)
 
     def _collect_executors(self, executors: Sequence[AsyncioExecutor]) -> None:
         for executor in executors:
             try:
-                self.logger.debug("GC: shutting down idle AsyncioExecutor %s", id(executor))
+                sensitive_logger = SensitiveLogger(self.logger)
+                sensitive_logger.debug("GC: shutting down idle AsyncioExecutor %s", id(executor))
                 executor.shutdown(wait=True)
             except Exception as exc:  # pylint: disable=broad-exception-caught
                 self.logger.warning(

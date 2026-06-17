@@ -39,6 +39,7 @@ from concurrent import futures
 from leaf_common.asyncio.event_loop_factory import EventLoopFactory
 from leaf_common.asyncio.task_executor import TaskExecutor
 from leaf_common.asyncio.asyncio_threadpool_executor import AsyncioThreadPoolExecutor
+from leaf_common.logging.sensitive_logger import SensitiveLogger
 
 EXECUTOR_START_TIMEOUT_SECONDS: int = 5
 
@@ -444,7 +445,8 @@ class AsyncioExecutor(TaskExecutor):
             for line in formatted_exception:
                 if line.endswith("\n"):
                     line = line[:-1]
-                self.logger.info("%s", line)
+                sensitive_logger = SensitiveLogger(self.logger)
+                sensitive_logger.info("%s", line)
 
         # As a last gesture, remove the background task from the map
         # we use to keep its reference around. Do it safely:
