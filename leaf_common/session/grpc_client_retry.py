@@ -32,10 +32,10 @@ from grpc import channel_ready_future
 from grpc import insecure_channel
 from grpc import secure_channel
 
-from leaf_common.time.timeout import Timeout
-
+from leaf_common.logging.sensitive_logger import SensitiveLogger
 from leaf_common.session.grpc_channel_security import GrpcChannelSecurity
 from leaf_common.session.grpc_metadata_util import GrpcMetadataUtil
+from leaf_common.time.timeout import Timeout
 
 
 class GrpcClientRetry():
@@ -272,7 +272,8 @@ class GrpcClientRetry():
                 if self.debug:
                     self.logger.error(exception)
                     error = traceback.format_exc()
-                    self.logger.error(error)
+                    sensitive_logger = SensitiveLogger(self.logger)
+                    sensitive_logger.error(error)
 
                 log_exception = True
                 exception_str = str(exception)
@@ -331,8 +332,9 @@ class GrpcClientRetry():
                     # Log the problem and wait to try again.
                     info = "Info: Exception when calling %s: %s. " + \
                             "Retrying in %s secs."
-                    self.logger.warning(info, str(method_name), exception_str,
-                                        str(self.poll_interval_seconds))
+                    sensitive_logger = SensitiveLogger(self.logger)
+                    sensitive_logger.warning(info, str(method_name), exception_str,
+                                             str(self.poll_interval_seconds))
 
                 # Close the channel before sleep to tidy up sooner
                 # We do not necessarily want a new token just

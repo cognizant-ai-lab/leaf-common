@@ -20,6 +20,7 @@ See class comment for details.
 import logging
 import os
 
+from leaf_common.logging.sensitive_logger import SensitiveLogger
 from leaf_common.persistence.mechanism.abstract_persistence_mechanism \
     import AbstractPersistenceMechanism
 
@@ -103,10 +104,11 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
                 return_fileobj = None
             else:
                 # Something else has gone wrong
-                logger.error("S3 file read %s %s some other error happened %s",
-                             str(self.bucket_base),
-                             str(key),
-                             str(exception.response['Error']['Code']))
+                sensitive_logger = SensitiveLogger(logger)
+                sensitive_logger.error("S3 file read %s %s some other error happened %s",
+                                       str(self.bucket_base),
+                                       str(key),
+                                       str(exception.response['Error']['Code']))
                 raise
 
         return return_fileobj
