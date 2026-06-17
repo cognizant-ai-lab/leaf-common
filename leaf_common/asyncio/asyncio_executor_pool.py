@@ -221,7 +221,7 @@ class AsyncioExecutorPool:
             self._gc_stop_event.wait(timeout=self.gc_sweep_interval_seconds)
 
     def _collect_executors(self, executors: Sequence[AsyncioExecutor]) -> None:
-            sensitive_logger = SensitiveLogger(self.logger)
+        sensitive_logger = SensitiveLogger(self.logger)
         for executor in executors:
             try:
                 sensitive_logger.debug("GC: shutting down idle AsyncioExecutor %s", id(executor))
