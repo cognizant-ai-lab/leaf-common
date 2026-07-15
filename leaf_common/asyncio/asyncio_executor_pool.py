@@ -354,7 +354,7 @@ class AsyncioExecutorPool:
         for executor in used_snapshot:
             executor_key: str = str(id(executor))
             loop: asyncio.AbstractEventLoop = executor.get_event_loop()
-            if loop is None or not loop.is_running():
+            if not loop.is_running():
                 result[executor_key] = {"loop_state": "not_running", "tasks": []}
                 continue
 
