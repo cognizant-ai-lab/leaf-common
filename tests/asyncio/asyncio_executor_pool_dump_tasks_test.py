@@ -190,14 +190,15 @@ class AsyncioExecutorPoolDumpTasksTest(TestCase):
         # callback that, once picked up, will monopolize the loop for
         # far longer than the probe timeout.
         wedge_seconds: float = 1.5
+        import threading  # pylint: disable=import-outside-toplevel
+        wedge_started = threading.Event()
 
         def _wedge():
+            wedge_started.set()
             time.sleep(wedge_seconds)
 
         executor.get_event_loop().call_soon_threadsafe(_wedge)
-        # Give the loop a moment to start executing the wedge.
-        time.sleep(0.05)
-
+        self.assertTrue(wedge_started.wait(timeout=0.5), "Wedge callback did not start in time")
         start = time.monotonic()
         result = self.pool.dump_tasks_in_used_executors(per_loop_timeout_s=0.2)
         elapsed = time.monotonic() - start
