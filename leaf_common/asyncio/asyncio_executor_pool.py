@@ -328,7 +328,7 @@ class AsyncioExecutorPool:
 
         If a loop is unresponsive within per_loop_timeout_s -- for example,
         because it is CPU-bound on a synchronous hog and cannot service any
-        new callback -- that executor's entry is marked as "unresponsive"
+        new callback -- that executor's entry is marked as "unresponsive_timeout"
         rather than blocking indefinitely. An unresponsive loop is itself a
         strong diagnostic signal ("this loop cannot even run our probe").
 
