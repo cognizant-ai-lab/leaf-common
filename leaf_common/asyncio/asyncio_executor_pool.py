@@ -381,10 +381,10 @@ class AsyncioExecutorPool:
         loop's context so asyncio.all_tasks() sees every task on it; the
         probe filters itself out of the result.
         """
-        me: asyncio.Task = asyncio.current_task()
+        me: Optional[asyncio.Task] = asyncio.current_task()
         tasks_info: List[Dict[str, Any]] = []
         for task in asyncio.all_tasks():
-            if task is me:
+            if me is not None and task is me:
                 continue
             coro = task.get_coro()
             stack_frames: List[Dict[str, Any]] = []
