@@ -75,7 +75,8 @@ class AsyncioExecutorPool:
 
     def __init__(self, reuse_mode: bool = True, *,
                  idle_timeout_seconds: float = DEFAULT_IDLE_TIMEOUT_SECONDS,
-                 gc_sweep_interval_seconds: float = DEFAULT_GC_SWEEP_INTERVAL_SECONDS):
+                 gc_sweep_interval_seconds: float = DEFAULT_GC_SWEEP_INTERVAL_SECONDS,
+                 max_workers: int = None):
         """
         Constructor.
         :param reuse_mode: True, if requested executor instances
@@ -94,10 +95,12 @@ class AsyncioExecutorPool:
                                  interval beyond the idle timeout before
                                  being collected. Only applies when
                                  reuse_mode is True.
+        :param max_workers: maximum number of threads to use for each AsyncioExecutor
         """
         self.reuse_mode: bool = reuse_mode
         self.idle_timeout_seconds: float = idle_timeout_seconds
         self.gc_sweep_interval_seconds: float = gc_sweep_interval_seconds
+        self.max_workers: Optional[int] = max_workers
         if self.reuse_mode:
             if self.gc_sweep_interval_seconds <= 0:
                 raise ValueError("gc_sweep_interval_seconds must be > 0 when reuse_mode=True")
@@ -153,7 +156,7 @@ class AsyncioExecutorPool:
                     return result
         # Create AsyncioExecutor outside of lock
         # to avoid potentially longer locked periods
-        result = AsyncioExecutor()
+        result = AsyncioExecutor(max_workers=self.max_workers)
         result.start()
         self.logger.debug("Creating AsyncioExecutor %s", id(result))
         with self.lock:
