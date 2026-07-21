@@ -52,7 +52,7 @@ class AsyncioExecutor(TaskExecutor):
     """
 
     # pylint: disable=too-many-instance-attributes
-    def __init__(self):
+    def __init__(self, max_workers: int = None):
         """
         Constructor
         """
@@ -61,7 +61,7 @@ class AsyncioExecutor(TaskExecutor):
         self._thread: threading.Thread = None
         # We are going to start new thread for this Executor,
         # so we need a new event loop bound to this particular thread:
-        self._threadpool_executor: AsyncioThreadPoolExecutor = AsyncioThreadPoolExecutor()
+        self._threadpool_executor: AsyncioThreadPoolExecutor = AsyncioThreadPoolExecutor(max_workers=max_workers)
         self._loop: AbstractEventLoop = EventLoopFactory.new_event_loop()
         self._loop.set_exception_handler(AsyncioExecutor.loop_exception_handler)
         self._loop.set_default_executor(self._threadpool_executor)
