@@ -34,7 +34,7 @@ class HoconSerializationFormat(JsonSerializationFormat):
     With this class, hocon serialization (from_object) is just JSON.
     """
 
-    def to_object(self, fileobj):
+    def to_object(self, fileobj, basedir=None):
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open and be
@@ -43,6 +43,11 @@ class HoconSerializationFormat(JsonSerializationFormat):
 
                 After calling this method, the seek pointer will be at the end
                 of the data. Closing of the fileobj is left to the caller.
+        :param basedir: Optional base directory for resolving include directives.
+                When provided, HOCON include paths are resolved relative to this
+                directory rather than the process working directory. Pass the
+                directory of the file being parsed so that sibling includes work
+                correctly regardless of where the server is started from.
         :return: the deserialized object
         """
 
@@ -52,7 +57,7 @@ class HoconSerializationFormat(JsonSerializationFormat):
             hocon_string, _ = BytesDecoder.decode_bytes(hocon_bytes)
 
             # Load the HOCON into a dictionary
-            pruned_dict = ConfigFactory.parse_string(hocon_string)
+            pruned_dict = ConfigFactory.parse_string(hocon_string, basedir=basedir)
 
             # Hocon tends to produce regular dictionaries that have
             # ConfigTree structures for nested dictionaries.
