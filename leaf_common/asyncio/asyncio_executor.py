@@ -65,6 +65,7 @@ class AsyncioExecutor(TaskExecutor):
         self._loop: AbstractEventLoop = EventLoopFactory.new_event_loop()
         self._loop.set_exception_handler(AsyncioExecutor.loop_exception_handler)
         self._loop.set_default_executor(self._threadpool_executor)
+        self._loop.set_task_factory(asyncio.eager_task_factory)
         self._loop_ready = threading.Event()
         self._init_done = threading.Event()
         self._background_tasks: Dict[int, Dict[str, Any]] = {}
