@@ -104,7 +104,7 @@ class Resolver():
 
         return my_class
 
-    def _find_module(self, use_module_name: str, messages: List[str],
+    def _find_module(self, use_module_name: str, messages: List[str],           # noqa: C901
                      install_if_missing: str = None, surface_import_errors: bool = False) -> Any:
         """
         Searches for a module by name, trying each configured package in turn.
@@ -122,21 +122,39 @@ class Resolver():
                                              install_if_missing=install_if_missing,
                                              surface_import_errors=surface_import_errors)
 
+        exceptions: List[Exception] = []
         for package in self.packages:
             fully_qualified_module: str = f"{package}.{use_module_name}"
-            found_module: Any = self.try_to_import_module(fully_qualified_module, messages,
-                                                          install_if_missing=install_if_missing,
-                                                          surface_import_errors=surface_import_errors)
+            found_module: Any = None
+            try:
+                found_module = self.try_to_import_module(fully_qualified_module, messages,
+                                                         install_if_missing=install_if_missing,
+                                                         surface_import_errors=surface_import_errors)
+            except Exception as exception:  # pylint: disable=broad-except
+                exceptions.append(exception)
 
             if found_module is not None:
                 return found_module
 
             # check main package
-            check_main_package: Any = self.try_to_import_module(package, messages,
-                                                                install_if_missing=install_if_missing,
-                                                                surface_import_errors=surface_import_errors)
+            check_main_package: Any = None
+            try:
+                check_main_package = self.try_to_import_module(package, messages,
+                                                               install_if_missing=install_if_missing,
+                                                               surface_import_errors=surface_import_errors)
+            except Exception as exception:  # pylint: disable=broad-except
+                exceptions.append(exception)
+
             if check_main_package is not None:
                 return check_main_package
+
+        if surface_import_errors:
+            # Prefer an exception with "Try pip installing"
+            for exception in exceptions:
+                if "Try pip installing" in str(exception):
+                    raise exception
+            # It's not really clear what exception actually holds the real problem. Raise the first one.
+            raise exceptions[0]
 
         return None
 
@@ -168,9 +186,10 @@ class Resolver():
                 f"Module {module}: Couldn't load due to ImportError: {str(exception)}"
             message += "...\n"
             if not install_if_missing:
-                message += "This might be OK if this is *not* an ImportError "
-                message += "in the file itself and the code can be found in "
-                message += "another directory"
+                if not surface_import_errors:
+                    message += "This might be OK if this is *not* an ImportError "
+                    message += "in the file itself and the code can be found in "
+                    message += "another directory"
             else:
                 message += f"Try pip installing the package {install_if_missing} to get past this error."
             if surface_import_errors:
