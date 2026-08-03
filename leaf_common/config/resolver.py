@@ -148,7 +148,7 @@ class Resolver():
         :param module: The name of the module to load
         :param messages: a list of messages where logs of failed attempts can go
         :param install_if_missing: Optional name of a package to install if the module is missing.
-        :param surface_import_errors: When True an error will be raised that the module could not be found
+        :param surface_import_errors: When True an error will be raised that the module could not be loaded
         :return: The python module if found. None if not found.
         """
 
