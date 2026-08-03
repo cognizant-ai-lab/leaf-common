@@ -33,7 +33,7 @@ class ResolverUtil:
 
     @staticmethod
     def create_instance(class_name: str, class_name_source: str, type_of_class: Type,
-                        surface_import_errors: bool = False) -> Any:
+                        surface_import_errors: bool = True) -> Any:
         """
         Resolves the class_name to instantiate an instance of the class.
         Goes through some standard checking with standard exceptions thrown
@@ -44,6 +44,8 @@ class ResolverUtil:
                     class_name, so that exceptions can be more instructive.
         :param type_of_class: The type that the instance must be in order to pass muster.
         :param surface_import_errors: Raise an exception if the class cannot be instantiated
+                By defult this is True, because we assume that if we can't get the instance
+                it is because of an import error and the user will need to know why it didn't work.
         :return: An instance of the class referred to by class_name if everything is successful.
                 Can return None if class_name is a None or empty string.
         """
