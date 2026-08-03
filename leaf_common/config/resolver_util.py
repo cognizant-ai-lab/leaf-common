@@ -32,7 +32,8 @@ class ResolverUtil:
     """
 
     @staticmethod
-    def create_instance(class_name: str, class_name_source: str, type_of_class: Type) -> Any:
+    def create_instance(class_name: str, class_name_source: str, type_of_class: Type,
+                        surface_import_errors: bool = True) -> Any:
         """
         Resolves the class_name to instantiate an instance of the class.
         Goes through some standard checking with standard exceptions thrown
@@ -42,12 +43,16 @@ class ResolverUtil:
         :param class_name_source: A string description of where we are getting the value of
                     class_name, so that exceptions can be more instructive.
         :param type_of_class: The type that the instance must be in order to pass muster.
+        :param surface_import_errors: Raise an exception if the class cannot be instantiated.
+                By default this is True, because we assume that if we can't get the instance
+                it is because of an import error and the user will need to know why it didn't work.
         :return: An instance of the class referred to by class_name if everything is successful.
                 Can return None if class_name is a None or empty string.
         """
 
         instance: Any = None
-        class_reference: Type[Any] = ResolverUtil.create_class(class_name, class_name_source, type_of_class)
+        class_reference: Type[Any] = ResolverUtil.create_class(class_name, class_name_source, type_of_class,
+                                                               surface_import_errors=surface_import_errors)
 
         if class_reference is None:
             return None
@@ -62,7 +67,8 @@ class ResolverUtil:
         return instance
 
     @staticmethod
-    def create_class(class_name: str, class_name_source: str, type_of_class: Type) -> Type:
+    def create_class(class_name: str, class_name_source: str, type_of_class: Type,
+                     surface_import_errors: bool = False) -> Type:
         """
         Resolves a fully qualified class name string into an actual Python class object.
 
@@ -74,6 +80,7 @@ class ResolverUtil:
         :param class_name_source: A description of the source of the class_name string,
                 used for clearer error messages.
         :param type_of_class: Base type or interface the class must inherit from.
+        :param surface_import_errors: Raise an exception if the class cannot be resolved
         :return: The resolved class object. Can return None if class_name is a None or empty string.
         """
 
@@ -103,7 +110,8 @@ class ResolverUtil:
         # Resolve the class name
         class_reference: Type[Any] = None
         try:
-            class_reference = resolver.resolve_class_in_module(class_name, module_name=module_name)
+            class_reference = resolver.resolve_class_in_module(class_name, module_name=module_name,
+                                                               surface_import_errors=surface_import_errors)
         except AttributeError as exception:
             raise ValueError(f"Class '{class_name}' from {class_name_source} "
                              "not found in PYTHONPATH") from exception

@@ -69,7 +69,7 @@ class ResolverUtilTest(TestCase):
              patch("builtins.issubclass", return_value=True):
             result = ResolverUtil.create_class("my_package.MyClass", "test_source", object)
 
-        mock_resolve.assert_called_once_with("MyClass", module_name="my_package")
+        mock_resolve.assert_called_once_with("MyClass", module_name="my_package", surface_import_errors=False)
         self.assertIs(result, mock_class)
 
     def test_create_class_three_part_name(self):
@@ -84,7 +84,7 @@ class ResolverUtilTest(TestCase):
                 "my_package.my_module.MyClass", "test_source", object
             )
 
-        mock_resolve.assert_called_once_with("MyClass", module_name="my_module")
+        mock_resolve.assert_called_once_with("MyClass", module_name="my_module", surface_import_errors=False)
         self.assertIs(result, mock_class)
 
     def test_create_class_multi_part_package(self):
@@ -100,7 +100,7 @@ class ResolverUtilTest(TestCase):
                 "my_pkg.sub_pkg.my_module.MyClass", "test_source", object
             )
 
-        mock_resolve.assert_called_once_with("MyClass", module_name="my_module")
+        mock_resolve.assert_called_once_with("MyClass", module_name="my_module", surface_import_errors=False)
         self.assertIs(result, mock_class)
 
     def test_create_class_attribute_error_raises_value_error(self):
