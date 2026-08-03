@@ -51,8 +51,8 @@ class ResolverUtil:
         """
 
         instance: Any = None
-        class_reference: Type[Any] = ResolverUtil.create_class(class_name, class_name_source,
-                                                               type_of_class, surface_import_errors)
+        class_reference: Type[Any] = ResolverUtil.create_class(class_name, class_name_source, type_of_class,
+                                                               surface_import_errors=surface_import_errors)
 
         if class_reference is None:
             return None
