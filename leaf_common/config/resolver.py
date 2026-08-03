@@ -75,7 +75,8 @@ class Resolver():
         if verbose:
             logger.info("Attempting to resolve module %s", use_module_name)
 
-        found_module: Any = self._find_module(use_module_name, messages, install_if_missing)
+        found_module: Any = self._find_module(use_module_name, messages, install_if_missing,
+                                              raise_if_not_found=raise_if_not_found)
 
         if found_module is None:
             message: str = f"Could not find code for {use_module_name}"
@@ -101,7 +102,7 @@ class Resolver():
         return my_class
 
     def _find_module(self, use_module_name: str, messages: List[str],
-                     install_if_missing: str = None) -> Any:
+                     install_if_missing: str = None, raise_if_not_found: bool = False) -> Any:
         """
         Searches for a module by name, trying each configured package in turn.
         Also tries the module name as a top-level module if packages are configured.
@@ -109,36 +110,38 @@ class Resolver():
         :param use_module_name: The module name to search for
         :param messages: a list of messages where logs of failed attempts can go
         :param install_if_missing: Optional name of a package to install if the module is missing.
+        :param raise_if_not_found: When True an error will be raised that the module could not be found
         :return: The python module if found. None if not found.
         """
 
         if self.packages is None:
-            return self.try_to_import_module(use_module_name, messages, install_if_missing)
+            return self.try_to_import_module(use_module_name, messages, install_if_missing, raise_if_not_found)
 
         for package in self.packages:
             fully_qualified_module: str = f"{package}.{use_module_name}"
             found_module: Any = self.try_to_import_module(fully_qualified_module,
-                                                          messages, install_if_missing)
+                                                          messages, install_if_missing, raise_if_not_found)
 
             if found_module is not None:
                 return found_module
 
             # check main package
-            check_main_package: Any = self.try_to_import_module(package,
-                                                                messages, install_if_missing)
+            check_main_package: Any = self.try_to_import_module(package, messages, install_if_missing,
+                                                                raise_if_not_found)
             if check_main_package is not None:
                 return check_main_package
 
         return None
 
     def try_to_import_module(self, module: str, messages: List[str],
-                             install_if_missing: str = None) -> Any:
+                             install_if_missing: str = None, raise_if_not_found: bool = False) -> Any:
         """
         Makes a single attempt to load a module
 
         :param module: The name of the module to load
         :param messages: a list of messages where logs of failed attempts can go
         :param install_if_missing: Optional name of a package to install if the module is missing.
+        :param raise_if_not_found: When True an error will be raised that the module could not be found
         :return: The python module if found. None if not found.
         """
 
@@ -151,6 +154,8 @@ class Resolver():
         except SyntaxError as exception:
             message = \
                 f"Module {module}: Couldn't load due to SyntaxError: {str(exception)}"
+            if raise_if_not_found:
+                raise ValueError(message) from exception
         except ImportError as exception:
             message = \
                 f"Module {module}: Couldn't load due to ImportError: {str(exception)}"
@@ -161,9 +166,13 @@ class Resolver():
                 message += "another directory"
             else:
                 message += f"Try pip installing the package {install_if_missing} to get past this error."
+            if raise_if_not_found:
+                raise ValueError(message) from exception
 
         except Exception as exception:      # pylint: disable=broad-except
             message = f"Module {module}: Couldn't load due to Exception: {str(exception)}"
+            if raise_if_not_found:
+                raise ValueError(message) from exception
 
         if message is not None:
             messages.append(message)
