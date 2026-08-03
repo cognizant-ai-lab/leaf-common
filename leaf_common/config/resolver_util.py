@@ -43,8 +43,8 @@ class ResolverUtil:
         :param class_name_source: A string description of where we are getting the value of
                     class_name, so that exceptions can be more instructive.
         :param type_of_class: The type that the instance must be in order to pass muster.
-        :param surface_import_errors: Raise an exception if the class cannot be instantiated
-                By defult this is True, because we assume that if we can't get the instance
+        :param surface_import_errors: Raise an exception if the class cannot be instantiated.
+                By default this is True, because we assume that if we can't get the instance
                 it is because of an import error and the user will need to know why it didn't work.
         :return: An instance of the class referred to by class_name if everything is successful.
                 Can return None if class_name is a None or empty string.
