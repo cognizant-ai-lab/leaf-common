@@ -48,7 +48,8 @@ class Resolver():
                                 module_name: str = None,
                                 raise_if_not_found: bool = True,
                                 verbose: bool = False,
-                                install_if_missing: str = None) -> Union[Type[Any], ModuleType]:
+                                install_if_missing: str = None,
+                                surface_import_errors: bool = False) -> Union[Type[Any], ModuleType]:
         """
         :param class_name: The name of the class we are looking for.
                         Can be None, in which case the module is returned
@@ -59,6 +60,8 @@ class Resolver():
                         the class could not be resolved.
         :param verbose: Controls how chatty the process is. Default False.
         :param install_if_missing: Optional name of a package to install if the module is missing.
+        :param surface_import_errors: When True, any import errors will be immediately raised.
+                    By default this is false so failures in lazy loading can slip by with no noise.
         :return: a reference to the Python class, if the class could be resolved,
                  or the module if class_name is None.
                  None otherwise.
@@ -76,7 +79,7 @@ class Resolver():
             logger.info("Attempting to resolve module %s", use_module_name)
 
         found_module: Any = self._find_module(use_module_name, messages, install_if_missing,
-                                              raise_if_not_found=raise_if_not_found)
+                                              surface_import_errors=surface_import_errors)
 
         if found_module is None:
             message: str = f"Could not find code for {use_module_name}"
@@ -102,7 +105,7 @@ class Resolver():
         return my_class
 
     def _find_module(self, use_module_name: str, messages: List[str],
-                     install_if_missing: str = None, raise_if_not_found: bool = False) -> Any:
+                     install_if_missing: str = None, surface_import_errors: bool = False) -> Any:
         """
         Searches for a module by name, trying each configured package in turn.
         Also tries the module name as a top-level module if packages are configured.
@@ -110,38 +113,38 @@ class Resolver():
         :param use_module_name: The module name to search for
         :param messages: a list of messages where logs of failed attempts can go
         :param install_if_missing: Optional name of a package to install if the module is missing.
-        :param raise_if_not_found: When True an error will be raised that the module could not be found
+        :param surface_import_errors: When True an exceptions will be raised immediately
         :return: The python module if found. None if not found.
         """
 
         if self.packages is None:
-            return self.try_to_import_module(use_module_name, messages, install_if_missing, raise_if_not_found)
+            return self.try_to_import_module(use_module_name, messages, install_if_missing, surface_import_errors)
 
         for package in self.packages:
             fully_qualified_module: str = f"{package}.{use_module_name}"
             found_module: Any = self.try_to_import_module(fully_qualified_module,
-                                                          messages, install_if_missing, raise_if_not_found)
+                                                          messages, install_if_missing, surface_import_errors)
 
             if found_module is not None:
                 return found_module
 
             # check main package
             check_main_package: Any = self.try_to_import_module(package, messages, install_if_missing,
-                                                                raise_if_not_found)
+                                                                surface_import_errors)
             if check_main_package is not None:
                 return check_main_package
 
         return None
 
     def try_to_import_module(self, module: str, messages: List[str],
-                             install_if_missing: str = None, raise_if_not_found: bool = False) -> Any:
+                             install_if_missing: str = None, surface_import_errors: bool = False) -> Any:
         """
         Makes a single attempt to load a module
 
         :param module: The name of the module to load
         :param messages: a list of messages where logs of failed attempts can go
         :param install_if_missing: Optional name of a package to install if the module is missing.
-        :param raise_if_not_found: When True an error will be raised that the module could not be found
+        :param surface_import_errors: When True an error will be raised that the module could not be found
         :return: The python module if found. None if not found.
         """
 
@@ -154,7 +157,7 @@ class Resolver():
         except SyntaxError as exception:
             message = \
                 f"Module {module}: Couldn't load due to SyntaxError: {str(exception)}"
-            if raise_if_not_found:
+            if surface_import_errors:
                 raise ValueError(message) from exception
         except ImportError as exception:
             message = \
@@ -166,12 +169,12 @@ class Resolver():
                 message += "another directory"
             else:
                 message += f"Try pip installing the package {install_if_missing} to get past this error."
-            if raise_if_not_found:
+            if surface_import_errors:
                 raise ValueError(message) from exception
 
         except Exception as exception:      # pylint: disable=broad-except
             message = f"Module {module}: Couldn't load due to Exception: {str(exception)}"
-            if raise_if_not_found:
+            if surface_import_errors:
                 raise ValueError(message) from exception
 
         if message is not None:
