@@ -176,8 +176,8 @@ class Resolver():
                 message += f"Try pip installing the package {install_if_missing} to get past this error."
 
             candidate_missing: bool = isinstance(exception, ModuleNotFoundError)
-            if surface_import_errors and not candidate_missing and \
-                    (module == exception.name or module.startswith(f"{exception.name}.")):
+            exception_pertains_to_module: bool = (module == exception.name or module.startswith(f"{exception.name}."))
+            if surface_import_errors and not candidate_missing and exception_pertains_to_module:
                 raise ValueError(message) from exception
 
         except Exception as exception:      # pylint: disable=broad-except
