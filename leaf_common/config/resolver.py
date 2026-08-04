@@ -148,15 +148,14 @@ class Resolver():
             if check_main_package is not None:
                 return check_main_package
 
-        if surface_import_errors:
+        if surface_import_errors and len(exceptions) > 0:
             # Prefer an exception with "Try pip installing"
             for exception in exceptions:
                 if "Try pip installing" in str(exception):
                     raise exception
 
             # It's not really clear what exception actually holds the real problem. Raise the first one.
-            if len(exceptions) > 0:
-                raise exceptions[0]
+            raise exceptions[0]
 
         return None
 
