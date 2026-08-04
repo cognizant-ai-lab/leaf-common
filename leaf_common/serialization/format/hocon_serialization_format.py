@@ -48,8 +48,11 @@ class HoconSerializationFormat(JsonSerializationFormat):
                 in question.
         :param pretty: a boolean which says whether the output is to be
                 nicely formatted or not.  Try for: indent=4, sort_keys=True
-        :param sanitize_keys: When True, to_object() sanitizes keys by
-                default.  See the to_object() docstring for details.
+        :param sanitize_keys: When True, to_object() removes the quotation
+                marks that pyhocon embeds in keys that had to be quoted in
+                the HOCON source because they contain forbidden characters,
+                such as ".", ":", "$", "@", "#", "!", "?", "=", and "+"
+                (e.g. "llama3.1", "llama3:8b").
                 Default is False, preserving the existing (quote-retaining)
                 behavior for current callers.
         """
@@ -58,7 +61,7 @@ class HoconSerializationFormat(JsonSerializationFormat):
                          pretty=pretty)
         self.sanitize_keys = sanitize_keys
 
-    def to_object(self, fileobj, basedir=None, sanitize_keys=None):
+    def to_object(self, fileobj, basedir=None):
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open and be
@@ -72,19 +75,8 @@ class HoconSerializationFormat(JsonSerializationFormat):
                 directory rather than the process working directory. Pass the
                 directory of the file being parsed so that sibling includes work
                 correctly regardless of where the server is started from.
-        :param sanitize_keys: When True, keys that had to be quoted in the
-                HOCON source because they contain forbidden characters,
-                such as ".", ":", "$", "@", "#", "!", "?", "=", and "+"
-                (e.g. "llama3.1", "llama3:8b"), come back without the
-                quotation marks that pyhocon embeds in the key strings.
-                The default of None defers to the constructor's
-                sanitize_keys setting, itself False by default, preserving
-                the existing (quote-retaining) behavior for current callers.
         :return: the deserialized object
         """
-
-        if sanitize_keys is None:
-            sanitize_keys = self.sanitize_keys
 
         pruned_dict = None
         if fileobj is not None:
@@ -94,7 +86,7 @@ class HoconSerializationFormat(JsonSerializationFormat):
             # Load the HOCON into a dictionary
             pruned_dict = ConfigFactory.parse_string(hocon_string, basedir=basedir)
 
-            if pruned_dict is not None and sanitize_keys:
+            if pruned_dict is not None and self.sanitize_keys:
                 # as_plain_ordered_dict() removes the quotation marks that
                 # pyhocon embeds in keys containing forbidden characters
                 # such as "." and ":".  Only ConfigTree has that method and

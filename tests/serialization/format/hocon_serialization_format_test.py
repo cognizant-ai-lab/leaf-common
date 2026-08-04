@@ -41,9 +41,10 @@ class HoconSerializationFormatTest(TestCase):
 
     def setUp(self):
         """
-        Set up member for tests
+        Set up members for tests
         """
         self.serialization = HoconSerializationFormat()
+        self.sanitizing = HoconSerializationFormat(sanitize_keys=True)
 
     @staticmethod
     def as_fileobj(hocon_string):
@@ -82,11 +83,14 @@ class HoconSerializationFormatTest(TestCase):
 
     def test_sanitize_keys(self):
         """
-        Tests that with sanitize_keys=True, keys with forbidden characters
-        come back without embedded quotation marks
+        Tests that with sanitize_keys=True on the constructor, keys with
+        forbidden characters come back without embedded quotation marks.
+        The constructor setting applies to plain to_object() calls, so it
+        also reaches callers that invoke to_object() polymorphically
+        (e.g. restore())
         """
         fileobj = self.as_fileobj(self.HOCON_WITH_QUOTED_KEYS)
-        obj = self.serialization.to_object(fileobj, sanitize_keys=True)
+        obj = self.sanitizing.to_object(fileobj)
 
         models = obj.get("models")
         self.assertEqual({"llama3.1": 1, "llama3:8b": 2, "plain_key": 3},
@@ -106,7 +110,7 @@ class HoconSerializationFormatTest(TestCase):
         }
         """
         fileobj = self.as_fileobj(hocon_string)
-        obj = self.serialization.to_object(fileobj, sanitize_keys=True)
+        obj = self.sanitizing.to_object(fileobj)
 
         outer = obj.get("outer")
         self.assertIs(type(outer), dict)
@@ -120,19 +124,5 @@ class HoconSerializationFormatTest(TestCase):
         which pyhocon parses to a ConfigList rather than a ConfigTree
         """
         fileobj = self.as_fileobj('[1, 2, { "a.b" = 3 }]')
-        obj = self.serialization.to_object(fileobj, sanitize_keys=True)
+        obj = self.sanitizing.to_object(fileobj)
         self.assertEqual([1, 2, {"a.b": 3}], obj)
-
-    def test_sanitize_keys_constructor_default(self):
-        """
-        Tests that sanitize_keys passed to the constructor applies to
-        to_object() calls that do not specify it, so the setting reaches
-        callers that invoke to_object() polymorphically (e.g. restore())
-        """
-        serialization = HoconSerializationFormat(sanitize_keys=True)
-        fileobj = self.as_fileobj(self.HOCON_WITH_QUOTED_KEYS)
-        obj = serialization.to_object(fileobj)
-
-        models = obj.get("models")
-        self.assertEqual({"llama3.1": 1, "llama3:8b": 2, "plain_key": 3},
-                         models)
