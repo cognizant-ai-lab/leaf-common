@@ -153,8 +153,10 @@ class Resolver():
             for exception in exceptions:
                 if "Try pip installing" in str(exception):
                     raise exception
+
             # It's not really clear what exception actually holds the real problem. Raise the first one.
-            raise exceptions[0]
+            if len(exceptions) > 0:
+                raise exceptions[0]
 
         return None
 
