@@ -195,9 +195,9 @@ class ResolverUtilTest(TestCase):
         with TemporaryDirectory() as temp_dir:
             pkg_dir = join(temp_dir, "demo_pkg")
             makedirs(pkg_dir)
-            with open(join(pkg_dir, "__init__.py"), "w") as f:
+            with open(join(pkg_dir, "__init__.py"), "w", encoding="utf-8") as f:
                 f.write("")
-            with open(join(pkg_dir, "missing_dep.py"), "w") as f:
+            with open(join(pkg_dir, "missing_dep.py"), "w", encoding="utf-8") as f:
                 f.write("import nonexistent_dependency_xyz\n\nclass MissingDep:\n    pass\n")
             sys.path.insert(0, temp_dir)
             invalidate_caches()
