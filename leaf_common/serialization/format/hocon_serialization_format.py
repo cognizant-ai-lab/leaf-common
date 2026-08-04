@@ -50,9 +50,10 @@ class HoconSerializationFormat(JsonSerializationFormat):
                 nicely formatted or not.  Try for: indent=4, sort_keys=True
         :param sanitize_keys: When True, to_object() removes the quotation
                 marks that pyhocon embeds in keys that had to be quoted in
-                the HOCON source because they contain forbidden characters,
-                such as ".", ":", "$", "@", "#", "!", "?", "=", and "+"
-                (e.g. "llama3.1", "llama3:8b").
+                the HOCON source because they contain characters that are
+                special in HOCON keys -- "$", "}", "[", "]", ":", "=",
+                "+", "#", "`", "^", "?", "!", "@", "*", "&", and "." --
+                e.g. "llama3.1" or "llama3:8b".
                 Default is False, preserving the existing (quote-retaining)
                 behavior for current callers.
         """
@@ -95,7 +96,7 @@ class HoconSerializationFormat(JsonSerializationFormat):
                 # ConfigTrees nested within it.
                 wrapper = ConfigTree()
                 wrapper.put("root", pruned_dict)
-                pruned_dict = wrapper.as_plain_ordered_dict().get("root")
+                pruned_dict = wrapper.as_plain_ordered_dict()["root"]
 
             # Hocon tends to produce regular dictionaries that have
             # ConfigTree structures for nested dictionaries.

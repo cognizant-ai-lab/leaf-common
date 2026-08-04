@@ -22,6 +22,8 @@ import io
 
 from unittest import TestCase
 
+from leaf_common.persistence.factory.hocon_persistence \
+    import HoconPersistence
 from leaf_common.serialization.format.hocon_serialization_format \
     import HoconSerializationFormat
 
@@ -66,20 +68,21 @@ class HoconSerializationFormatTest(TestCase):
         obj = self.serialization.to_object(None)
         self.assertIsNone(obj)
 
-    def test_keys_passed_through_by_default(self):
+    def test_quoted_keys_retained_by_default(self):
         """
-        Tests that without sanitize_keys, keys come back in whatever form
-        pyhocon stores them (historically, keys with forbidden characters
-        keep the quotation marks pyhocon embeds in them).
-        The comparison strips quotes so the test does not pin pyhocon's
-        internal key representation across versions.
+        Tests that without sanitize_keys, keys with special characters
+        keep the quotation marks pyhocon embeds in them.
+        This deliberately pins the exact key form: it is the
+        backward-compatibility promise that the sanitize_keys default
+        of False preserves, so this test must fail if the default
+        behavior ever changes.
         """
         fileobj = self.as_fileobj(self.HOCON_WITH_QUOTED_KEYS)
         obj = self.serialization.to_object(fileobj)
 
         models = obj.get("models")
-        self.assertEqual({"llama3.1", "llama3:8b", "plain_key"},
-                         {key.strip('"') for key in models})
+        self.assertEqual({'"llama3.1"': 1, '"llama3:8b"': 2, "plain_key": 3},
+                         models)
 
     def test_sanitize_keys(self):
         """
@@ -98,8 +101,10 @@ class HoconSerializationFormatTest(TestCase):
 
     def test_sanitize_keys_returns_plain_dicts(self):
         """
-        Tests that with sanitize_keys=True, nested structures come back
-        as regular dicts, not ConfigTrees or OrderedDicts
+        Tests that sanitized output keeps the plain-dict contract at every
+        nesting level and that nested quoted keys are sanitized.
+        The type checks pin the output contract shared with the default
+        path; the unquoted-key lookups are what exercise sanitization.
         """
         hocon_string = """
         outer {
@@ -126,3 +131,19 @@ class HoconSerializationFormatTest(TestCase):
         fileobj = self.as_fileobj('[1, 2, { "a.b" = 3 }]')
         obj = self.sanitizing.to_object(fileobj)
         self.assertEqual([1, 2, {"a.b": 3}], obj)
+
+    def test_hocon_persistence_forwards_sanitize_keys(self):
+        """
+        Tests that HoconPersistence forwards sanitize_keys to the
+        serialization format its restore() uses, so the option is
+        reachable through the persistence layer
+        """
+        persistence = HoconPersistence(None, sanitize_keys=True)
+        serialization = persistence.get_serialization_format()
+
+        fileobj = self.as_fileobj(self.HOCON_WITH_QUOTED_KEYS)
+        obj = serialization.to_object(fileobj)
+
+        models = obj.get("models")
+        self.assertEqual({"llama3.1": 1, "llama3:8b": 2, "plain_key": 3},
+                         models)

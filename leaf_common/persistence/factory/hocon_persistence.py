@@ -56,7 +56,7 @@ class HoconPersistence(AbstractPersistence):
         :param sanitize_keys: When True, restore() removes the quotation
                 marks that pyhocon embeds in keys containing forbidden
                 characters such as "." and ":" (e.g. "llama3.1").
-                See HoconSerializationFormat.to_object() for details.
+                See the HoconSerializationFormat constructor for details.
                 Default is False, preserving existing behavior.
         """
 
