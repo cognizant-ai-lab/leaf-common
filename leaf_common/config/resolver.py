@@ -122,40 +122,21 @@ class Resolver():
                                              install_if_missing=install_if_missing,
                                              surface_import_errors=surface_import_errors)
 
-        exceptions: List[Exception] = []
         for package in self.packages:
             fully_qualified_module: str = f"{package}.{use_module_name}"
-            found_module: Any = None
-            try:
-                found_module = self.try_to_import_module(fully_qualified_module, messages,
-                                                         install_if_missing=install_if_missing,
-                                                         surface_import_errors=surface_import_errors)
-            except ValueError as exception:
-                exceptions.append(exception)
-
+            found_module: Any = self.try_to_import_module(fully_qualified_module, messages,
+                                                          install_if_missing=install_if_missing,
+                                                          surface_import_errors=surface_import_errors)
             if found_module is not None:
                 return found_module
 
             # check main package
-            check_main_package: Any = None
-            try:
-                check_main_package = self.try_to_import_module(package, messages,
-                                                               install_if_missing=install_if_missing,
-                                                               surface_import_errors=surface_import_errors)
-            except ValueError as exception:
-                exceptions.append(exception)
+            check_main_package: Any = self.try_to_import_module(package, messages,
+                                                                install_if_missing=install_if_missing,
+                                                                surface_import_errors=surface_import_errors)
 
             if check_main_package is not None:
                 return check_main_package
-
-        if surface_import_errors and len(exceptions) > 0:
-            # Prefer an exception with "Try pip installing"
-            for exception in exceptions:
-                if "Try pip installing" in str(exception):
-                    raise exception
-
-            # It's not really clear what exception actually holds the real problem. Raise the first one.
-            raise exceptions[0]
 
         return None
 
@@ -193,7 +174,10 @@ class Resolver():
                     message += "another directory"
             else:
                 message += f"Try pip installing the package {install_if_missing} to get past this error."
-            if surface_import_errors:
+
+            candidate_missing: bool = isinstance(exception, ModuleNotFoundError)
+            if surface_import_errors and not candidate_missing and \
+                    (module == exception.name or module.startswith(f"{exception.name}.")):
                 raise ValueError(message) from exception
 
         except Exception as exception:      # pylint: disable=broad-except
