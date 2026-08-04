@@ -34,7 +34,8 @@ class HoconPersistence(AbstractPersistence):
     def __init__(self, persistence_mechanism,
                  use_file_extension=None,
                  reference_pruner=None,
-                 dictionary_converter=None, pretty=True):
+                 dictionary_converter=None, pretty=True,
+                 sanitize_keys=False):
         """
         Constructor
 
@@ -52,6 +53,11 @@ class HoconPersistence(AbstractPersistence):
                 in question.
         :param pretty: a boolean which says whether the Hocon (output as JSON)
                 is to be nicely formatted or not.  indent=4, sort_keys=True
+        :param sanitize_keys: When True, restore() removes the quotation
+                marks that pyhocon embeds in keys containing forbidden
+                characters such as "." and ":" (e.g. "llama3.1").
+                See HoconSerializationFormat.to_object() for details.
+                Default is False, preserving existing behavior.
         """
 
         super().__init__(persistence_mechanism,
@@ -59,7 +65,8 @@ class HoconPersistence(AbstractPersistence):
         self._serialization = HoconSerializationFormat(
             reference_pruner=reference_pruner,
             dictionary_converter=dictionary_converter,
-            pretty=pretty)
+            pretty=pretty,
+            sanitize_keys=sanitize_keys)
 
     def get_serialization_format(self):
         """

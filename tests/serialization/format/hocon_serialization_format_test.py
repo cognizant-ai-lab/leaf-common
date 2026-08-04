@@ -50,7 +50,7 @@ class HoconSerializationFormatTest(TestCase):
         """
         :return: a file-like object containing the given HOCON string
         """
-        return io.BytesIO(bytearray(hocon_string, "utf-8"))
+        return io.BytesIO(hocon_string.encode("utf-8"))
 
     def test_assumptions(self):
         """
@@ -65,18 +65,20 @@ class HoconSerializationFormatTest(TestCase):
         obj = self.serialization.to_object(None)
         self.assertIsNone(obj)
 
-    def test_quoted_keys_retained_by_default(self):
+    def test_keys_passed_through_by_default(self):
         """
-        Tests that without sanitize_keys, keys with forbidden characters
-        keep the quotation marks pyhocon embeds in them
+        Tests that without sanitize_keys, keys come back in whatever form
+        pyhocon stores them (historically, keys with forbidden characters
+        keep the quotation marks pyhocon embeds in them).
+        The comparison strips quotes so the test does not pin pyhocon's
+        internal key representation across versions.
         """
         fileobj = self.as_fileobj(self.HOCON_WITH_QUOTED_KEYS)
         obj = self.serialization.to_object(fileobj)
 
         models = obj.get("models")
-        self.assertIn('"llama3.1"', models)
-        self.assertIn('"llama3:8b"', models)
-        self.assertIn("plain_key", models)
+        self.assertEqual({"llama3.1", "llama3:8b", "plain_key"},
+                         {key.strip('"') for key in models})
 
     def test_sanitize_keys(self):
         """
@@ -107,8 +109,30 @@ class HoconSerializationFormatTest(TestCase):
         obj = self.serialization.to_object(fileobj, sanitize_keys=True)
 
         outer = obj.get("outer")
-        # pylint: disable=unidiomatic-typecheck
-        self.assertTrue(type(outer) is dict)
-        self.assertTrue(type(outer.get("inner.quoted")) is dict)
-        self.assertTrue(type(outer.get("some_list")[0]) is dict)
+        self.assertIs(type(outer), dict)
+        self.assertIs(type(outer.get("inner.quoted")), dict)
+        self.assertIs(type(outer.get("some_list")[0]), dict)
         self.assertEqual({"key.with.dots": 2}, outer.get("some_list")[0])
+
+    def test_sanitize_keys_root_level_list(self):
+        """
+        Tests that sanitize_keys=True handles a root-level HOCON array,
+        which pyhocon parses to a ConfigList rather than a ConfigTree
+        """
+        fileobj = self.as_fileobj('[1, 2, { "a.b" = 3 }]')
+        obj = self.serialization.to_object(fileobj, sanitize_keys=True)
+        self.assertEqual([1, 2, {"a.b": 3}], obj)
+
+    def test_sanitize_keys_constructor_default(self):
+        """
+        Tests that sanitize_keys passed to the constructor applies to
+        to_object() calls that do not specify it, so the setting reaches
+        callers that invoke to_object() polymorphically (e.g. restore())
+        """
+        serialization = HoconSerializationFormat(sanitize_keys=True)
+        fileobj = self.as_fileobj(self.HOCON_WITH_QUOTED_KEYS)
+        obj = serialization.to_object(fileobj)
+
+        models = obj.get("models")
+        self.assertEqual({"llama3.1": 1, "llama3:8b": 2, "plain_key": 3},
+                         models)

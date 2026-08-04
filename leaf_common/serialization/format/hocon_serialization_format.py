@@ -21,6 +21,7 @@ See class comment for details.
 import json
 
 from pyhocon import ConfigFactory
+from pyhocon import ConfigTree
 
 from leaf_common.serialization.format.json_serialization_format \
     import JsonSerializationFormat
@@ -34,7 +35,30 @@ class HoconSerializationFormat(JsonSerializationFormat):
     With this class, hocon serialization (from_object) is just JSON.
     """
 
-    def to_object(self, fileobj, basedir=None, sanitize_keys=False):
+    def __init__(self, reference_pruner=None, dictionary_converter=None,
+                 pretty=True, sanitize_keys=False):
+        """
+        Constructor.
+
+        :param reference_pruner: A ReferencePruner implementation
+                that knows how to prune/graft repeated references
+                throughout the object hierarchy
+        :param dictionary_converter: A DictionaryConverter implementation
+                that knows how to convert from a dictionary to the object type
+                in question.
+        :param pretty: a boolean which says whether the output is to be
+                nicely formatted or not.  Try for: indent=4, sort_keys=True
+        :param sanitize_keys: When True, to_object() sanitizes keys by
+                default.  See the to_object() docstring for details.
+                Default is False, preserving the existing (quote-retaining)
+                behavior for current callers.
+        """
+        super().__init__(reference_pruner=reference_pruner,
+                         dictionary_converter=dictionary_converter,
+                         pretty=pretty)
+        self.sanitize_keys = sanitize_keys
+
+    def to_object(self, fileobj, basedir=None, sanitize_keys=None):
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open and be
@@ -50,14 +74,17 @@ class HoconSerializationFormat(JsonSerializationFormat):
                 correctly regardless of where the server is started from.
         :param sanitize_keys: When True, keys that had to be quoted in the
                 HOCON source because they contain forbidden characters,
-                such as ".", ":", "$", "@", "#", "!", "?", "=", "+", and
-                white spaces (e.g. "llama3.1", "llama3:8b"), come back
-                without the quotation marks that pyhocon embeds in the
-                key strings.
-                Default is False, preserving the existing (quote-retaining)
-                behavior for current callers.
+                such as ".", ":", "$", "@", "#", "!", "?", "=", and "+"
+                (e.g. "llama3.1", "llama3:8b"), come back without the
+                quotation marks that pyhocon embeds in the key strings.
+                The default of None defers to the constructor's
+                sanitize_keys setting, itself False by default, preserving
+                the existing (quote-retaining) behavior for current callers.
         :return: the deserialized object
         """
+
+        if sanitize_keys is None:
+            sanitize_keys = self.sanitize_keys
 
         pruned_dict = None
         if fileobj is not None:
@@ -67,39 +94,26 @@ class HoconSerializationFormat(JsonSerializationFormat):
             # Load the HOCON into a dictionary
             pruned_dict = ConfigFactory.parse_string(hocon_string, basedir=basedir)
 
+            if pruned_dict is not None and sanitize_keys:
+                # as_plain_ordered_dict() removes the quotation marks that
+                # pyhocon embeds in keys containing forbidden characters
+                # such as "." and ":".  Only ConfigTree has that method and
+                # a root-level HOCON array parses to a ConfigList, so wrap
+                # the parse result in a ConfigTree first to sanitize any
+                # ConfigTrees nested within it.
+                wrapper = ConfigTree()
+                wrapper.put("root", pruned_dict)
+                pruned_dict = wrapper.as_plain_ordered_dict().get("root")
+
             # Hocon tends to produce regular dictionaries that have
             # ConfigTree structures for nested dictionaries.
-            # No one ever wants that, so convert to regular dictionaries
-            # before handing the result back to save the world the trouble
-            # of having to do it everywhere.
+            # No one ever wants that, so have the result go through a json
+            # encode/decode step before handing the dictionary back to save
+            # the world the trouble of having to do it everywhere.
             if pruned_dict is not None:
-                if sanitize_keys:
-                    # as_plain_ordered_dict() removes the quotation marks that
-                    # pyhocon embeds in keys containing forbidden characters
-                    # such as "." and ":".  It returns nested OrderedDicts,
-                    # so recursively convert those to regular dicts.
-                    pruned_dict = self.to_plain_dict(
-                        pruned_dict.as_plain_ordered_dict())
-                else:
-                    pruned_dict = json.loads(json.dumps(pruned_dict))
+                pruned_dict = json.loads(json.dumps(pruned_dict))
 
         obj = self.conversion_policy.convert_to_object(pruned_dict)
-        return obj
-
-    @staticmethod
-    def to_plain_dict(obj):
-        """
-        :param obj: An object potentially containing nested OrderedDicts,
-                as returned by pyhocon's as_plain_ordered_dict().
-        :return: the same structure with all dict-like values converted
-                to regular dicts
-        """
-        if isinstance(obj, dict):
-            return {key: HoconSerializationFormat.to_plain_dict(value)
-                    for key, value in obj.items()}
-        if isinstance(obj, list):
-            return [HoconSerializationFormat.to_plain_dict(item)
-                    for item in obj]
         return obj
 
     def get_file_extension(self):
