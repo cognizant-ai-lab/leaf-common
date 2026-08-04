@@ -130,7 +130,7 @@ class Resolver():
                 found_module = self.try_to_import_module(fully_qualified_module, messages,
                                                          install_if_missing=install_if_missing,
                                                          surface_import_errors=surface_import_errors)
-            except Exception as exception:  # pylint: disable=broad-except
+            except ValueError as exception:
                 exceptions.append(exception)
 
             if found_module is not None:
@@ -142,7 +142,7 @@ class Resolver():
                 check_main_package = self.try_to_import_module(package, messages,
                                                                install_if_missing=install_if_missing,
                                                                surface_import_errors=surface_import_errors)
-            except Exception as exception:  # pylint: disable=broad-except
+            except ValueError as exception:
                 exceptions.append(exception)
 
             if check_main_package is not None:
