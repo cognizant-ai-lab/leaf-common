@@ -104,7 +104,7 @@ class Resolver():
 
         return my_class
 
-    def _find_module(self, use_module_name: str, messages: List[str],           # noqa: C901
+    def _find_module(self, use_module_name: str, messages: List[str],
                      install_if_missing: str = None, surface_import_errors: bool = False) -> Any:
         """
         Searches for a module by name, trying each configured package in turn.
@@ -127,6 +127,7 @@ class Resolver():
             found_module: Any = self.try_to_import_module(fully_qualified_module, messages,
                                                           install_if_missing=install_if_missing,
                                                           surface_import_errors=surface_import_errors)
+
             if found_module is not None:
                 return found_module
 
@@ -134,7 +135,6 @@ class Resolver():
             check_main_package: Any = self.try_to_import_module(package, messages,
                                                                 install_if_missing=install_if_missing,
                                                                 surface_import_errors=surface_import_errors)
-
             if check_main_package is not None:
                 return check_main_package
 
