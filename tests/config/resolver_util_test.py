@@ -173,14 +173,14 @@ class ResolverUtilTest(TestCase):
         """
         If the two-part name cannot be resolved, a ValueError is raised.
         """
-        result = ResolverUtil.create_instance("json.JSONDecoder", "test_source", object)
+        _ = ResolverUtil.create_instance("json.JSONDecoder", "test_source", object)
 
     def test_create_instance_bad_two_part_name(self):
         """
         If the two-part name cannot be resolved, a ValueError is raised.
         """
         with self.assertRaises(ValueError):
-            result = ResolverUtil.create_instance("my_package.MyClass", "test_source", object)
+            _ = ResolverUtil.create_instance("my_package.MyClass", "test_source", object)
 
     # -------------------------------------------------------------------------
     # create_type tests
