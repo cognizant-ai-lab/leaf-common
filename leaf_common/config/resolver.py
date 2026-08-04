@@ -158,7 +158,7 @@ class Resolver():
 
         return None
 
-    def try_to_import_module(self, module: str, messages: List[str],
+    def try_to_import_module(self, module: str, messages: List[str],           # noqa: C901
                              install_if_missing: str = None, surface_import_errors: bool = False) -> Any:
         """
         Makes a single attempt to load a module
