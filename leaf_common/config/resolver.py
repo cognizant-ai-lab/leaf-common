@@ -140,7 +140,7 @@ class Resolver():
 
         return None
 
-    def try_to_import_module(self, module: str, messages: List[str],
+    def try_to_import_module(self, module: str, messages: List[str],           # noqa: C901
                              install_if_missing: str = None, surface_import_errors: bool = False) -> Any:
         """
         Makes a single attempt to load a module
@@ -168,12 +168,16 @@ class Resolver():
                 f"Module {module}: Couldn't load due to ImportError: {str(exception)}"
             message += "...\n"
             if not install_if_missing:
-                message += "This might be OK if this is *not* an ImportError "
-                message += "in the file itself and the code can be found in "
-                message += "another directory"
+                if not surface_import_errors:
+                    message += "This might be OK if this is *not* an ImportError "
+                    message += "in the file itself and the code can be found in "
+                    message += "another directory"
             else:
                 message += f"Try pip installing the package {install_if_missing} to get past this error."
-            if surface_import_errors:
+
+            exception_pertains_to_module: bool = (module == exception.name or module.startswith(f"{exception.name}."))
+            candidate_missing: bool = isinstance(exception, ModuleNotFoundError) and exception_pertains_to_module
+            if surface_import_errors and not candidate_missing:
                 raise ValueError(message) from exception
 
         except Exception as exception:      # pylint: disable=broad-except

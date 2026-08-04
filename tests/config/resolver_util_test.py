@@ -18,6 +18,11 @@
 See class comment for details
 """
 
+from importlib import invalidate_caches
+from os import makedirs
+from os.path import join
+import sys
+from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -168,6 +173,40 @@ class ResolverUtilTest(TestCase):
                 ResolverUtil.create_instance(
                     "my_package.my_module.MyClass", "test_source", object
                 )
+
+    def test_create_instance_good_two_part_name(self):
+        """
+        If the two-part name cannot be resolved, a ValueError is raised.
+        """
+        _ = ResolverUtil.create_instance("json.JSONDecoder", "test_source", object)
+
+    def test_create_instance_bad_two_part_name(self):
+        """
+        If the two-part name cannot be resolved, a ValueError is raised.
+        """
+        with self.assertRaises(ValueError):
+            _ = ResolverUtil.create_instance("my_package.MyClass", "test_source", object)
+
+    def test_create_instance_surfaces_missing_dependency(self):
+        """
+        A module that exists but imports a missing package should surface
+        the real ImportError, not 'not found in PYTHONPATH'.
+        """
+        with TemporaryDirectory() as temp_dir:
+            pkg_dir = join(temp_dir, "demo_pkg")
+            makedirs(pkg_dir)
+            with open(join(pkg_dir, "__init__.py"), "w", encoding="utf-8") as f:
+                f.write("")
+            with open(join(pkg_dir, "missing_dep.py"), "w", encoding="utf-8") as f:
+                f.write("import nonexistent_dependency_xyz\n\nclass MissingDep:\n    pass\n")
+            sys.path.insert(0, temp_dir)
+            invalidate_caches()
+            try:
+                with self.assertRaises(ValueError) as context:
+                    ResolverUtil.create_instance("demo_pkg.missing_dep.MissingDep", "test_source", object)
+                self.assertIn("nonexistent_dependency_xyz", str(context.exception))
+            finally:
+                sys.path.remove(temp_dir)
 
     # -------------------------------------------------------------------------
     # create_type tests
