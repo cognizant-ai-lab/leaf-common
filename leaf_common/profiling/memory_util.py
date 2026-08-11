@@ -28,7 +28,7 @@ class MemoryUtil:
     """
 
     @staticmethod
-    def get_memory_dict(obj_in: Any) -> Dict[str, Any]:
+    def get_memory_dict(obj_in: Any) -> Dict[str, Any]:     # noqa: C901
         """
         Get the memory usage of an object.
 
