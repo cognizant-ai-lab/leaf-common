@@ -18,7 +18,8 @@ jobs=0
 
 # Not useful warning
 disable=too-few-public-methods,
-        duplicate-code
+        duplicate-code,
+        missing-module-docstring
 
 [FORMAT]
 

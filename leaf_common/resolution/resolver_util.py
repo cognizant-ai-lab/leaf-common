@@ -23,7 +23,7 @@ from typing import List
 from typing import Tuple
 from typing import Type
 
-from leaf_common.config.resolver import Resolver
+from leaf_common.resolution.resolver import Resolver
 
 
 class ResolverUtil:
