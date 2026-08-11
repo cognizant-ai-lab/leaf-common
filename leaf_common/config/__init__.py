@@ -8,7 +8,8 @@ _DEPRECATION_REDIRECT = DeprecationRedirect(
     {
         "leaf_common.config.resolver.Resolver": "leaf_common.resolution.resolver.Resolver",
         "leaf_common.config.resolver_util.ResolverUtil": "leaf_common.resolution.resolver_util.ResolverUtil",
-    }
+    },
+    next_version="1.3.0"
 )
 
 
