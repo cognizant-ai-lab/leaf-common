@@ -23,7 +23,7 @@ forms surfaced by HOCON / JSON / env configs and fall back safely on
 unrecognized input.
 """
 
-from leaf_common.utils.config_util import ConfigUtil
+from leaf_common.config.config_util import ConfigUtil
 
 
 class TestConfigUtilGetBool:
