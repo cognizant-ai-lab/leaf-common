@@ -23,7 +23,6 @@ from typing import Type
 from logging import getLogger
 from logging import Logger
 from sys import modules
-from warnings import warn
 
 from leaf_common.resolution.resolver import Resolver
 from leaf_common.resolution.resolver_util import ResolverUtil
@@ -121,9 +120,8 @@ class DeprecationRedirect:
                 version = f" in version {self.next_version} or greater"
             full_message: str = f"{full_ref} is deprecated and will eventually be removed{version}. " + \
                                 f"Use {new_class} instead."
-            warn(full_message, DeprecationWarning, stacklevel=3)
             logger: Logger = getLogger(full_ref)
-            logger.warning(full_message)
+            logger.warning("Deprecation warning: %s", full_message)
 
         return new_type
 
