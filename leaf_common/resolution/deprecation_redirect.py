@@ -114,8 +114,11 @@ class DeprecationRedirect:
             # Emit the deprecation warning
             old_module: str = self.get_module_from_fully_qualified(fully_qualified_old_class)
             full_ref: str = f"{self.module_name}.{old_module}.{old_class}"
-            warn(f"{full_ref} is deprecated and will be removed in version {self.next_version} or greater, "
-                 f"use {new_class} instead.", DeprecationWarning, stacklevel=3)
+            version: str = ""
+            if self.next_version is not None:
+                version = f" in version {self.next_version} or greater"
+            warn(f"{full_ref} is deprecated and will eventually be removed {version}."
+                 f"Use {new_class} instead.", DeprecationWarning, stacklevel=3)
 
         return new_type
 
