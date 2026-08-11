@@ -28,9 +28,9 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 
-from leaf_common.config.resolver_util import ResolverUtil
+from leaf_common.resolution.resolver_util import ResolverUtil
 
-RESOLVER_PATH = "leaf_common.config.resolver.Resolver.resolve_class_in_module"
+RESOLVER_PATH = "leaf_common.resolution.resolver.Resolver.resolve_class_in_module"
 
 
 class ResolverUtilTest(TestCase):
