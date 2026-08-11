@@ -119,7 +119,7 @@ class DeprecationRedirect:
             version: str = ""
             if self.next_version is not None:
                 version = f" in version {self.next_version} or greater"
-            full_message: str = f"{full_ref} is deprecated and will eventually be removed {version}. " + \
+            full_message: str = f"{full_ref} is deprecated and will eventually be removed{version}. " + \
                                 f"Use {new_class} instead."
             warn(full_message, DeprecationWarning, stacklevel=3)
             logger: Logger = getLogger(full_ref)
