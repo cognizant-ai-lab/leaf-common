@@ -3,7 +3,7 @@ from typing import Type
 
 from leaf_common.resolution.deprecation_redirect import DeprecationRedirect
 
-_DEPRECATION_REDIRECTS = DeprecationRedirect(
+_DEPRECATION_REDIRECT = DeprecationRedirect(
     __name__,
     {
         "leaf_common.config.resolver.Resolver": "leaf_common.resolution.resolver.Resolver",
