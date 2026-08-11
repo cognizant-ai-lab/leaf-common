@@ -32,5 +32,8 @@ pytz>=2022.7.1
 ruamel.yaml>=0.17.21
 pyhocon>=0.3.60
 
+# Memory size estimation
+objsize>=0.8.0
+
 # For deprecated decorator use
 Deprecated>=1.2.13
