@@ -2,9 +2,6 @@
 # We separate out requirements that are specific to builds, but not
 # necessary for operation to minimize the size of containers
 
-# For vault access
-hvac>=1.1.0
-
 # Tests
 pytest==9.0.3
 pytest-timer==1.0.0
@@ -15,9 +12,6 @@ pytest-cov==5.0.0
 # Code analysis
 flake8==7.1.1
 pylint==3.3.1
-
-# Special pylint extensions
-pylint-protobuf==0.22.0
 
 # Packaging
 build
