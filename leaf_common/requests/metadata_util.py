@@ -1,0 +1,153 @@
+
+# Copyright © 2019-2026 Cognizant Technology Solutions Corp, www.cognizant.com.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# END COPYRIGHT
+"""
+See class comment for details.
+"""
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Tuple
+from typing import Union
+
+
+class MetadataUtil():
+    """
+    Utility class that converts various structures like dictionaries and lists
+    to/from the tuple format that grpc expects.
+    """
+
+    @classmethod
+    def to_tuples(cls, metadata: Union[Dict[str, Any], List[Any], Tuple[Any, ...]]) -> Tuple[Tuple[Any, ...], ...]:
+        """
+        Converts the metadata into the tuple-of-tuples form GRPC can digest.
+        :param metadata: Can be None, a single tuple, a tuple of tuples
+                a list of tuples, a list of lists, a dictionary.
+        :return: the same metadata in tuple-of-tuple form
+        """
+
+        # No means no
+        if metadata is None:
+            return None
+
+        # Don't know how to convert anything that's not a dict, list or tuple
+        if not isinstance(metadata, dict) and \
+           not isinstance(metadata, list) and \
+           not isinstance(metadata, tuple):
+            return None
+
+        # Empty structures we support means we don't send metadata
+        if not any(metadata):
+            return None
+
+        # Start out by assuming the metadata is in the form we want
+        use_metadata = metadata
+
+        # In the dictionary case, convert the key/value pairs to
+        # the list-of-lists form.
+        if isinstance(metadata, dict):
+            use_metadata = list(metadata.items())
+
+        # If the first element of the list/tuple is a scalar,
+        # make a list out of it to be in a canonical form
+        first = use_metadata[0]
+        if not isinstance(first, list) and \
+           not isinstance(first, tuple):
+            use_metadata = [use_metadata]
+
+        # Convert individual elements to tuples
+        elements_to_convert = list(use_metadata)
+        converted_elements = []
+        for element in elements_to_convert:
+            converted_element = tuple(element)
+            converted_elements.append(converted_element)
+
+        # Convert list to tuples
+        converted = tuple(converted_elements)
+
+        return converted
+
+    @classmethod
+    def to_dict(cls, metadata: Union[Dict[str, Any], List[Any], Tuple[Any, ...]]) -> Dict[str, Any]:
+        """
+        Converts the metadata tuples into a dictionary more palettable to
+        python manipulation.
+
+        :param metadata: the tuple-d metadata
+        :return: A dictionary of key/value pairs corresponding to the metadata
+        """
+
+        metadata_dict = {}
+        if metadata is None:
+            return metadata_dict
+
+        if isinstance(metadata, dict):
+            return metadata
+
+        metadata_list = metadata
+        if isinstance(metadata, tuple):
+            metadata_list = list(metadata)
+
+        for element in metadata_list:
+            key = element[0]
+            value = element[1]
+            metadata_dict[key] = value
+
+        return metadata_dict
+
+    @staticmethod
+    def minimize_metadata(request_metadata: Dict[str, Any],
+                          keys: Union[str, List[str]]) -> Dict[str, Any]:
+        """
+        :param request_metadata: The raw request metadata dictionary that could easily contain
+                    more keys than we want to send to the UsageLogger.
+        :param keys: The keys we want to send to the UsageLogger
+                This can either be a single string with space-delimited keys, or a list of keys
+        :return: A minimized dictionary that only sends the keys we need to the UsageLogger.
+                The idea is that this prevents the UsageLogger from getting potentially
+                sensitive information it shouldn't really have.
+
+                If the requested keys in the metadata are not there, they will also not appear
+                in the returned minimized dictionary.
+        """
+        minimized: Dict[str, Any] = {}
+
+        if request_metadata is None:
+            # No request data, nothing to fill
+            return minimized
+
+        # If there are no keys, there is nothing to fill.
+        if not keys:
+            return minimized
+
+        keys_list: List[str] = []
+
+        # Check if keys is a string or a list
+        if isinstance(keys, str):
+            keys_list = keys.split(" ")
+        elif isinstance(keys, List):
+            keys_list = keys
+
+        for key in keys_list:
+            if not key:
+                # Skip any empty key split from the list. Allows for multi-spaces.
+                continue
+
+            value: str = request_metadata.get(key)
+            if value:
+                minimized[key] = value
+
+        return minimized

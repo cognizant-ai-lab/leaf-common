@@ -17,6 +17,9 @@
 """
 See class comment for details.
 """
+from typing import Any
+from typing import Dict
+from typing import List
 
 
 class FieldExtractor():
@@ -26,8 +29,8 @@ class FieldExtractor():
     values imply nested dictionary lookup.
     """
 
-    def get_field(self, dictionary, field_name, default_value=None,
-                  delimiter="."):
+    def get_field(self, dictionary: Dict[str, Any], field_name: str,
+                  default_value: Any = None, delimiter: str = ".") -> Any:
         """
         :param dictionary: the dictionary in which the field
             is supposed exist.
@@ -57,13 +60,13 @@ class FieldExtractor():
             return dictionary.get(field_name, default_value)
 
         # Handle the more complex case of a delimited key
-        field_split = field_name.split(delimiter)
-        use_field_name = field_split[0]
+        field_split: List[str] = field_name.split(delimiter)
+        use_field_name: str = field_split[0]
 
         # Get the value for the segment of the field name
         # If it's not a dictionary, return the default value,
         # as we know we have more to look for.
-        value = dictionary.get(use_field_name, None)
+        value: Any = dictionary.get(use_field_name, None)
         if value is None or \
                 not isinstance(value, dict):
             return default_value
@@ -71,9 +74,8 @@ class FieldExtractor():
         # We know the value is a dictionary.
         # Get the remaining bit of the delimited field
         # into its own string for recursion
-        remaining_split = field_split[1:len(field_split)+1]
-        remaining_field = delimiter.join(remaining_split)
+        remaining_split: List[str] = field_split[1:len(field_split)+1]
+        remaining_field: str = delimiter.join(remaining_split)
 
-        deep_value = self.get_field(value, remaining_field,
-                                    default_value, delimiter)
+        deep_value: Any = self.get_field(value, remaining_field, default_value, delimiter)
         return deep_value
