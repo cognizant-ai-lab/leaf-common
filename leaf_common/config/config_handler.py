@@ -18,15 +18,12 @@
 See class comment for details.
 """
 
-import copy
+from copy import deepcopy
 from collections.abc import Mapping
 
-from leaf_common.persistence.easy.easy_hocon_persistence \
-    import EasyHoconPersistence
-from leaf_common.persistence.easy.easy_json_persistence \
-    import EasyJsonPersistence
-from leaf_common.persistence.easy.easy_yaml_persistence \
-    import EasyYamlPersistence
+from leaf_common.persistence.easy.easy_hocon_persistence import EasyHoconPersistence
+from leaf_common.persistence.easy.easy_json_persistence import EasyJsonPersistence
+from leaf_common.persistence.easy.easy_yaml_persistence import EasyYamlPersistence
 
 
 class ConfigHandler():
@@ -57,7 +54,7 @@ class ConfigHandler():
         # Set up a very basic config dictionary
         config = {}
         if default_config is not None and isinstance(default_config, dict):
-            config = copy.deepcopy(default_config)
+            config = deepcopy(default_config)
 
         # Potentially read config from a file, if config arg is a string filename
         update_source = {}
@@ -69,8 +66,8 @@ class ConfigHandler():
         elif isinstance(config_source, dict):
             update_source = config_source
 
-        config = self.deep_update(config, update_source)
-        return config
+        new_config = self.deep_update(config, update_source)
+        return new_config
 
     def deep_update(self, dest, source):
         """
