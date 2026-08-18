@@ -18,9 +18,10 @@
 See class comment for details.
 """
 
-import io
-import json
-import os
+from io import BytesIO
+from json import dumps
+from json import load
+from os import SEEK_SET
 
 from leaf_common.serialization.interface.serialization_format \
     import SerializationFormat
@@ -72,12 +73,12 @@ class JsonSerializationFormat(SerializationFormat):
             sort_keys = True
 
         # Now convert the pruned dictionary to JSON
-        json_str = json.dumps(pruned_dict, indent=indent, sort_keys=sort_keys)
+        json_str = dumps(pruned_dict, indent=indent, sort_keys=sort_keys)
 
         # Make a file-like object out of the JSON string
         byte_array = bytearray(json_str, 'utf-8')
-        fileobj = io.BytesIO(byte_array)
-        fileobj.seek(0, os.SEEK_SET)
+        fileobj = BytesIO(byte_array)
+        fileobj.seek(0, SEEK_SET)
 
         return fileobj
 
@@ -96,7 +97,7 @@ class JsonSerializationFormat(SerializationFormat):
         pruned_dict = None
         if fileobj is not None:
             # Load the JSON into a dictionary
-            pruned_dict = json.load(fileobj)
+            pruned_dict = load(fileobj)
 
         obj = self.conversion_policy.convert_to_object(pruned_dict)
         return obj
