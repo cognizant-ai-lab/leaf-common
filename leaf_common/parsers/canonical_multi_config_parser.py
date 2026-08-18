@@ -66,9 +66,9 @@ class CanonicalMultiConfigParser(Parser):
         # Parse the value to be in a cannonical form of an array of
         # configuration dictionaries
         config_list = []
-        config_list = self.parse_one_value(None, input_obj, config_list)
+        new_config_list = self.parse_one_value(None, input_obj, config_list)
 
-        return config_list
+        return new_config_list
 
     def parse_one_value(self, key, value, config_list):
         """

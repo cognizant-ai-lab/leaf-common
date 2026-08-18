@@ -18,8 +18,12 @@
 See class comment for details.
 """
 
-import errno
-import logging
+from errno import EPIPE
+from logging import ERROR
+from logging import INFO
+from logging import Logger
+from logging import getLogger
+from sys import exc_info
 import sys
 
 from io import StringIO
@@ -32,7 +36,7 @@ class StreamToLogger(StringIO):
     https://stackoverflow.com/questions/11124093/redirect-python-print-output-to-logger/11124247
     """
 
-    def __init__(self, logger, log_level=logging.INFO):
+    def __init__(self, logger, log_level=INFO):
         """
         Constructor.
 
@@ -68,7 +72,7 @@ class StreamToLogger(StringIO):
 
         # Look to break infinite loops in logging exceptions
         # _ is Pythonic for unused variable
-        exception_type, exception_value, _ = sys.exc_info()
+        exception_type, exception_value, _ = exc_info()
 
         # If we have logged something before in this call stack
         dont_log = len(self.last_num_lines_logged) > 0
@@ -83,7 +87,7 @@ class StreamToLogger(StringIO):
             (exception_type == BrokenPipeError) or \
             (exception_type == RecursionError) or \
             ((exception_type == OSError) and
-             (str(exception_value) == str(errno.EPIPE)))
+             (str(exception_value) == str(EPIPE)))
         dont_log = dont_log or \
             (num_lines > 0 and lines[0].startswith("--- Logging error ---"))
 
@@ -111,7 +115,7 @@ class StreamToLogger(StringIO):
         return num_chars
 
     @classmethod
-    def subvert(cls, logger=None, reroute_stdout=True, reroute_stderr=True):
+    def subvert(cls, logger: Logger = None, reroute_stdout: bool = True, reroute_stderr: bool = True):
         """
         Subverts stdout and stderr to separate instances of the python logger
         for this class.
@@ -126,16 +130,16 @@ class StreamToLogger(StringIO):
         """
 
         # Get the logger
-        use_logger = logger
+        use_logger: Logger = logger
         if use_logger is None:
-            use_logger = logging.getLogger(cls.__name__)
+            use_logger = getLogger(cls.__name__)
 
         # Deal with stdout
-        info_stream_logger = StreamToLogger(use_logger, logging.INFO)
+        info_stream_logger = StreamToLogger(use_logger, INFO)
         if reroute_stdout:
             sys.stdout = info_stream_logger
 
         # Deal with stderr
-        error_stream_logger = StreamToLogger(use_logger, logging.ERROR)
+        error_stream_logger = StreamToLogger(use_logger, ERROR)
         if reroute_stderr:
             sys.stderr = error_stream_logger
