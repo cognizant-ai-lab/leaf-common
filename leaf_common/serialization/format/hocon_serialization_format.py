@@ -18,13 +18,13 @@
 See class comment for details.
 """
 
-import json
+from json import dumps
+from json import loads
 
 from pyhocon import ConfigFactory
 from pyhocon import ConfigTree
 
-from leaf_common.serialization.format.json_serialization_format \
-    import JsonSerializationFormat
+from leaf_common.serialization.format.json_serialization_format import JsonSerializationFormat
 from leaf_common.serialization.util.bytes_decoder import BytesDecoder
 
 
@@ -104,7 +104,7 @@ class HoconSerializationFormat(JsonSerializationFormat):
             # encode/decode step before handing the dictionary back to save
             # the world the trouble of having to do it everywhere.
             if pruned_dict is not None:
-                pruned_dict = json.loads(json.dumps(pruned_dict))
+                pruned_dict = loads(dumps(pruned_dict))
 
         obj = self.conversion_policy.convert_to_object(pruned_dict)
         return obj
