@@ -75,20 +75,20 @@ class StreamToLogger(StringIO):
         exception_type, exception_value, _ = exc_info()
 
         # If we have logged something before in this call stack
-        dont_log = len(self.last_num_lines_logged) > 0
+        dont_log_1: bool = len(self.last_num_lines_logged) > 0
         # ... and we are logging the same number of lines as before
-        dont_log = dont_log and self.last_num_lines_logged[-1] == num_lines
+        dont_log_2: bool = dont_log_1 and self.last_num_lines_logged[-1] == num_lines
         # ... and the string we last logged is in the what we are trying to log
-        dont_log = dont_log and self.last_logged[-1] in stripped
+        dont_log_3: bool = dont_log_2 and self.last_logged[-1] in stripped
 
         # Prevent some infinite loops when exceptions happen in loggers when
         # lower-level python logging code encounters a BrokenPipe error.
-        dont_log = dont_log or \
+        dont_log_4: bool = dont_log_3 or \
             (exception_type == BrokenPipeError) or \
             (exception_type == RecursionError) or \
             ((exception_type == OSError) and
              (str(exception_value) == str(EPIPE)))
-        dont_log = dont_log or \
+        dont_log: bool = dont_log_4 or \
             (num_lines > 0 and lines[0].startswith("--- Logging error ---"))
 
         if dont_log:
