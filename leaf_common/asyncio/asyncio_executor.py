@@ -24,16 +24,27 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
-import asyncio
-import functools
-import inspect
-import logging
-import threading
-import traceback
+from functools import partial
+from inspect import isawaitable
+from inspect import iscoroutinefunction
+from logging import getLogger
+from logging import Logger
+from threading import Event
+from threading import Lock
+from threading import Thread
+from threading import get_ident
+from traceback import format_exception
 
 from asyncio import AbstractEventLoop
 from asyncio import Future
 from asyncio import Task
+from asyncio import all_tasks
+from asyncio import eager_task_factory
+from asyncio import gather
+from asyncio import run_coroutine_threadsafe
+from asyncio import set_event_loop
+from asyncio import to_thread
+from asyncio.exceptions import CancelledError
 from concurrent import futures
 
 from leaf_common.asyncio.event_loop_factory import EventLoopFactory
@@ -58,21 +69,21 @@ class AsyncioExecutor(TaskExecutor):
         """
         super().__init__()
         self._shutdown: bool = False
-        self._thread: threading.Thread = None
+        self._thread: Thread = None
         # We are going to start new thread for this Executor,
         # so we need a new event loop bound to this particular thread:
         self._threadpool_executor: AsyncioThreadPoolExecutor = AsyncioThreadPoolExecutor(max_workers=max_workers)
         self._loop: AbstractEventLoop = EventLoopFactory.new_event_loop()
         self._loop.set_exception_handler(AsyncioExecutor.loop_exception_handler)
         self._loop.set_default_executor(self._threadpool_executor)
-        self._loop.set_task_factory(asyncio.eager_task_factory)
-        self._loop_ready = threading.Event()
-        self._init_done = threading.Event()
+        self._loop.set_task_factory(eager_task_factory)
+        self._loop_ready = Event()
+        self._init_done = Event()
         self._background_tasks: Dict[int, Dict[str, Any]] = {}
         # background tasks table will be accessed from different threads,
         # so protect it:
-        self._background_tasks_lock = threading.Lock()
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self._background_tasks_lock = Lock()
+        self.logger: Logger = getLogger(self.__class__.__name__)
 
     def get_event_loop(self) -> AbstractEventLoop:
         """
@@ -89,9 +100,9 @@ class AsyncioExecutor(TaskExecutor):
         if self._thread is not None:
             return
 
-        self._thread = threading.Thread(target=self.loop_manager,
-                                        args=(self._loop, self._loop_ready),
-                                        daemon=True)
+        self._thread = Thread(target=self.loop_manager,
+                              args=(self._loop, self._loop_ready),
+                              daemon=True)
         self._thread.start()
         timeout: int = EXECUTOR_START_TIMEOUT_SECONDS
         was_set: bool = self._loop_ready.wait(timeout=timeout)
@@ -117,7 +128,7 @@ class AsyncioExecutor(TaskExecutor):
             raise ValueError(f"FAILED to run executor initializer in {timeout} sec")
 
     @staticmethod
-    def run_initialization(init_function: Callable, init_done: threading.Event):
+    def run_initialization(init_function: Callable, init_done: Event):
         """
         Run in-loop initialization
         """
@@ -129,31 +140,31 @@ class AsyncioExecutor(TaskExecutor):
             init_done.set()
 
     @staticmethod
-    def notify_loop_ready(loop_ready: threading.Event):
+    def notify_loop_ready(loop_ready: Event):
         """
         Function will be called once the event loop starts
         """
         loop_ready.set()
 
     @staticmethod
-    def loop_manager(loop: AbstractEventLoop, loop_ready: threading.Event):
+    def loop_manager(loop: AbstractEventLoop, loop_ready: Event):
         """
         Entry point static method for the background thread.
 
         :param loop: The AbstractEventLoop to use to run the event loop.
         :param loop_ready: event notifying that loop is ready for execution.
         """
-        asyncio.set_event_loop(loop)
+        set_event_loop(loop)
         loop.call_soon(AsyncioExecutor.notify_loop_ready, loop_ready)
         loop.run_forever()
 
         # If we reach here, the loop was stopped.
         # We should gather any remaining tasks and finish them.
-        pending = asyncio.all_tasks(loop=loop)
+        pending = all_tasks(loop=loop)
         if pending:
             # We want all possibly pending tasks to execute -
             # don't need them to raise exceptions.
-            loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+            loop.run_until_complete(gather(*pending, return_exceptions=True))
         # Close the event loop to free its related resources
         loop.close()
 
@@ -175,7 +186,7 @@ class AsyncioExecutor(TaskExecutor):
 
         message = context.get("message", None)
         exception = context.get("exception", None)
-        formatted_exception = traceback.format_exception(exception)
+        formatted_exception = format_exception(exception)
         print(f"Event loop traceback ({message}):\n{formatted_exception}")
 
     def get_function_name(self, function, submitter_id: str) -> str:
@@ -198,7 +209,7 @@ class AsyncioExecutor(TaskExecutor):
         """
         :return: True if we are currently executing in the event loop thread.
         """
-        return threading.get_ident() == self._thread.ident
+        return get_ident() == self._thread.ident
 
     def _create_in_loop_thread(
             self, function, task_name: str, task_creation_future: futures.Future, /, *args, **kwargs) -> None:
@@ -213,16 +224,16 @@ class AsyncioExecutor(TaskExecutor):
         :param kwargs: keyword args for the function
         """
         try:
-            if inspect.isawaitable(function):
+            if isawaitable(function):
                 task = self._loop.create_task(function, name=task_name)
-            elif inspect.iscoroutinefunction(function):
+            elif iscoroutinefunction(function):
                 # function is async def -> create task for its coroutine
                 coro = function(*args, **kwargs)
                 task = self._loop.create_task(coro, name=task_name)
             else:
                 # function is sync -> run it in a worker thread, but task lives in event loop
-                func = functools.partial(function, *args, **kwargs)
-                task = self._loop.create_task(asyncio.to_thread(func), name=task_name)
+                func = partial(function, *args, **kwargs)
+                task = self._loop.create_task(to_thread(func), name=task_name)
             task_creation_future.set_result(task)
         except BaseException as exc:  # pylint: disable=broad-except
             task_creation_future.set_exception(exc)
@@ -256,10 +267,10 @@ class AsyncioExecutor(TaskExecutor):
         # If we are not in the event loop thread,
         # we need to schedule a task to create the resulting Task in the event loop thread.
         # Construct a partial function to create the task:
-        creation_function = functools.partial(self._create_in_loop_thread,
-                                              function, task_name,
-                                              task_creation_future,
-                                              *args, **kwargs)
+        creation_function = partial(self._create_in_loop_thread,
+                                    function, task_name,
+                                    task_creation_future,
+                                    *args, **kwargs)
         # Ensure task is created in the event loop thread
         self._loop.call_soon_threadsafe(creation_function)
         return task_creation_future
@@ -347,7 +358,7 @@ class AsyncioExecutor(TaskExecutor):
                 pending.append(task)
         # Don't raise exceptions in the tasks being cancelled -
         # we don't really need to react to them.
-        _ = await asyncio.gather(*pending, return_exceptions=True)
+        _ = await gather(*pending, return_exceptions=True)
 
     def cancel_current_tasks(self, timeout: float = 5.0):
         """
@@ -369,7 +380,7 @@ class AsyncioExecutor(TaskExecutor):
             task: Task = task_dict.get("task", None)
             if task and not task.done():
                 tasks_to_cancel.append(task)
-        cancel_task = asyncio.run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
+        cancel_task = run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
         try:
             cancel_task.result(timeout)
         except futures.TimeoutError:
@@ -436,13 +447,13 @@ class AsyncioExecutor(TaskExecutor):
         except futures.TimeoutError:
             self.logger.info("Task from %s took too long", origination)
 
-        except asyncio.exceptions.CancelledError:
+        except CancelledError:
             # Cancelled task is OK - it may happen for different reasons.
             self.logger.info("Task from %s was cancelled", origination)
 
         # pylint: disable=broad-exception-caught
         except Exception as exc:
-            formatted_exception: List[str] = traceback.format_exception(exc)
+            formatted_exception: List[str] = format_exception(exc)
             for line in formatted_exception:
                 if line.endswith("\n"):
                     line = line[:-1]

@@ -19,8 +19,9 @@ See class comment for details.
 """
 from typing import Tuple
 from concurrent.futures import ThreadPoolExecutor
-import logging
-import threading
+from logging import getLogger
+from logging import Logger
+from threading import Lock
 
 
 class AsyncioThreadPoolExecutor(ThreadPoolExecutor):
@@ -32,8 +33,8 @@ class AsyncioThreadPoolExecutor(ThreadPoolExecutor):
         """Constructor."""
         super().__init__(*args, **kwargs)
         self.running: int = 0
-        self.lock = threading.Lock()
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.lock = Lock()
+        self.logger: Logger = getLogger(self.__class__.__name__)
         self.no_threads_warning_logged: bool = False
 
     def submit(self, fn, /, *args, **kwargs):
