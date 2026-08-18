@@ -185,9 +185,9 @@ class LoggingSetup():
                                             log_config_file_path,
                                             source_anchor=self.source_anchor)
 
-        log_config_file_path = path.abspath(log_config_file_path)
+        new_log_config_file_path = path.abspath(log_config_file_path)
 
-        return log_config_file_path
+        return new_log_config_file_path
 
     def determine_log_level(self):
         """
