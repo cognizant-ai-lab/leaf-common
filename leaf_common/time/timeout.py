@@ -21,7 +21,7 @@ See class comment for details
 # Needed for Timeout self-typing in has_time() below
 from __future__ import annotations      # noqa: F407
 
-import time
+from time import time
 
 from leaf_common.time.timeout_reached_exception import TimeoutReachedException
 
@@ -85,7 +85,7 @@ class Timeout:
         """
 
         self.limit_in_seconds = timeout_limit_in_seconds
-        self.start_time = time.time()
+        self.start_time = time()
 
     def get_limit_in_seconds(self) -> float:
         """
@@ -111,9 +111,9 @@ class Timeout:
                 self.limit_in_seconds < 0:  # timeout is not set
             return -1
 
-        remain = self.start_time + self.limit_in_seconds - time.time()
-        remain = max(remain, 0)
-        return remain
+        remain = self.start_time + self.limit_in_seconds - time()
+        new_remain = max(remain, 0)
+        return new_remain
 
     @classmethod
     def has_time(cls, interval_seconds: float, timeout: Timeout = None) -> bool:
