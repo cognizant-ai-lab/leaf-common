@@ -15,9 +15,11 @@
 #
 # END COPYRIGHT
 
-import copy
-import logging
-import threading
+from copy import copy
+from logging import getLogRecordFactory
+from logging import setLogRecordFactory
+from threading import current_thread
+from threading import Thread
 
 
 # Set up some global variables to allow cascading of LogRecord factories
@@ -45,8 +47,8 @@ def _service_log_record_factory(*args, **kwargs):
     log_record = _SERVICE_OLD_FACTORY(*args, **kwargs)
 
     # Get the current threads attributes as a dictionary
-    current_thread = threading.current_thread()
-    thread_dict = current_thread.__dict__
+    my_current_thread: Thread = current_thread()
+    thread_dict = my_current_thread.__dict__
 
     # Find the logging fields dictionary from the current thread
     logging_fields_dict = _DEFAULT_EXTRA_LOGGING_FIELDS_DICT
@@ -94,14 +96,14 @@ class ServiceLogRecord():
         # pylint: disable=global-statement
         global _SERVICE_OLD_FACTORY
         if _SERVICE_OLD_FACTORY is None:
-            _SERVICE_OLD_FACTORY = logging.getLogRecordFactory()
+            _SERVICE_OLD_FACTORY = getLogRecordFactory()
 
         if default_extra_logging_fields is not None:
             # pylint: disable=global-statement
             global _DEFAULT_EXTRA_LOGGING_FIELDS_DICT
-            _DEFAULT_EXTRA_LOGGING_FIELDS_DICT = copy.copy(default_extra_logging_fields)
+            _DEFAULT_EXTRA_LOGGING_FIELDS_DICT = copy(default_extra_logging_fields)
 
-        logging.setLogRecordFactory(_service_log_record_factory)
+        setLogRecordFactory(_service_log_record_factory)
 
     @classmethod
     def get_default_extra_logging_fields(cls):
@@ -110,7 +112,7 @@ class ServiceLogRecord():
         """
         # pylint: disable=global-statement,global-variable-not-assigned
         global _DEFAULT_EXTRA_LOGGING_FIELDS_DICT       # noqa: F824
-        default_extra_logging_fields = copy.copy(_DEFAULT_EXTRA_LOGGING_FIELDS_DICT)
+        default_extra_logging_fields = copy(_DEFAULT_EXTRA_LOGGING_FIELDS_DICT)
         return default_extra_logging_fields
 
     def __init__(self, logging_fields_dict=None):
@@ -124,10 +126,10 @@ class ServiceLogRecord():
                 additional log messaging fields.
         """
         # Get the current thread
-        current_thread = threading.current_thread()
+        my_current_thread: Thread = current_thread()
 
         # Get the dictionary for the current thread structure
-        thread_dict = current_thread.__dict__
+        thread_dict = my_current_thread.__dict__
 
         use_dict = logging_fields_dict
         if use_dict is None:

@@ -18,6 +18,8 @@
 See class comment for details.
 """
 
+from typing import Any
+
 import re
 
 from leaf_common.parsers.parser import Parser
@@ -112,20 +114,23 @@ class ListParser(Parser):
                 if one_element is None:
                     continue
 
-                if isinstance(one_element, str):
+                # Allow for one_element to be a constant
+                use_element: Any = one_element
+
+                if isinstance(use_element, str):
                     # Remove preceding or trailing whitespace
-                    one_element = one_element.strip()
+                    use_element = use_element.strip()
 
                     # Skip over empties
-                    if len(one_element) == 0:
+                    if len(use_element) == 0:
                         continue
 
                 # Skip over empties
-                if one_element is None:
+                if use_element is None:
                     continue
 
                 # Defer to implementation for parsing
-                one_value = self._type_parser.parse(one_element)
+                one_value = self._type_parser.parse(use_element)
 
                 # Skip over values that did not parse
                 if one_value is None:

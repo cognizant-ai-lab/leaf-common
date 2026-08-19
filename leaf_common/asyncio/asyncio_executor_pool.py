@@ -23,12 +23,21 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-import copy
-import asyncio
-import concurrent.futures
-import logging
-import threading
-import time
+from copy import copy
+from asyncio import AbstractEventLoop
+from asyncio import Task
+from asyncio import all_tasks
+from asyncio import current_task
+from asyncio import run_coroutine_threadsafe
+from concurrent.futures import Future
+from concurrent.futures import TimeoutError as ConcurrentFuturesTimeoutError
+from logging import getLogger
+from logging import Logger
+from threading import Event
+from threading import Lock
+from threading import Thread
+from threading import current_thread
+from time import monotonic
 
 from leaf_common.asyncio.asyncio_executor import AsyncioExecutor
 from leaf_common.logging.sensitive_logger import SensitiveLogger
@@ -117,16 +126,16 @@ class AsyncioExecutorPool:
         # currently in pool_available; pruned on get_executor() and on sweep.
         self._returned_at: Dict[int, float] = {}
 
-        self.lock = threading.Lock()
-        self.logger = logging.getLogger(self.__class__.__name__)
+        self.lock = Lock()
+        self.logger: Logger = getLogger(self.__class__.__name__)
 
         # Active GC: a daemon thread runs _gc_loop, sweeping on its own
         # schedule. The stop event lets shutdown() interrupt the sweep
         # interval wait promptly.
-        self._gc_stop_event: threading.Event = threading.Event()
-        self._gc_thread: Optional[threading.Thread] = None
+        self._gc_stop_event: Event = Event()
+        self._gc_thread: Optional[Thread] = None
         if self.reuse_mode:
-            self._gc_thread = threading.Thread(
+            self._gc_thread = Thread(
                 target=self._gc_loop,
                 name=f"AsyncioExecutorPool-GC-{id(self)}",
                 daemon=True,
@@ -185,7 +194,7 @@ class AsyncioExecutorPool:
         if self.reuse_mode:
             with self.lock:
                 self.pool_available.append(executor)
-                self._returned_at[id(executor)] = time.monotonic()
+                self._returned_at[id(executor)] = monotonic()
                 self.logger.debug("Returned to pool: AsyncioExecutor %s pool size: %d",
                                   id(executor), len(self.pool_available))
 
@@ -204,7 +213,7 @@ class AsyncioExecutorPool:
             self._gc_thread = None
 
         self._gc_stop_event.set()
-        if wait and threading.current_thread() is not gc_thread:
+        if wait and current_thread() is not gc_thread:
             gc_thread.join()
 
     def _gc_loop(self) -> None:
@@ -255,7 +264,7 @@ class AsyncioExecutorPool:
         if not self.reuse_mode:
             return
         if now is None:
-            now = time.monotonic()
+            now = monotonic()
         to_collect: List[AsyncioExecutor] = []
         with self.lock:
             keep_from: int = 0
@@ -292,8 +301,8 @@ class AsyncioExecutorPool:
         across all executors in this collection "threads_running".
         """
         with self.lock:
-            available_copy = copy.copy(self.pool_available)
-            used_copy = copy.copy(self.pool_used)
+            available_copy = copy(self.pool_available)
+            used_copy = copy(self.pool_used)
         used_threads: int = 0
         used_running: int = 0
         available_threads: int = 0
@@ -356,17 +365,17 @@ class AsyncioExecutorPool:
 
         for executor in used_snapshot:
             executor_key: str = str(id(executor))
-            loop: asyncio.AbstractEventLoop = executor.get_event_loop()
+            loop: AbstractEventLoop = executor.get_event_loop()
             if not loop.is_running():
                 result[executor_key] = {"loop_state": "not_running", "tasks": []}
                 continue
 
-            future: concurrent.futures.Future = asyncio.run_coroutine_threadsafe(
+            future: Future = run_coroutine_threadsafe(
                 self._collect_tasks_on_current_loop(), loop)
             try:
                 tasks = future.result(timeout=per_loop_timeout_s)
                 result[executor_key] = {"loop_state": "responded", "tasks": tasks}
-            except concurrent.futures.TimeoutError:
+            except ConcurrentFuturesTimeoutError:
                 future.cancel()
                 result[executor_key] = {"loop_state": "unresponsive_timeout", "tasks": []}
             except Exception as exc:  # pylint: disable=broad-exception-caught
@@ -384,9 +393,9 @@ class AsyncioExecutorPool:
         loop's context so asyncio.all_tasks() sees every task on it; the
         probe filters itself out of the result.
         """
-        me: Optional[asyncio.Task] = asyncio.current_task()
+        me: Optional[Task] = current_task()
         tasks_info: List[Dict[str, Any]] = []
-        for task in asyncio.all_tasks():
+        for task in all_tasks():
             if me is not None and task is me:
                 continue
             coro = task.get_coro()

@@ -18,7 +18,8 @@
 See class comment for details.
 """
 
-import logging
+from logging import getLogger
+from logging import Logger
 
 from leaf_common.parsers.parser import Parser
 
@@ -66,9 +67,9 @@ class CanonicalMultiConfigParser(Parser):
         # Parse the value to be in a cannonical form of an array of
         # configuration dictionaries
         config_list = []
-        config_list = self.parse_one_value(None, input_obj, config_list)
+        new_config_list = self.parse_one_value(None, input_obj, config_list)
 
-        return config_list
+        return new_config_list
 
     def parse_one_value(self, key, value, config_list):
         """
@@ -129,7 +130,7 @@ class CanonicalMultiConfigParser(Parser):
                 config_list.append(config_dict)
 
         else:
-            logger = logging.getLogger(__name__)
+            logger: Logger = getLogger(__name__)
             logger.warning("Can't parse multi-config value %s.", str(value))
 
         return config_list

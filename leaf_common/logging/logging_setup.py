@@ -20,10 +20,14 @@ See class comment for details.
 from typing import Any
 from typing import Dict
 
-import inspect
-import logging
-import logging.config
-import os
+from inspect import getfile
+from logging import Logger
+from logging import basicConfig
+from logging import getLogger
+from logging.config import dictConfig
+from os import getcwd
+from os import environ
+from os import path
 from threading import current_thread
 
 from leaf_common.config.config_handler import ConfigHandler
@@ -107,7 +111,7 @@ class LoggingSetup():
             if self.source_anchor is not None:
                 logger_name = self.source_anchor.__class__.__name__
 
-        logger = logging.getLogger(logger_name)
+        logger: Logger = getLogger(logger_name)
         log_level = self.determine_log_level()
         logger.setLevel(log_level)
         StreamToLogger.subvert(logger=logger,
@@ -142,11 +146,10 @@ class LoggingSetup():
         if config is not None \
                 and isinstance(config, dict):
             config = self.replace_log_file(config)
-            logging.config.dictConfig(config)
+            dictConfig(config)
         else:
             log_level = self.determine_log_level()
-            logging.basicConfig(filename=self.log_file,
-                                level=log_level)
+            basicConfig(filename=self.log_file, level=log_level)
 
     def determine_log_config_file_path(self):
         """
@@ -155,8 +158,8 @@ class LoggingSetup():
         """
 
         # By default, use defaults passed into constructor
-        default_logging_config_file = os.path.join(self.default_log_config_dir,
-                                                   self.default_log_config_file)
+        default_logging_config_file = path.join(self.default_log_config_dir,
+                                                self.default_log_config_file)
 
         # See if explicit config was given in constructor
         if self.logging_config is not None:
@@ -173,8 +176,8 @@ class LoggingSetup():
         # See if we need to get an override from environment
         log_config_file_path = default_logging_config_file
         if self.log_config_env is not None:
-            log_config_file_path = os.environ.get(self.log_config_env,
-                                                  default_logging_config_file)
+            log_config_file_path = environ.get(self.log_config_env,
+                                               default_logging_config_file)
 
         # Whatever we got, make sure it is an absolute path
         if log_config_file_path.startswith("."):
@@ -182,9 +185,9 @@ class LoggingSetup():
                                             log_config_file_path,
                                             source_anchor=self.source_anchor)
 
-        log_config_file_path = os.path.abspath(log_config_file_path)
+        new_log_config_file_path = path.abspath(log_config_file_path)
 
-        return log_config_file_path
+        return new_log_config_file_path
 
     def determine_log_level(self):
         """
@@ -194,8 +197,7 @@ class LoggingSetup():
         # Determine the default log level
         log_level = self.default_log_level
         if self.log_level_env is not None:
-            log_level = os.environ.get(self.log_level_env,
-                                       self.default_log_level)
+            log_level = environ.get(self.log_level_env, self.default_log_level)
         return log_level
 
     def replace_log_file(self, config):
@@ -234,17 +236,17 @@ class LoggingSetup():
         :return: the full absolute path to the provided relative_filepath
         """
 
-        relative_dir = os.getcwd()
+        relative_dir = getcwd()
         if source_anchor is not None:
             if isinstance(source_anchor, str):
                 relative_dir = source_anchor
             else:
-                module_file = inspect.getfile(source_anchor.__class__)
-                module_path = os.path.abspath(module_file)
-                relative_dir = os.path.dirname(module_path)
+                module_file = getfile(source_anchor.__class__)
+                module_path = path.abspath(module_file)
+                relative_dir = path.dirname(module_path)
 
-        partial_relative_path = os.path.join(relative_dir, relative_filepath)
-        absolute_file_path = os.path.abspath(partial_relative_path)
+        partial_relative_path = path.join(relative_dir, relative_filepath)
+        absolute_file_path = path.abspath(partial_relative_path)
         return absolute_file_path
 
     @staticmethod

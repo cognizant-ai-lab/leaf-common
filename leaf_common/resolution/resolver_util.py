@@ -104,22 +104,23 @@ class ResolverUtil:
             # handles <package_name>.<module_name>.<ClassName>
             packages: List[str] = [".".join(class_split[:-2])]
             module_name = class_split[-2]
-        class_name: str = class_split[-1]
+
+        new_class_name: str = class_split[-1]
         resolver = Resolver(packages)
 
         # Resolve the class name
         class_reference: Type[Any] = None
         try:
-            class_reference = resolver.resolve_class_in_module(class_name, module_name=module_name,
+            class_reference = resolver.resolve_class_in_module(new_class_name, module_name=module_name,
                                                                surface_import_errors=surface_import_errors)
         except AttributeError as exception:
-            raise ValueError(f"Class '{class_name}' from {class_name_source} "
+            raise ValueError(f"Class '{new_class_name}' from {class_name_source} "
                              "not found in PYTHONPATH") from exception
 
         # Make sure it is the correct type
         if not issubclass(class_reference, type_of_class):
             raise ValueError(
-                f"Class {class_name} in {class_name_source} must be a subclass of {type_of_class.__name__}"
+                f"Class {new_class_name} in {class_name_source} must be a subclass of {type_of_class.__name__}"
             )
 
         return class_reference

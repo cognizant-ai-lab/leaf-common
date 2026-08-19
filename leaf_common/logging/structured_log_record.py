@@ -15,7 +15,13 @@
 #
 # END COPYRIGHT
 
-import logging
+from logging import CRITICAL
+from logging import DEBUG
+from logging import ERROR
+from logging import INFO
+from logging import WARNING
+from logging import getLogRecordFactory
+from logging import setLogRecordFactory
 from datetime import datetime
 
 from leaf_common.logging.message_types import MessageType
@@ -47,19 +53,19 @@ def _structured_log_record_factory(*args, **kwargs):
     # Determine the MessageType we wish to store with each LogRecord
     if log_record.exc_info is not None:
         message_type = MessageType.ERROR
-    elif log_record.levelno == logging.CRITICAL:
+    elif log_record.levelno == CRITICAL:
         message_type = MessageType.ERROR
-    elif log_record.levelno == logging.ERROR:
+    elif log_record.levelno == ERROR:
         message_type = MessageType.ERROR
-    elif log_record.levelno == logging.WARNING:
+    elif log_record.levelno == WARNING:
         message_type = MessageType.WARNING
     elif log_record.levelno == API:
         message_type = MessageType.API
     elif log_record.levelno == METRICS:
         message_type = MessageType.METRICS
-    elif log_record.levelno == logging.INFO:
+    elif log_record.levelno == INFO:
         message_type = MessageType.OTHER
-    elif log_record.levelno == logging.DEBUG:
+    elif log_record.levelno == DEBUG:
         message_type = MessageType.OTHER
     else:
         message_type = MessageType.OTHER
@@ -105,5 +111,5 @@ class StructuredLogRecord():
         # pylint: disable=global-statement
         global _STRUCTURED_OLD_FACTORY
         if _STRUCTURED_OLD_FACTORY is None:
-            _STRUCTURED_OLD_FACTORY = logging.getLogRecordFactory()
-        logging.setLogRecordFactory(_structured_log_record_factory)
+            _STRUCTURED_OLD_FACTORY = getLogRecordFactory()
+        setLogRecordFactory(_structured_log_record_factory)
