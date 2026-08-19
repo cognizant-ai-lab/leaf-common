@@ -74,12 +74,11 @@ class Resolver():
 
         logger: Logger = getLogger(self.__class__.__name__)
         messages: List[str] = []
-        found_module: Any = None
         if verbose:
             logger.info("Attempting to resolve module %s", use_module_name)
 
-        found_module = self._find_module(use_module_name, messages, install_if_missing,
-                                         surface_import_errors=surface_import_errors)
+        found_module: Any = self._find_module(use_module_name, messages, install_if_missing,
+                                              surface_import_errors=surface_import_errors)
 
         if found_module is None:
             message: str = f"Could not find code for {use_module_name}"

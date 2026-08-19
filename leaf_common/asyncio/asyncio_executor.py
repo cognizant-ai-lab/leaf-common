@@ -418,8 +418,8 @@ class AsyncioExecutor(TaskExecutor):
 
         # Get a dictionary entry describing some metadata about the future itself.
         task_id: int = id(task)
-        task_info: Dict[str, Any] = {}
-        task_info = self._background_tasks.get(task_id, task_info)
+        empty: Dict[str, Any] = {}
+        task_info: Dict[str, Any] = self._background_tasks.get(task_id, empty)
 
         self._check_task(task)
         origination: str = task.get_name()
