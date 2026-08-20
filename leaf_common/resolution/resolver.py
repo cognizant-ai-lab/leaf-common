@@ -74,7 +74,6 @@ class Resolver():
 
         logger: Logger = getLogger(self.__class__.__name__)
         messages: List[str] = []
-        found_module: bool = None
         if verbose:
             logger.info("Attempting to resolve module %s", use_module_name)
 

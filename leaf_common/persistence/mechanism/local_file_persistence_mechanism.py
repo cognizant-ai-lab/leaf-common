@@ -17,9 +17,11 @@
 """
 See class comment for details.
 """
-import io
-import logging
-import os
+from io import StringIO
+from logging import getLogger
+from logging import Logger
+from os import makedirs
+from os.path import dirname
 
 from leaf_common.persistence.mechanism.abstract_persistence_mechanism \
     import AbstractPersistenceMechanism
@@ -55,7 +57,7 @@ class LocalFilePersistenceMechanism(AbstractPersistenceMechanism):
                this call.
         """
         path = self.get_path(file_extension_provider, file_reference)
-        logger = logging.getLogger(__name__)
+        logger: Logger = getLogger(__name__)
         logger.info("Reading %s", str(path))
 
         fileobj = None
@@ -89,15 +91,15 @@ class LocalFilePersistenceMechanism(AbstractPersistenceMechanism):
                 with data by this call.
         """
         path = self.get_path(file_extension_provider, file_reference)
-        logger = logging.getLogger(__name__)
+        logger: Logger = getLogger(__name__)
         logger.info("Writing %s", str(path))
 
-        dirs = os.path.dirname(path)
-        os.makedirs(dirs, exist_ok=True)
+        dirs = dirname(path)
+        makedirs(dirs, exist_ok=True)
 
         # Allow for string or bytes as input
         writestyle = "wb"
-        if isinstance(send_from_fileobj, io.StringIO):
+        if isinstance(send_from_fileobj, StringIO):
             writestyle = "w"
 
         return open(path, writestyle)

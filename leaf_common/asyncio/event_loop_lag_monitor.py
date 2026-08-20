@@ -18,9 +18,10 @@
 See class comment for details
 """
 
-import asyncio
-import statistics
-import time
+from asyncio import create_task
+from asyncio import sleep as async_sleep
+from statistics import fmean
+from time import monotonic
 from typing import Any
 from typing import Dict
 from typing import List
@@ -68,10 +69,10 @@ class EventLoopLagMonitor:
         """
         Sampling loop. Cancel the surrounding task to stop.
         """
-        expected = time.monotonic() + self.interval
+        expected = monotonic() + self.interval
         while True:
-            await asyncio.sleep(self.interval)
-            now = time.monotonic()
+            await async_sleep(self.interval)
+            now = monotonic()
             lag = max(0.0, now - expected)
             self._samples.append(lag)
 
@@ -80,16 +81,16 @@ class EventLoopLagMonitor:
                 # Clear the samples after reporting.
                 self._samples.clear()
                 if self.break_between_reports > 0:
-                    await asyncio.sleep(self.break_between_reports)
+                    await async_sleep(self.break_between_reports)
 
-            now = time.monotonic()
+            now = monotonic()
             expected = now + self.interval  # resync so one big spike doesn't bias the rest
 
     def start(self) -> None:
         """
         Start the monitoring loop in a background task.
         """
-        self.task = asyncio.create_task(self.run())
+        self.task = create_task(self.run())
 
     def stop(self) -> None:
         """
@@ -119,7 +120,7 @@ class EventLoopLagMonitor:
         p99 = samples_ms_sorted[min(int(n * 0.99), n - 1)]
         self.max_p50_ms = max(self.max_p50_ms, p50)
         self.max_p95_ms = max(self.max_p95_ms, p95)
-        mean_ms = statistics.fmean(samples_ms)
+        mean_ms = fmean(samples_ms)
         max_samples_ms = max(samples_ms)
         self.max_mean_ms = max(self.max_mean_ms, mean_ms)
         self.max_max_ms = max(self.max_max_ms, max_samples_ms)
