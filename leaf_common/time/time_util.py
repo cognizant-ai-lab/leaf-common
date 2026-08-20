@@ -18,7 +18,7 @@
 See class comment for details
 """
 
-import datetime
+from datetime import datetime
 
 from pytz import timezone
 
@@ -33,7 +33,7 @@ class TimeUtil:
         """
         Creates a nicely formated timestamp
         """
-        now = datetime.datetime.now()
+        now = datetime.now()
 
         local_now = now.astimezone()
         use_tz = local_now.tzinfo
@@ -44,7 +44,7 @@ class TimeUtil:
         if local_tzname == "UTC":
             use_tz = timezone('US/Pacific')
 
-        now = datetime.datetime.now(use_tz)
+        now = datetime.now(use_tz)
         formatted_time = now.strftime("%Y-%m-%d %H:%M:%S %Z%z")
 
         return formatted_time
