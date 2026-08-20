@@ -18,7 +18,7 @@
 See class comment for details.
 """
 
-import os
+from os import environ
 
 
 class EnvironmentDefaults():
@@ -32,9 +32,9 @@ class EnvironmentDefaults():
     def set_environment_defaults(cls, default_dict):
         """
         :param default_dict:  For each key in this dictionary, if there is
-            not a corresponding key in the os.environ dictionary, then the
-            value in default_dict is added to the os.environ dictionary.
-            Keys that are already in the os.environ dictionary are not
+            not a corresponding key in the environ dictionary, then the
+            value in default_dict is added to the environ dictionary.
+            Keys that are already in the environ dictionary are not
             added.
         :return: a dictionary of values that were added. This dictionary
                 could be empty if nothing was added, or None if default_dict
@@ -49,13 +49,13 @@ class EnvironmentDefaults():
         for key in default_dict.keys():
 
             # See if the key exists
-            existing_value = os.environ.get(key, None)
+            existing_value = environ.get(key, None)
             if existing_value is None:
 
                 # Key does not exist, add from defaults
-                # os.environ values must be strings
+                # environ values must be strings
                 new_value = str(default_dict.get(key))
-                os.environ[key] = new_value
+                environ[key] = new_value
                 added[key] = new_value
 
         return added
