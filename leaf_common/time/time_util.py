@@ -33,9 +33,9 @@ class TimeUtil:
         """
         Creates a nicely formated timestamp
         """
-        now = datetime.now()
+        now_for_local = datetime.now()
 
-        local_now = now.astimezone()
+        local_now = now_for_local.astimezone()
         use_tz = local_now.tzinfo
 
         # If the user's machine doesn't care about the time zone,
@@ -44,7 +44,7 @@ class TimeUtil:
         if local_tzname == "UTC":
             use_tz = timezone('US/Pacific')
 
-        now = datetime.now(use_tz)
-        formatted_time = now.strftime("%Y-%m-%d %H:%M:%S %Z%z")
+        now_with_tz = datetime.now(use_tz)
+        formatted_time = now_with_tz.strftime("%Y-%m-%d %H:%M:%S %Z%z")
 
         return formatted_time
