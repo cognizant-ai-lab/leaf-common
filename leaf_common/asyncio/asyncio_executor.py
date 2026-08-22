@@ -36,7 +36,7 @@ from threading import get_ident
 from traceback import format_exception
 
 from asyncio import AbstractEventLoop
-from asyncio import Future
+from asyncio import Future as AsyncFuture
 from asyncio import Task
 from asyncio import all_tasks
 from asyncio import eager_task_factory
@@ -45,7 +45,8 @@ from asyncio import run_coroutine_threadsafe
 from asyncio import set_event_loop
 from asyncio import to_thread
 from asyncio.exceptions import CancelledError
-from concurrent import futures
+from concurrent.futures import Future as SyncFuture
+from concurrent.futures import TimeoutError as SyncTimeoutError
 
 from leaf_common.asyncio.event_loop_factory import EventLoopFactory
 from leaf_common.asyncio.task_executor import TaskExecutor
@@ -212,7 +213,7 @@ class AsyncioExecutor(TaskExecutor):
         return get_ident() == self._thread.ident
 
     def _create_in_loop_thread(
-            self, function, task_name: str, task_creation_future: futures.Future, /, *args, **kwargs) -> None:
+            self, function, task_name: str, task_creation_future: SyncFuture, /, *args, **kwargs) -> None:
         """
         Create a task in the event loop thread and set it as a result on the provided Future.
         :param function: The function handle to run
@@ -238,7 +239,7 @@ class AsyncioExecutor(TaskExecutor):
         except BaseException as exc:  # pylint: disable=broad-except
             task_creation_future.set_exception(exc)
 
-    def _submit_as_task(self, submitter_id: str, function, /, *args, **kwargs) -> futures.Future:
+    def _submit_as_task(self, submitter_id: str, function, /, *args, **kwargs) -> SyncFuture:
         """
         Submit some executable item as a Task in executor event loop.
         If call is from the outside of AsyncioExecutor running thread,
@@ -256,7 +257,7 @@ class AsyncioExecutor(TaskExecutor):
         :param kwargs: keyword args for the function
         :return: A Future object which will return a created Task in our event loop.
         """
-        task_creation_future: futures.Future = futures.Future()
+        task_creation_future: SyncFuture = SyncFuture()
         task_name: str = self.get_function_name(function, submitter_id)
         if self._in_executor_thread():
             # We are already in the event loop thread:
@@ -298,14 +299,14 @@ class AsyncioExecutor(TaskExecutor):
         # Call the helper method -> get a Future back ->
         # block until task submitted to internal event loop runs and creates our Task ->
         # get this Task as a result of Future happening.
-        task_creation_future: futures.Future = self._submit_as_task(submitter_id, function, *args, **kwargs)
+        task_creation_future: SyncFuture = self._submit_as_task(submitter_id, function, *args, **kwargs)
         # Wait for task to be created in event loop thread (blocking calling thread)
         task: Task = task_creation_future.result()
 
         self.track_task(task)
         return task
 
-    def create_task(self, awaitable: Awaitable, submitter_id: str, raise_exception: bool = False) -> Future:
+    def create_task(self, awaitable: Awaitable, submitter_id: str, raise_exception: bool = False) -> AsyncFuture:
         """
         Creates a task for the event loop given an Awaitable
         :param awaitable: The Awaitable to create and schedule a task for
@@ -322,7 +323,7 @@ class AsyncioExecutor(TaskExecutor):
                                "be submitted")
 
         # self._submit_as_task will handle the logic of whether we are in the event loop thread or not.
-        task_creation_future: futures.Future = self._submit_as_task(submitter_id, awaitable)
+        task_creation_future: SyncFuture = self._submit_as_task(submitter_id, awaitable)
         # Wait for task to be created and returned as the result of the Future (blocking calling thread)
         task: Task = task_creation_future.result()
         self.track_task(task, raise_exception=raise_exception)
@@ -349,7 +350,7 @@ class AsyncioExecutor(TaskExecutor):
         return task
 
     @staticmethod
-    async def _cancel_and_drain(tasks: List[Future]):
+    async def _cancel_and_drain(tasks: List[AsyncFuture]):
         # Request cancellation for tasks that are not already done:
         pending = []
         for task in tasks:
@@ -383,7 +384,7 @@ class AsyncioExecutor(TaskExecutor):
         cancel_task = run_coroutine_threadsafe(AsyncioExecutor._cancel_and_drain(tasks_to_cancel), self._loop)
         try:
             cancel_task.result(timeout)
-        except futures.TimeoutError:
+        except SyncTimeoutError:
             self.logger.info("Timeout %f sec exceeded while cleaning up AsyncioExecutor %s", timeout, id(self))
             raise
 
@@ -440,16 +441,16 @@ class AsyncioExecutor(TaskExecutor):
                 result = task.result()
                 _ = result
 
-        except StopAsyncIteration:
-            # StopAsyncIteration is OK
-            pass
-
-        except futures.TimeoutError:
+        except SyncTimeoutError:
             self.logger.info("Task from %s took too long", origination)
 
         except CancelledError:
             # Cancelled task is OK - it may happen for different reasons.
             self.logger.info("Task from %s was cancelled", origination)
+
+        except StopAsyncIteration:
+            # StopAsyncIteration is OK
+            pass
 
         # pylint: disable=broad-exception-caught
         except Exception as exc:
