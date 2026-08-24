@@ -32,9 +32,8 @@ jobs:
           python-version: '3.10'
 
       # pypa/gh-action-pypi-publish is a Docker action and must be called
-      # directly from this workflow: PyPI Trusted Publishing matches the
-      # job_workflow_ref claim against this file, and the action misresolves
-      # its own image when nested inside a composite action.
+      # directly from this workflow. This functionality cannot be pushed
+      # down into build-common.
       # v1.14.0
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
