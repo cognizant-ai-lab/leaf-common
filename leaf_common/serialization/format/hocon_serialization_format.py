@@ -25,6 +25,8 @@ from pyhocon import ConfigFactory
 from pyhocon import ConfigTree
 
 from leaf_common.serialization.format.json_serialization_format import JsonSerializationFormat
+from leaf_common.serialization.interface.dictionary_converter import DictionaryConverter
+from leaf_common.serialization.interface.reference_pruner import ReferencePruner
 from leaf_common.serialization.util.bytes_decoder import BytesDecoder
 
 
@@ -35,8 +37,8 @@ class HoconSerializationFormat(JsonSerializationFormat):
     With this class, hocon serialization (from_object) is just JSON.
     """
 
-    def __init__(self, reference_pruner=None, dictionary_converter=None,
-                 pretty=True, sanitize_keys=False):
+    def __init__(self, reference_pruner: ReferencePruner = None, dictionary_converter: DictionaryConverter = None,
+                 pretty: bool = True, sanitize_keys: bool = False):
         """
         Constructor.
 
@@ -60,7 +62,7 @@ class HoconSerializationFormat(JsonSerializationFormat):
         super().__init__(reference_pruner=reference_pruner,
                          dictionary_converter=dictionary_converter,
                          pretty=pretty)
-        self.sanitize_keys = sanitize_keys
+        self.sanitize_keys: bool = sanitize_keys
 
     def to_object(self, fileobj, basedir=None):
         """

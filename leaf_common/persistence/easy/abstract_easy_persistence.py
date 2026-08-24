@@ -18,14 +18,11 @@
 See class comment for details
 """
 
-from leaf_common.persistence.factory.persistence_factory \
-    import PersistenceFactory
-from leaf_common.persistence.interface.persistence \
-    import Persistence
-from leaf_common.persistence.mechanism.persistence_mechanisms \
-    import PersistenceMechanisms
-from leaf_common.serialization.prep.pass_through_dictionary_converter \
-    import PassThroughDictionaryConverter
+from leaf_common.persistence.factory.persistence_factory import PersistenceFactory
+from leaf_common.persistence.interface.persistence import Persistence
+from leaf_common.persistence.mechanism.persistence_mechanisms import PersistenceMechanisms
+from leaf_common.serialization.interface.dictionary_converter import DictionaryConverter
+from leaf_common.serialization.prep.pass_through_dictionary_converter import PassThroughDictionaryConverter
 
 
 class AbstractEasyPersistence(Persistence):
@@ -39,11 +36,11 @@ class AbstractEasyPersistence(Persistence):
 
     # Tied for Public Enemy #2 for too-many-arguments
     # pylint: disable=too-many-arguments,too-many-positional-arguments
-    def __init__(self, serialization_format,
-                 base_name=None, folder=".", must_exist=False,
-                 object_type="dict", dictionary_converter=None,
-                 use_file_extension=None, full_ref=None,
-                 persistence_mechanism=PersistenceMechanisms.LOCAL):
+    def __init__(self, serialization_format: str,
+                 base_name: str = None, folder: str = ".", must_exist: bool = False,
+                 object_type: str = "dict", dictionary_converter: DictionaryConverter = None,
+                 use_file_extension: str = None, full_ref: str = None,
+                 persistence_mechanism: str = PersistenceMechanisms.LOCAL):
         """
         Constructor.
 
@@ -74,9 +71,8 @@ class AbstractEasyPersistence(Persistence):
         """
 
         # Set up the DictionaryConverter
-        use_dictionary_converter = dictionary_converter
-        if dictionary_converter is None and \
-                object_type == "dict":
+        use_dictionary_converter: DictionaryConverter = dictionary_converter
+        if dictionary_converter is None and object_type == "dict":
             use_dictionary_converter = PassThroughDictionaryConverter()
 
         # default initialization
@@ -84,12 +80,12 @@ class AbstractEasyPersistence(Persistence):
                                      dictionary_converter=use_dictionary_converter)
 
         # To be initialized further by concrete subclasses
-        self.persistence = factory.create_persistence(folder, base_name,
-                                                      persistence_mechanism=persistence_mechanism,
-                                                      serialization_format=serialization_format,
-                                                      must_exist=must_exist,
-                                                      use_file_extension=use_file_extension,
-                                                      full_ref=full_ref)
+        self.persistence: Persistence = factory.create_persistence(folder, base_name,
+                                                                   persistence_mechanism=persistence_mechanism,
+                                                                   serialization_format=serialization_format,
+                                                                   must_exist=must_exist,
+                                                                   use_file_extension=use_file_extension,
+                                                                   full_ref=full_ref)
 
     def persist(self, obj, file_reference: str = None):
         """

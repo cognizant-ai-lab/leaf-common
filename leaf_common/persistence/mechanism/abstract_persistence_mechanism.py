@@ -33,7 +33,7 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
         open_dest_for_write(send_from_fileobj)
     """
 
-    def __init__(self, folder, base_name, must_exist=True):
+    def __init__(self, folder: str, base_name: str, must_exist: bool = True):
         """
         Constructor
 
@@ -46,9 +46,9 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
 
         super().__init__()
 
-        self.folder = folder
-        self.base_name = base_name
-        self._must_exist = must_exist
+        self.folder: str = folder
+        self.base_name: str = base_name
+        self._must_exist: bool = must_exist
 
     def open_source_for_read(self, read_to_fileobj,
                              file_extension_provider=None,

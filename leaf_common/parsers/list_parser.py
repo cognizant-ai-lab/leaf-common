@@ -43,9 +43,9 @@ class ListParser(Parser):
     in the constructor.
     """
 
-    DEFAULT_DELIMITER = "[, ]"
+    DEFAULT_DELIMITER: str = "[, ]"
 
-    def __init__(self, delimiter_regex=None, type_parser=None):
+    def __init__(self, delimiter_regex: str = None, type_parser: Parser = None):
         """
         Constructor.
 
@@ -58,11 +58,11 @@ class ListParser(Parser):
             turning each element into a String.
         """
 
-        self._delimiter_regex = delimiter_regex
+        self._delimiter_regex: str = delimiter_regex
         if self._delimiter_regex is None:
             self._delimiter_regex = self.DEFAULT_DELIMITER
 
-        self._type_parser = type_parser
+        self._type_parser: Parser = type_parser
         if self._type_parser is None:
             self._type_parser = StringParser()
 
