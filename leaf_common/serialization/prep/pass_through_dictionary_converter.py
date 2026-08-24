@@ -29,7 +29,7 @@ class PassThroughDictionaryConverter(DictionaryConverter):
     and returns the dictionary for from_dict().
     """
 
-    def __init__(self, allow_restore_none=True):
+    def __init__(self, allow_restore_none: bool = True):
         """
         Constructor.
 
@@ -38,7 +38,7 @@ class PassThroughDictionaryConverter(DictionaryConverter):
                 as input.  When False, the same case has restore() returning
                 an empty dictionary.
         """
-        self.allow_restore_none = allow_restore_none
+        self.allow_restore_none: bool = allow_restore_none
 
     def to_dict(self, obj):
         """

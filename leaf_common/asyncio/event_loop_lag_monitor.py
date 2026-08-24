@@ -20,6 +20,8 @@ See class comment for details
 
 from asyncio import create_task
 from asyncio import sleep as async_sleep
+from asyncio import Task
+from logging import Logger
 from statistics import fmean
 from time import monotonic
 from typing import Any
@@ -55,8 +57,8 @@ class EventLoopLagMonitor:
         self.interval: float = sample_interval_seconds
         self.batch_size: int = report_every_n_samples
         self.break_between_reports: float = break_between_reports_seconds
-        self.logger = logger
-        self.task = None
+        self.logger: Logger = logger
+        self.task: Task = None
         self._samples: List[float] = []
         self.max_p50_ms: float = 0.0
         self.max_p95_ms: float = 0.0

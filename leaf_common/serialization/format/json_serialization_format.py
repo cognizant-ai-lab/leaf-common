@@ -23,11 +23,10 @@ from json import dumps
 from json import load
 from os import SEEK_SET
 
-from leaf_common.serialization.interface.serialization_format \
-    import SerializationFormat
-
-from leaf_common.serialization.format.conversion_policy \
-    import ConversionPolicy
+from leaf_common.serialization.format.conversion_policy import ConversionPolicy
+from leaf_common.serialization.interface.dictionary_converter import DictionaryConverter
+from leaf_common.serialization.interface.reference_pruner import ReferencePruner
+from leaf_common.serialization.interface.serialization_format import SerializationFormat
 
 
 class JsonSerializationFormat(SerializationFormat):
@@ -36,8 +35,8 @@ class JsonSerializationFormat(SerializationFormat):
     JSON Serializer and a Deserializer implementations under one roof.
     """
 
-    def __init__(self, reference_pruner=None, dictionary_converter=None,
-                 pretty=True):
+    def __init__(self, reference_pruner: ReferencePruner = None, dictionary_converter: DictionaryConverter = None,
+                 pretty: bool = True):
         """
         Constructor.
 
@@ -50,7 +49,7 @@ class JsonSerializationFormat(SerializationFormat):
         :param pretty: a boolean which says whether the output is to be
                 nicely formatted or not.  Try for: indent=4, sort_keys=True
         """
-        self.conversion_policy = ConversionPolicy(
+        self.conversion_policy: ConversionPolicy = ConversionPolicy(
             reference_pruner=reference_pruner,
             dictionary_converter=dictionary_converter,
             pretty=pretty)

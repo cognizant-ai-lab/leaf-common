@@ -19,6 +19,7 @@ See class comment for details.
 """
 from typing import Any
 from typing import Dict
+from typing import Union
 
 from inspect import getfile
 from logging import Logger
@@ -45,15 +46,15 @@ class LoggingSetup():
 
     # Tied for Public Enemy #2 for too-many-arguments
     # pylint: disable=too-many-arguments,too-many-positional-arguments
-    def __init__(self, default_log_config_dir=".",
-                 default_log_config_file='logging.json',
-                 default_log_level='DEBUG',
-                 log_config_env=None,
-                 log_level_env=None,
-                 log_file=None,
-                 logging_config=None,
-                 source_anchor=None,
-                 default_logger_name=None):
+    def __init__(self, default_log_config_dir: str = ".",
+                 default_log_config_file: str = "logging.json",
+                 default_log_level: str = "DEBUG",
+                 log_config_env: str = None,
+                 log_level_env: str = None,
+                 log_file: str = None,
+                 logging_config: Union[str, Dict[str, Any]] = None,
+                 source_anchor: Any = None,
+                 default_logger_name: str = None):
         """
         Constructor.
 
@@ -84,15 +85,15 @@ class LoggingSetup():
         :param default_logger_name:  The name of the logger to use
                         for default print diversion.
         """
-        self.default_log_config_dir = default_log_config_dir
-        self.default_log_config_file = default_log_config_file
-        self.default_log_level = default_log_level
-        self.log_config_env = log_config_env
-        self.log_level_env = log_level_env
-        self.log_file = log_file
-        self.logging_config = logging_config
-        self.source_anchor = source_anchor
-        self.default_logger_name = default_logger_name
+        self.default_log_config_dir: str = default_log_config_dir
+        self.default_log_config_file: str = default_log_config_file
+        self.default_log_level: str = default_log_level
+        self.log_config_env: str = log_config_env
+        self.log_level_env: str = log_level_env
+        self.log_file: str = log_file
+        self.logging_config: Union[str, Dict[str, Any]] = logging_config
+        self.source_anchor: Any = source_anchor
+        self.default_logger_name: str = default_logger_name
 
     def setup_with_diversion(self):
         """

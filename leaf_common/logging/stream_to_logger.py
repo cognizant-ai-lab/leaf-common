@@ -18,6 +18,8 @@
 See class comment for details.
 """
 
+from typing import List
+
 from errno import EPIPE
 from logging import ERROR
 from logging import INFO
@@ -36,23 +38,23 @@ class StreamToLogger(StringIO):
     https://stackoverflow.com/questions/11124093/redirect-python-print-output-to-logger/11124247
     """
 
-    def __init__(self, logger, log_level=INFO):
+    def __init__(self, logger: Logger, log_level: int = INFO):
         """
         Constructor.
 
         :param logger: The logger to redirect write() calls to.
-        :param log_level: The logging level at which the writes() will be
+        :param log_level: The integer logging level at which the writes() will be
                     written.  Default is logging.INFO.
         """
         super().__init__()
 
-        self.logger = logger
-        self.log_level = log_level
+        self.logger: Logger = logger
+        self.log_level: int = log_level
 
         # These two compose the stacks that help us avoid infinite recursion
         # in cases where loggers are set up to go to stdout
-        self.last_logged = []
-        self.last_num_lines_logged = []
+        self.last_logged: List[str] = []
+        self.last_num_lines_logged: List[int] = []
 
     def write(self, s):
         """

@@ -31,7 +31,7 @@ class RedactorDictionaryConverter(DictionaryConverter):
     """
 
     def __init__(self,
-                 redacted_value="<redacted>",
+                 redacted_value: str = "<redacted>",
                  unsafe_key_fragments: List[str] = None):
         """
         Constructor
@@ -42,9 +42,9 @@ class RedactorDictionaryConverter(DictionaryConverter):
                     key fragments for redaction. Default is None
                     implying a default list.
         """
-        self.redacted_value = redacted_value
+        self.redacted_value: str = redacted_value
 
-        self.unsafe_key_fragments = unsafe_key_fragments
+        self.unsafe_key_fragments: List[str] = unsafe_key_fragments
         if self.unsafe_key_fragments is None:
             self.unsafe_key_fragments = [
                 'account',

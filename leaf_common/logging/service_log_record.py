@@ -15,6 +15,9 @@
 #
 # END COPYRIGHT
 
+from typing import Any
+from typing import Dict
+
 from copy import copy
 from logging import getLogRecordFactory
 from logging import setLogRecordFactory
@@ -80,6 +83,32 @@ class ServiceLogRecord():
     level.  They can be anything the client code wants.
     """
 
+    def __init__(self, logging_fields_dict: Dict[str, Any] = None):
+        """
+        Constructor.
+
+        :param logging_fields_dict: Dictionary with thread-specific information
+                for logging, whose keys will become attributes on a LogRecord.
+                By default this is None, implying that an empty dictionary
+                will be initially created as a placeholder for the thread's
+                additional log messaging fields.
+        """
+        # Get the current thread
+        my_current_thread: Thread = current_thread()
+
+        # Get the dictionary for the current thread structure
+        thread_dict: Dict[str, Any] = my_current_thread.__dict__
+
+        use_dict: Dict[str, Any] = logging_fields_dict
+        if use_dict is None:
+            use_dict = {}
+
+        # Create our own dictionary as an instance variable
+        self.thread_local_dict: Dict[str, Any] = use_dict
+
+        # Save the new instance dict on the thread dictionary as an attribute
+        thread_dict[_SERVICE_LOGGING_FIELDS_KEY] = self.thread_local_dict
+
     @classmethod
     def set_up_record_factory(cls, default_extra_logging_fields=None):
         """
@@ -114,32 +143,6 @@ class ServiceLogRecord():
         global _DEFAULT_EXTRA_LOGGING_FIELDS_DICT       # noqa: F824
         default_extra_logging_fields = copy(_DEFAULT_EXTRA_LOGGING_FIELDS_DICT)
         return default_extra_logging_fields
-
-    def __init__(self, logging_fields_dict=None):
-        """
-        Constructor.
-
-        :param logging_fields_dict: Dictionary with thread-specific information
-                for logging, whose keys will become attributes on a LogRecord.
-                By default this is None, implying that an empty dictionary
-                will be initially created as a placeholder for the thread's
-                additional log messaging fields.
-        """
-        # Get the current thread
-        my_current_thread: Thread = current_thread()
-
-        # Get the dictionary for the current thread structure
-        thread_dict = my_current_thread.__dict__
-
-        use_dict = logging_fields_dict
-        if use_dict is None:
-            use_dict = {}
-
-        # Create our own dictionary as an instance variable
-        self.thread_local_dict = use_dict
-
-        # Save the new instance dict on the thread dictionary as an attribute
-        thread_dict[_SERVICE_LOGGING_FIELDS_KEY] = self.thread_local_dict
 
     def set_logging_fields_dict(self, logging_fields_dict):
         """

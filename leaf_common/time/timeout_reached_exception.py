@@ -18,13 +18,16 @@
 See class comment for details
 """
 
+from typing import Any
+
 
 class TimeoutReachedException(Exception):
     """
     Exception raised by the Timeout.check_timeout() method.
     """
 
-    def __init__(self, timeout: object):
+    # Note: We use Any to break a tangle. We always expect a Timeout object.
+    def __init__(self, timeout: Any):
         """
         Constructor.
         Store timeout information to pass it
@@ -35,4 +38,4 @@ class TimeoutReachedException(Exception):
         """
 
         Exception.__init__(self)
-        self.timeout = timeout
+        self.timeout: Any = timeout

@@ -44,7 +44,7 @@ class CanonicalMultiConfigParser(Parser):
     where the ordering of what is parsed matters.
     """
 
-    def __init__(self, name_key="name"):
+    def __init__(self, name_key: str = "name"):
         """
         Constructor.
 
@@ -52,7 +52,7 @@ class CanonicalMultiConfigParser(Parser):
                 as the name to be later invoked by some Factory class
                 for instantiation.
         """
-        self.name_key = name_key
+        self.name_key: str = name_key
 
     def parse(self, input_obj):
         """

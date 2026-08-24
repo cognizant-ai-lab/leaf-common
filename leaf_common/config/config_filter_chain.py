@@ -18,6 +18,7 @@
 See class comment for details.
 """
 from typing import Dict
+from typing import List
 
 from leaf_common.config.config_filter import ConfigFilter
 
@@ -36,7 +37,7 @@ class ConfigFilterChain(ConfigFilter):
         """
         Constructor.
         """
-        self._filters = []
+        self._filters: List[ConfigFilter] = []
 
     def register(self, one_filter: ConfigFilter):
         """

@@ -18,6 +18,9 @@
 See class comment for details.
 """
 
+from leaf_common.serialization.interface.dictionary_converter import DictionaryConverter
+from leaf_common.serialization.interface.reference_pruner import ReferencePruner
+
 
 class ConversionPolicy():
     """
@@ -25,8 +28,8 @@ class ConversionPolicy():
     DictionaryConverter.
     """
 
-    def __init__(self, reference_pruner=None, dictionary_converter=None,
-                 pretty=True):
+    def __init__(self, reference_pruner: ReferencePruner = None, dictionary_converter: DictionaryConverter = None,
+                 pretty: bool = True):
         """
         Constructor.
 
@@ -39,9 +42,9 @@ class ConversionPolicy():
         :param pretty: a boolean which says whether the output is to be
                 nicely formatted or not.  Try for: indent=4, sort_keys=True
         """
-        self._reference_pruner = reference_pruner
-        self._dictionary_converter = dictionary_converter
-        self._pretty = pretty
+        self._reference_pruner: ReferencePruner = reference_pruner
+        self._dictionary_converter: DictionaryConverter = dictionary_converter
+        self._pretty: bool = pretty
 
     def is_pretty(self):
         """
