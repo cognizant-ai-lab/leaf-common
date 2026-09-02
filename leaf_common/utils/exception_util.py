@@ -27,7 +27,7 @@ class ExceptionUtil:
         Recursively extract detailed information from nested exceptions.
 
         This function handles both regular exceptions and ExceptionGroup instances
-        (introduced in Python 3.11) which can contain multiple nested exceptions.
+        which can contain multiple nested exceptions.
         It creates a human-readable, hierarchical representation of all exceptions
         in the error chain.
 
@@ -56,7 +56,7 @@ class ExceptionUtil:
         # Format: "ExceptionType: exception message"
         message: str = f"{spaces}{type(exception).__name__}: {exception}\n"
 
-        # Check if this exception is an ExceptionGroup (Python 3.11+ feature)
+        # Check if this exception is an ExceptionGroup
         # ExceptionGroup can contain multiple exceptions that occurred simultaneously
         if isinstance(exception, ExceptionGroup):
             # Iterate through each sub-exception in the group
