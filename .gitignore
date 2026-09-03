@@ -8,6 +8,9 @@
 venv/
 venv3/
 
+# UV lock file
+uv.lock
+
 # Python byte code
 *.pyc
 

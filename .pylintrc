@@ -16,6 +16,9 @@ ignore-patterns=.*egg-info
 # number of processors available to use.
 jobs=0
 
+# Minimum Python version the code must run on.
+py-version=3.12
+
 # Not useful warning
 disable=too-few-public-methods,
         duplicate-code,
