@@ -17,6 +17,8 @@
 """
 See class comment for details.
 """
+from typing import Any
+from typing import Dict
 
 from copy import deepcopy
 from collections.abc import Mapping
@@ -82,7 +84,7 @@ class ConfigHandler():
                 dest[key] = source[key]
         return dest
 
-    def read_config_from_file(self, filepath, must_exist):
+    def read_config_from_file(self, filepath, must_exist) -> Dict[str, Any]:
         """
         :param filepath: The file to parse
         :param must_exist: When True, an error is
@@ -92,6 +94,8 @@ class ConfigHandler():
                 ignored and a dictionary value of None is returned
         :return: The dictionary parsed from the config file
         """
+
+        config: Dict[str, Any] = {}
 
         # Create a map of our parser methods
         file_extension_to_parser_map = {
