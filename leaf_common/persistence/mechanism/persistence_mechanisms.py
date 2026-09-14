@@ -14,9 +14,8 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
+
+from typing import List
 
 
 class PersistenceMechanisms():
@@ -24,8 +23,8 @@ class PersistenceMechanisms():
     Class containing string constants for persistence mechanisms.
     """
     # Persistence Mechanisms
-    NULL = "null"           # No persistence
-    LOCAL = "local"         # local file
-    S3 = "s3"               # AWS S3 storage
+    NULL: str = "null"           # No persistence
+    LOCAL: str = "local"         # local file
+    S3: str = "s3"               # AWS S3 storage
 
-    PERSISTENCE_MECHANISMS = [NULL, LOCAL, S3]
+    PERSISTENCE_MECHANISMS: List[str] = [NULL, LOCAL, S3]
