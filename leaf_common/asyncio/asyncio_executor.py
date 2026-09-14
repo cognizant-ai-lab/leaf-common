@@ -224,6 +224,7 @@ class AsyncioExecutor(TaskExecutor):
         :param args: args for the function
         :param kwargs: keyword args for the function
         """
+        task: Task = None
         try:
             if isawaitable(function):
                 task = self._loop.create_task(function, name=task_name)
@@ -370,11 +371,12 @@ class AsyncioExecutor(TaskExecutor):
             raise RuntimeError("Loop must be running to cancel remaining tasks")
         tasks_to_cancel: List[Task] = []
 
+        background_tasks_save: Dict[int, Dict[str, Any]] = {}
         with self._background_tasks_lock:
             # Clear the background tasks map
             # and allow next tasks (if any) to be added.
             # Currently present tasks will be cancelled below.
-            background_tasks_save: Dict[int, Dict[str, Any]] = self._background_tasks
+            background_tasks_save = self._background_tasks
             self._background_tasks = {}
 
         for task_dict in background_tasks_save.values():

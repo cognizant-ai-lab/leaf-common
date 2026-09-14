@@ -50,6 +50,8 @@ def _structured_log_record_factory(*args, **kwargs):
     # Use the class variable to get a handle on the old LogRecord factory
     log_record = _STRUCTURED_OLD_FACTORY(*args, **kwargs)
 
+    message_type: str = None
+
     # Determine the MessageType we wish to store with each LogRecord
     if log_record.exc_info is not None:
         message_type = MessageType.ERROR

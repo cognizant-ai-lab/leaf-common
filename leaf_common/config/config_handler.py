@@ -17,6 +17,8 @@
 """
 See class comment for details.
 """
+from typing import Any
+from typing import Dict
 
 from copy import deepcopy
 from collections.abc import Mapping
@@ -82,7 +84,7 @@ class ConfigHandler():
                 dest[key] = source[key]
         return dest
 
-    def read_config_from_file(self, filepath, must_exist):
+    def read_config_from_file(self, filepath, must_exist) -> Dict[str, Any]:
         """
         :param filepath: The file to parse
         :param must_exist: When True, an error is
@@ -111,6 +113,8 @@ class ConfigHandler():
                 parser = file_extension_to_parser_map.get(file_extension)
 
         message = f"Could not read {filepath} as config. Unknown file extension."
+
+        config: Dict[str, Any] = {}
         if parser is not None:
             config = self.parse_with_method(parser, filepath, must_exist)
         elif must_exist:

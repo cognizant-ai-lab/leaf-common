@@ -26,8 +26,8 @@ from logging import addLevelName
 # we make their log level intefer value a few clicks up from INFO.
 # Seeing API is more important than seeing METRICS
 # pylint: disable=invalid-name
-API = INFO + 7
-METRICS = INFO + 5
+API: int = INFO + 7
+METRICS: int = INFO + 5
 
 # Give the new log levels names for standard reporting
 addLevelName(API, "API")
@@ -41,17 +41,17 @@ class MessageType(str, Enum):
 
     # For messages that do not fit into any of the other categories
     # Used for DEBUG and INFO
-    OTHER = 'Other'
+    OTHER: str = "Other"
 
     # Error messages intended for technical personnel, such as internal errors, stack traces
     # Used for CRITICAL, ERROR, and exception()
-    ERROR = 'Error'
+    ERROR: str = "Error"
 
     # Warning only
-    WARNING = 'Warning'
+    WARNING: str = "Warning"
 
     # Metrics messages, for example, API call counts
-    METRICS = 'Metrics'
+    METRICS: str = "Metrics"
 
     # Tracking API calls
-    API = 'API'
+    API: str = "API"

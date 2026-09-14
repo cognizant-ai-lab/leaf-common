@@ -205,6 +205,7 @@ class AsyncioExecutorPool:
         pool_used or pool_available are NOT shut down here; callers that
         want those gone should handle them explicitly.
         """
+        gc_thread: Thread = None
         with self.lock:
             gc_thread = self._gc_thread
             if gc_thread is None:
@@ -300,6 +301,8 @@ class AsyncioExecutorPool:
         and the total number of currently running work threads
         across all executors in this collection "threads_running".
         """
+        available_copy: List[AsyncioExecutor] = []
+        used_copy: List[AsyncioExecutor] = []
         with self.lock:
             available_copy = copy(self.pool_available)
             used_copy = copy(self.pool_used)
@@ -360,8 +363,9 @@ class AsyncioExecutorPool:
 
         # Snapshot the "used" list under the pool's lock so we don't race
         # with get_executor()/return_executor() while iterating.
+        used_snapshot: List[AsyncioExecutor] = []
         with self.lock:
-            used_snapshot: List[AsyncioExecutor] = list(self.pool_used)
+            used_snapshot = list(self.pool_used)
 
         for executor in used_snapshot:
             executor_key: str = str(id(executor))
