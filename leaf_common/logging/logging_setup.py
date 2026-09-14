@@ -108,14 +108,14 @@ class LoggingSetup():
         self.setup()
 
         # Determine the default logger name
-        logger_name = self.default_logger_name
+        logger_name: str = self.default_logger_name
         if logger_name is None:
             logger_name = "default"
             if self.source_anchor is not None:
                 logger_name = self.source_anchor.__class__.__name__
 
         logger: Logger = getLogger(logger_name)
-        log_level = self.determine_log_level()
+        log_level: str = self.determine_log_level()
         logger.setLevel(log_level)
         StreamToLogger.subvert(logger=logger,
                                reroute_stdout=True,
@@ -133,12 +133,12 @@ class LoggingSetup():
         """
 
         # First, assume the config was what we got from constructor
-        config = self.logging_config
+        config: Union[str, Dict[str, Any]] = self.logging_config
 
         # We need to go through the motions of constructing the path
         # and tearing it down again because we might be getting it
         # from an env variable.
-        log_config_file_path = self.determine_log_config_file_path()
+        log_config_file_path: str = self.determine_log_config_file_path()
         if log_config_file_path is not None:
 
             # Read the logging config file
@@ -146,23 +146,22 @@ class LoggingSetup():
             config = config_handler.import_config(log_config_file_path)
 
         # Use the configuration we got.
-        if config is not None \
-                and isinstance(config, dict):
+        if config is not None and isinstance(config, dict):
             config = self.replace_log_file(config)
             dictConfig(config)
         else:
-            log_level = self.determine_log_level()
+            log_level: str = self.determine_log_level()
             basicConfig(filename=self.log_file, level=log_level)
 
-    def determine_log_config_file_path(self):
+    def determine_log_config_file_path(self) -> str:
         """
         Determine the path of the log config file based on constructor args.
         :return: a single string path to the log file
         """
 
         # By default, use defaults passed into constructor
-        default_logging_config_file = join(self.default_log_config_dir,
-                                           self.default_log_config_file)
+        default_logging_config_file: str = join(self.default_log_config_dir,
+                                                self.default_log_config_file)
 
         # See if explicit config was given in constructor
         if self.logging_config is not None:
@@ -177,10 +176,9 @@ class LoggingSetup():
                 default_logging_config_file = self.logging_config
 
         # See if we need to get an override from environment
-        log_config_file_path = default_logging_config_file
+        log_config_file_path: str = default_logging_config_file
         if self.log_config_env is not None:
-            log_config_file_path = environ.get(self.log_config_env,
-                                               default_logging_config_file)
+            log_config_file_path = environ.get(self.log_config_env, default_logging_config_file)
 
         # Whatever we got, make sure it is an absolute path
         if log_config_file_path.startswith("."):
@@ -188,22 +186,22 @@ class LoggingSetup():
                                             log_config_file_path,
                                             source_anchor=self.source_anchor)
 
-        new_log_config_file_path = abspath(log_config_file_path)
+        new_log_config_file_path: str = abspath(log_config_file_path)
 
         return new_log_config_file_path
 
-    def determine_log_level(self):
+    def determine_log_level(self) -> str:
         """
         This is only used when no config file is found.
         :return: The log level for a basicConfig
         """
         # Determine the default log level
-        log_level = self.default_log_level
+        log_level: str = self.default_log_level
         if self.log_level_env is not None:
             log_level = environ.get(self.log_level_env, self.default_log_level)
         return log_level
 
-    def replace_log_file(self, config):
+    def replace_log_file(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Replace the log file in the given config with the one passed into the
         constructor.
@@ -216,12 +214,12 @@ class LoggingSetup():
             return config
 
         # Loop through each handler to find the first one with the filename set.
-        handlers = config.get("handlers", {})
+        handlers: Dict[str, Any] = config.get("handlers", {})
         for handler_key in handlers.keys():
 
-            handler = handlers.get(handler_key, {})
+            handler: Dict[str, Any] = handlers.get(handler_key, {})
 
-            filename = handler.get("filename", None)
+            filename: str = handler.get("filename", None)
             if filename is not None:
                 handler["filename"] = self.log_file
                 break
@@ -229,7 +227,7 @@ class LoggingSetup():
         return config
 
     @classmethod
-    def get_absolute_source_file_path(cls, relative_filepath, source_anchor=None):
+    def get_absolute_source_file_path(cls, relative_filepath: str, source_anchor: Any = None) -> str:
         """
         :param relative_filepath: The filepath relative to the source file
                 for this class
@@ -239,17 +237,17 @@ class LoggingSetup():
         :return: the full absolute path to the provided relative_filepath
         """
 
-        relative_dir = getcwd()
+        relative_dir: str = getcwd()
         if source_anchor is not None:
             if isinstance(source_anchor, str):
                 relative_dir = source_anchor
             else:
-                module_file = getfile(source_anchor.__class__)
-                module_path = abspath(module_file)
+                module_file: str = getfile(source_anchor.__class__)
+                module_path: str = abspath(module_file)
                 relative_dir = dirname(module_path)
 
-        partial_relative_path = join(relative_dir, relative_filepath)
-        absolute_file_path = abspath(partial_relative_path)
+        partial_relative_path: str = join(relative_dir, relative_filepath)
+        absolute_file_path: str = abspath(partial_relative_path)
         return absolute_file_path
 
     @staticmethod
@@ -265,7 +263,7 @@ class LoggingSetup():
 
         # Assumes ServiceLogRecord.set_up_record_factory() has already been called once
         # what is returned is really a copy.
-        extra = ServiceLogRecord.get_default_extra_logging_fields()
+        extra: Dict[str, Any] = ServiceLogRecord.get_default_extra_logging_fields()
         if extra is None:
             extra = {}
         if extra_logging_fields is not None:
@@ -286,7 +284,7 @@ class LoggingSetup():
                 # Override the defaults with what was in the metadata_dict
                 # Do not incorporate any fields that were not already
                 # in the accumulated extra dictionary.
-                value = metadata_dict.get(key, None)
+                value: Any = metadata_dict.get(key, None)
                 if value is not None:
                     extra[key] = str(value)
 
@@ -306,7 +304,7 @@ class LoggingSetup():
         """
         Setup logging to be used by ServerLifeTime
         """
-        default_extra_logging_fields = {
+        default_extra_logging_fields: Dict[str, str] = {
             "source": server_name_for_logs,
             "thread_name": "Unknown",
             "request_id": "None",
@@ -316,7 +314,7 @@ class LoggingSetup():
             "experiment_id": "None"
         }
 
-        extras = extra_logging_fields_defaults
+        extras: Dict[str, str] = extra_logging_fields_defaults
         if extras is None:
             extras = default_extra_logging_fields
 
