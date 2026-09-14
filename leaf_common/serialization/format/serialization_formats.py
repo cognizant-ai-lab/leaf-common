@@ -14,9 +14,8 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
+
+from typing import List
 
 
 class SerializationFormats():
@@ -25,13 +24,13 @@ class SerializationFormats():
     """
 
     # SerializationFormats
-    GZIP = "gzip"
-    HOCON = "hocon"
-    JSON = "json"
-    JSON_GZIP = JSON + "_" + GZIP
-    RAW_BYTES = "raw_bytes"
-    TEXT = "text"
-    YAML = "yaml"
+    GZIP: str = "gzip"
+    HOCON: str = "hocon"
+    JSON: str = "json"
+    JSON_GZIP: str = JSON + "_" + GZIP
+    RAW_BYTES: str = "raw_bytes"
+    TEXT: str = "text"
+    YAML: str = "yaml"
 
     # Note: We are specifically *not* including pickle as a SerializationFormat
     #   in leaf-common because of all the security and maintenence problems
@@ -39,4 +38,4 @@ class SerializationFormats():
     #   such a SerializationFormat coming into being (we had it in the past),
     #   we would much rather encourage the "clean living" that is possible
     #   without pickle.  Why not try JSON instead? ;)
-    SERIALIZATION_FORMATS = [HOCON, JSON, JSON_GZIP, RAW_BYTES, TEXT, YAML]
+    SERIALIZATION_FORMATS: List[str] = [HOCON, JSON, JSON_GZIP, RAW_BYTES, TEXT, YAML]
