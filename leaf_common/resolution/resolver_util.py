@@ -96,13 +96,15 @@ class ResolverUtil:
             raise ValueError(value_error_message)
 
         # Extract module and class details
+        packages: List[str] = []
+        module_name: str = None
         if len(class_split) <= 2:
             # handles <package_name>.<ClassName>
-            packages: List[str] = [class_split[0]]
+            packages = [class_split[0]]
             module_name = class_split[0]
         else:
             # handles <package_name>.<module_name>.<ClassName>
-            packages: List[str] = [".".join(class_split[:-2])]
+            packages = [".".join(class_split[:-2])]
             module_name = class_split[-2]
 
         new_class_name: str = class_split[-1]

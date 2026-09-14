@@ -95,8 +95,6 @@ class ConfigHandler():
         :return: The dictionary parsed from the config file
         """
 
-        config: Dict[str, Any] = {}
-
         # Create a map of our parser methods
         file_extension_to_parser_map = {
             '.conf': 'parse_hocon',
@@ -115,6 +113,8 @@ class ConfigHandler():
                 parser = file_extension_to_parser_map.get(file_extension)
 
         message = f"Could not read {filepath} as config. Unknown file extension."
+
+        config: Dict[str, Any] = {}
         if parser is not None:
             config = self.parse_with_method(parser, filepath, must_exist)
         elif must_exist:

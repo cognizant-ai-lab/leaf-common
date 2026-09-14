@@ -28,7 +28,9 @@ from logging import getLogger
 from logging.config import dictConfig
 from os import getcwd
 from os import environ
-from os import path
+from os.path import abspath
+from os.path import dirname
+from os.path import join
 from threading import current_thread
 
 from leaf_common.config.config_handler import ConfigHandler
@@ -159,8 +161,8 @@ class LoggingSetup():
         """
 
         # By default, use defaults passed into constructor
-        default_logging_config_file = path.join(self.default_log_config_dir,
-                                                self.default_log_config_file)
+        default_logging_config_file = join(self.default_log_config_dir,
+                                           self.default_log_config_file)
 
         # See if explicit config was given in constructor
         if self.logging_config is not None:
@@ -186,7 +188,7 @@ class LoggingSetup():
                                             log_config_file_path,
                                             source_anchor=self.source_anchor)
 
-        new_log_config_file_path = path.abspath(log_config_file_path)
+        new_log_config_file_path = abspath(log_config_file_path)
 
         return new_log_config_file_path
 
@@ -243,11 +245,11 @@ class LoggingSetup():
                 relative_dir = source_anchor
             else:
                 module_file = getfile(source_anchor.__class__)
-                module_path = path.abspath(module_file)
-                relative_dir = path.dirname(module_path)
+                module_path = abspath(module_file)
+                relative_dir = dirname(module_path)
 
-        partial_relative_path = path.join(relative_dir, relative_filepath)
-        absolute_file_path = path.abspath(partial_relative_path)
+        partial_relative_path = join(relative_dir, relative_filepath)
+        absolute_file_path = abspath(partial_relative_path)
         return absolute_file_path
 
     @staticmethod
