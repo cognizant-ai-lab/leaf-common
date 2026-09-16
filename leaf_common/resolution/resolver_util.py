@@ -104,7 +104,9 @@ class ResolverUtil:
             module_name = class_split[0]
         else:
             # handles <package_name>.<module_name>.<ClassName>
-            packages = [".".join(class_split[:-2])]
+            class_list: List[str] = class_split[:-2]
+            class_join: str = ".".join(class_list)
+            packages = [class_join]
             module_name = class_split[-2]
 
         new_class_name: str = class_split[-1]
@@ -142,7 +144,8 @@ class ResolverUtil:
             return None
 
         name_split: List[str] = fully_qualified_name.split(".")
-        module_name: str = ".".join(name_split[:-1])
+        module_list: List[str] = name_split[:-1]
+        module_name: str = ".".join(module_list)
         class_name: str = name_split[-1]
 
         resolver = Resolver()

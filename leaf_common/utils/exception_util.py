@@ -50,7 +50,9 @@ class ExceptionUtil:
 
         # Create indentation string based on current nesting level
         # Each level adds 2 spaces for visual hierarchy
-        spaces: str = "  " * indent
+        spaces: str = ""
+        for _ in range(indent):
+            spaces += "  "
 
         # Start building the message with exception type and description
         # Format: "ExceptionType: exception message"
