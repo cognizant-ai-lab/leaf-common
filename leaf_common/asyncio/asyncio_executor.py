@@ -22,6 +22,7 @@ from typing import Awaitable
 from typing import Callable
 from typing import Dict
 from typing import List
+from typing import Set
 from typing import Tuple
 
 from functools import partial
@@ -161,7 +162,7 @@ class AsyncioExecutor(TaskExecutor):
 
         # If we reach here, the loop was stopped.
         # We should gather any remaining tasks and finish them.
-        pending = all_tasks(loop=loop)
+        pending: Set[Task] = all_tasks(loop=loop)
         if pending:
             # We want all possibly pending tasks to execute -
             # don't need them to raise exceptions.
@@ -185,9 +186,9 @@ class AsyncioExecutor(TaskExecutor):
         # Call the default exception handler first
         loop.default_exception_handler(context)
 
-        message = context.get("message", None)
-        exception = context.get("exception", None)
-        formatted_exception = format_exception(exception)
+        message: str = context.get("message", None)
+        exception: Exception = context.get("exception", None)
+        formatted_exception: List[str] = format_exception(exception)
         print(f"Event loop traceback ({message}):\n{formatted_exception}")
 
     def get_function_name(self, function, submitter_id: str) -> str:
@@ -345,7 +346,7 @@ class AsyncioExecutor(TaskExecutor):
             "task": task,
             "raise_exception": raise_exception
         }
-        task_id = id(task)
+        task_id: int = id(task)
         self._background_tasks[task_id] = task_info_dict
         task.add_done_callback(self.submission_done)
         return task
@@ -353,11 +354,13 @@ class AsyncioExecutor(TaskExecutor):
     @staticmethod
     async def _cancel_and_drain(tasks: List[AsyncFuture]):
         # Request cancellation for tasks that are not already done:
-        pending = []
+        pending: List[AsyncFuture] = []
         for task in tasks:
-            if not task.done():
-                task.cancel("cancel-and-drain")
-                pending.append(task)
+            test_task: AsyncFuture = task
+            test_task_done: bool = test_task.done()
+            if not test_task_done:
+                test_task.cancel("cancel-and-drain")
+                pending.append(test_task)
         # Don't raise exceptions in the tasks being cancelled -
         # we don't really need to react to them.
         _ = await gather(*pending, return_exceptions=True)
@@ -457,11 +460,14 @@ class AsyncioExecutor(TaskExecutor):
         # pylint: disable=broad-exception-caught
         except Exception as exc:
             formatted_exception: List[str] = format_exception(exc)
+            sensitive_logger = SensitiveLogger(self.logger)
             for line in formatted_exception:
+                # Respect const-ness
+                use_line: str = line
                 if line.endswith("\n"):
-                    line = line[:-1]
-                sensitive_logger = SensitiveLogger(self.logger)
-                sensitive_logger.info("%s", line)
+                    # Remove the newline
+                    use_line = line[:-1]
+                sensitive_logger.info("%s", use_line)
 
         # As a last gesture, remove the background task from the map
         # we use to keep its reference around. Do it safely:
