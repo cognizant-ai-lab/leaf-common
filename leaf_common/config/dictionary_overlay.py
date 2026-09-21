@@ -14,9 +14,9 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
+from typing import Any
+from typing import Dict
+from typing import Set
 
 
 class DictionaryOverlay():
@@ -24,7 +24,8 @@ class DictionaryOverlay():
     Policy class assisting with deep dictionary updates.
     """
 
-    def overlay(self, basis, overlay, allow_overlay_only_items=True):
+    def overlay(self, basis: Dict[str, Any], overlay: Dict[str, Any],
+                allow_overlay_only_items: bool = True) -> Dict[str, Any]:
         """
         :param basis: The basis dictionary to be overlayed.
                         Unmodified on exit.
@@ -42,20 +43,20 @@ class DictionaryOverlay():
                 are both dictionaries, this method recurses.
         """
 
-        overlay_only_items = set()
-        result = self._do_overlay(basis, overlay, overlay_only_items, '')
+        overlay_only_items: Set[str] = set()
+        result: Dict[str, Any] = self._do_overlay(basis, overlay, overlay_only_items, '')
         # Now, let's check if we had items present in "overlay"
         # but not in "basis" dictionary.
         # If YES - always print out warning message;
         # and if we don't allow overlay-only items, raise an exception.
-        if len(overlay_only_items) > 0 \
-                and not allow_overlay_only_items:
-            separator = ', '
-            message = separator.join(overlay_only_items)
+        if len(overlay_only_items) > 0 and not allow_overlay_only_items:
+            separator: str = ", "
+            message: str = separator.join(overlay_only_items)
             raise ValueError(f"overlay items not present in basis: {message}")
         return result
 
-    def _do_overlay(self, basis, overlay, overlay_only_items, items_prefix):
+    def _do_overlay(self, basis: Dict[str, Any], overlay: Dict[str, Any],
+                    overlay_only_items: Set[str], items_prefix: str) -> Dict[str, Any]:
         """
         :param basis: The basis dictionary to be overlayed.
                         Unmodified on exit.
@@ -77,46 +78,49 @@ class DictionaryOverlay():
         if basis is None and overlay is None:
             return None
 
+        use_basis: Dict[str, Any] = basis
         if basis is None:
-            basis = {}
+            use_basis = {}
 
-        if not isinstance(basis, dict):
+        if not isinstance(use_basis, dict):
             raise ValueError("basis is not a dictionary")
 
+        use_overlay: Dict[str, Any] = overlay
         if overlay is None:
-            overlay = {}
+            use_overlay = {}
 
-        if not isinstance(overlay, dict):
+        if not isinstance(use_overlay, dict):
             raise ValueError("overlay is not a dictionary")
 
         # Do not modify any incoming arguments
-        result = {}
-        result.update(basis)
+        result: Dict[str, Any] = {}
+        result.update(use_basis)
 
-        for key in overlay.keys():
+        key: str = None
+        for key in use_overlay.keys():
 
             # Any key we do not have, we just copy over the value from overlay.
-            if key not in basis:
-                result[key] = overlay[key]
-                overlay_only_items.add(items_prefix+key)
+            if key not in use_basis:
+                result[key] = use_overlay[key]
+                add_key: str = items_prefix + key
+                overlay_only_items.add(add_key)
                 continue
 
-            basis_value = basis.get(key)
-            overlay_value = overlay.get(key)
+            basis_value: Any = use_basis.get(key)
+            overlay_value: Any = use_overlay.get(key)
 
-            if basis_value is not None \
-                    and overlay_value is not None:
+            if basis_value is not None and overlay_value is not None:
                 # Adjust overlay value type here:
                 # if "basis" contains say A = 3 and overlay contains A = '3',
                 # we try to convert overlay string to numeric type
                 # by parsing it. This takes care of situation
                 # when overlay value comes from environment variable,
                 # which is always a string.
-                overlay_value = self._convert_overlay_value(basis_value, overlay_value)
+                overlay_value: Any = self._convert_overlay_value(basis_value, overlay_value)
 
             # By default, the result value for the key will be the overlay
             # value itself.
-            result_value = overlay_value
+            result_value: Any = overlay_value
 
             # ... except if both values are dictionaries.
             # In that case, recurse.
@@ -131,7 +135,7 @@ class DictionaryOverlay():
 
         return result
 
-    def _convert_overlay_value(self, basis_value, overlay_value):
+    def _convert_overlay_value(self, basis_value: Any, overlay_value: Any) -> Any:
         """
         Given basis value from configuration and overlay value
         we need to replace it with, convert overlay value if necessary.
@@ -145,12 +149,13 @@ class DictionaryOverlay():
                  in configuration.
         """
 
+        use_value: Any = overlay_value
         if isinstance(overlay_value, str):
+            string_value: str = overlay_value
             if isinstance(basis_value, bool):
-                overlay_value = \
-                    bool(overlay_value.strip().lower() == 'true')
+                use_value = bool(string_value.strip().lower() == 'true')
             elif isinstance(basis_value, int):
-                overlay_value = int(float(overlay_value))
+                use_value = int(float(string_value))
             elif isinstance(basis_value, float):
-                overlay_value = float(overlay_value)
-        return overlay_value
+                use_value = float(string_value)
+        return use_value

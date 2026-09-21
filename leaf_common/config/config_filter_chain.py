@@ -17,6 +17,7 @@
 """
 See class comment for details.
 """
+from typing import Any
 from typing import Dict
 from typing import List
 
@@ -48,8 +49,7 @@ class ConfigFilterChain(ConfigFilter):
         """
         self._filters.append(one_filter)
 
-    def filter_config(self, basis_config: Dict[str, object]) \
-            -> Dict[str, object]:
+    def filter_config(self, basis_config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Filters the given basis config.
 
@@ -62,9 +62,10 @@ class ConfigFilterChain(ConfigFilter):
         :return: A config dictionary, potentially modified as per the
                 policy encapsulated by the implementation
         """
-        filtered = basis_config
+        filtered: Dict[str, Any] = basis_config
 
         # Go through the filter chain
+        one_filter: ConfigFilter = None
         for one_filter in self._filters:
             filtered = one_filter.filter_config(filtered)
 
