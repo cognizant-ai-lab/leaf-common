@@ -157,7 +157,7 @@ class ConfigHandler():
         :return: The dictionary parsed from the hocon config file
         """
         persistence = EasyJsonPersistence(full_ref=filepath, must_exist=must_exist)
-        config: Dict[str, Any] = persistence.restore(file_reference=None)
+        config: Dict[str, Any] = persistence.restore(None)
         return config
 
     def parse_hocon(self, filepath: str, must_exist: bool) -> Dict[str, Any]:
@@ -170,7 +170,7 @@ class ConfigHandler():
         :return: The dictionary parsed from the hocon config file
         """
         persistence = EasyHoconPersistence(full_ref=filepath, must_exist=must_exist)
-        config: Dict[str, Any] = persistence.restore(file_reference=None)
+        config: Dict[str, Any] = persistence.restore(None)
         return config
 
     def parse_yaml(self, filepath: str, must_exist: bool) -> Dict[str, Any]:
@@ -183,5 +183,5 @@ class ConfigHandler():
         :return: The dictionary parsed from the yaml config file
         """
         persistence = EasyYamlPersistence(full_ref=filepath, must_exist=must_exist)
-        config: Dict[str, Any] = persistence.restore(file_reference=None)
+        config: Dict[str, Any] = persistence.restore(None)
         return config
