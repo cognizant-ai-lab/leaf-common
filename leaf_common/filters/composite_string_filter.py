@@ -33,7 +33,7 @@ class CompositeStringFilter(StringFilter):
                                 to apply in order
         """
 
-        self._filters = []
+        self._filters: List[StringFilter] = []
 
         if filters is not None:
             one_filter: StringFilter = None
