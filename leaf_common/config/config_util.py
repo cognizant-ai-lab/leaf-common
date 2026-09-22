@@ -56,16 +56,21 @@ class ConfigUtil:
         """
         if key not in config:
             return default
+
         value: Any = config[key]
         if isinstance(value, bool):
             return value
+
         if isinstance(value, str):
-            lowered = value.strip().lower()
+            string_value: str = value
+            lowered: str = string_value.strip().lower()
             if lowered in ("true", "yes"):
                 return True
             if lowered in ("false", "no"):
                 return False
             return default
+
         if isinstance(value, int):
             return value != 0
+
         return default

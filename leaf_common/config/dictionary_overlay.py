@@ -16,6 +16,7 @@
 # END COPYRIGHT
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Set
 
 
@@ -51,7 +52,8 @@ class DictionaryOverlay():
         # and if we don't allow overlay-only items, raise an exception.
         if len(overlay_only_items) > 0 and not allow_overlay_only_items:
             separator: str = ", "
-            message: str = separator.join(overlay_only_items)
+            overlay_only_list: List[str] = sorted(list(overlay_only_items))
+            message: str = separator.join(overlay_only_list)
             raise ValueError(f"overlay items not present in basis: {message}")
         return result
 
@@ -100,7 +102,7 @@ class DictionaryOverlay():
         for key in use_overlay.keys():
 
             # Any key we do not have, we just copy over the value from overlay.
-            if key not in use_basis:
+            if key not in use_basis.keys():
                 result[key] = use_overlay[key]
                 add_key: str = items_prefix + key
                 overlay_only_items.add(add_key)
