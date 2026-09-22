@@ -85,7 +85,7 @@ class ConfigHandler():
                 dest[key] = source[key]
         return dest
 
-    def read_config_from_file(self, filepath: Dict[str, Any], must_exist: bool) -> Dict[str, Any]:
+    def read_config_from_file(self, filepath: str, must_exist: bool) -> Dict[str, Any]:
         """
         :param filepath: The file to parse
         :param must_exist: When True, an error is
