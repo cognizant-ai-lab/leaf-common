@@ -18,6 +18,7 @@
 See class comment for details
 """
 
+from typing import Any
 from typing import Dict
 
 
@@ -32,8 +33,7 @@ class ConfigFilter():
     thus allowing config modification at an early stage in an app's lifecyle.
     """
 
-    def filter_config(self, basis_config: Dict[str, object]) \
-            -> Dict[str, object]:
+    def filter_config(self, basis_config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Filters the given basis config.
 

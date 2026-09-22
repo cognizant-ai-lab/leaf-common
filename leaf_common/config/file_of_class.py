@@ -14,12 +14,9 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
 
 from pathlib import Path
-import os
+from os.path import expanduser
 
 
 class FileOfClass:
@@ -105,7 +102,7 @@ class FileOfClass:
 
         if basis == "~":
             # Special case if we are looking under user's home directory
-            basis = os.path.expanduser("~")
+            basis = expanduser("~")
         basis_abs_path: str = str(Path(basis).resolve())
 
         if not test_abs_path.startswith(basis_abs_path):
