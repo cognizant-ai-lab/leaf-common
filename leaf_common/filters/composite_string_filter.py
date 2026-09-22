@@ -29,8 +29,7 @@ class CompositeStringFilter(StringFilter):
         """
         Constructor
 
-        :param filter_classes: A list of StringFilter class instances
-                                to apply in order
+        :param filters: A list of StringFilter class instances to apply in order
         """
 
         self._filters: List[StringFilter] = []
