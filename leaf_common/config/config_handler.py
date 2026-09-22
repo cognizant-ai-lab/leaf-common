@@ -15,7 +15,6 @@
 #
 # END COPYRIGHT
 from typing import Any
-from typing import Callable
 from typing import Dict
 from typing import Union
 
@@ -140,11 +139,14 @@ class ConfigHandler():
                 ignored and a dictionary value of None is returned
         :return: The dictionary parsed from the config file
         """
-        # Python magic to get a handle to the method
-        parser_method: Callable = getattr(self, parser)
+        config: Dict[str, Any] = None
 
-        # Call the parser method with the filepath, get dictionary back
-        config: Dict[str, Any] = parser_method(filepath, must_exist)
+        if parser == "parse_hocon":
+            config = self.parse_hocon(filepath, must_exist)
+        elif parser == "parse_json":
+            config = self.parse_json(filepath, must_exist)
+        elif parser == "parse_yaml":
+            config = self.parse_yaml(filepath, must_exist)
         return config
 
     def parse_json(self, filepath: str, must_exist: bool) -> Dict[str, Any]:
