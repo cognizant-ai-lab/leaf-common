@@ -27,7 +27,7 @@ class FieldExtractor():
     """
 
     def get_field(self, dictionary: Dict[str, Any], field_name: str, default_value: Any = None,
-                  delimiter: str = "."):
+                  delimiter: str = ".") -> Any:
         """
         :param dictionary: the dictionary in which the field
             is supposed exist.

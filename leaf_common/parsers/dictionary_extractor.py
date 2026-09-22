@@ -40,7 +40,7 @@ class DictionaryExtractor():
         self.delimiter: str = delimiter
         self.extractor = FieldExtractor()
 
-    def get(self, field_name: str, default_value: Any = None):
+    def get(self, field_name: str, default_value: Any = None) -> Any:
         """
         :param field_name: the fully specified field name.
         :param default_value: a default value if the field is not found.
