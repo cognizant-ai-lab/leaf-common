@@ -79,7 +79,7 @@ class NotATask(asyncio.Future):
         if self.done():
             return
         if runner.cancelled():
-            self.cancel()
+            super().cancel()
         elif runner.exception() is not None:
             self.set_exception(runner.exception())
         else:
@@ -89,13 +89,12 @@ class NotATask(asyncio.Future):
     # pylint: disable=unused-argument
     def cancel(self, msg: Any = None) -> bool:
         """
-        Cancel the inner task as well as this Future.
+        Request cancellation of the inner task.
 
         :param msg: Cancellation message, accepted for signature parity
         :return: True if cancellation was requested
         """
-        self._runner.cancel()
-        return super().cancel() if not self.done() else False
+        return self._runner.cancel()
 
 
 class SharedLoopAsyncioExecutorFactoryResultTest(IsolatedAsyncioTestCase):
