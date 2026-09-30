@@ -205,8 +205,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :return: The same Future, now owned by this executor
         """
         self._check_loop()
-        if not isinstance(task, asyncio.Future) or task.get_loop() is not self._loop:
-            raise ValueError("Expected an asyncio.Future on the executor's event loop")
+        if not asyncio.isfuture(task) or task.get_loop() is not self._loop:
+            raise ValueError("Expected a Future-compatible object on the executor's event loop")
         if task not in self._tasks:
             task.add_done_callback(self.submission_done)
         self._tasks[task] = raise_exception
