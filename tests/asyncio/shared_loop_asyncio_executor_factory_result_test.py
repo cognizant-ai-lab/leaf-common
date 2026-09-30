@@ -210,6 +210,97 @@ class SharedLoopAsyncioExecutorFactoryResultTest(IsolatedAsyncioTestCase):
         await pool.areturn_executor(executor)
         self.assertTrue(cleaned.is_set())
 
+    async def test_current_task_is_not_the_tracked_object(self) -> None:
+        """
+        Pin the premise the ownership guard has to cope with: the tracked
+        object is the factory's wrapper, while current_task() is the inner
+        Task that actually drives the coroutine. A bare Future cannot run a
+        coroutine, so this split is forced, not incidental.
+        """
+        executor = SharedLoopAsyncioExecutor()
+        executor.start()
+        seen: Dict[str, Any] = {}
+
+        tracked = executor.submit('a', self._record_current_task, seen)
+        # Check ownership while it is still pending: submission_done() drops a
+        # task from the table as soon as it finishes.
+        self.assertIn(tracked, executor.get_tracked_tasks())
+        await tracked
+
+        self.assertIsNot(seen['current'], tracked)
+        self.assertIsInstance(seen['current'], asyncio.Task)
+        self.assertNotIsInstance(tracked, asyncio.Task)
+
+        await executor.ashutdown()
+
+    async def test_self_ashutdown_from_owned_work_is_refused(self) -> None:
+        """
+        The bug this guards against: with the identity check alone the guard
+        never fired here, so ashutdown() cancelled the running work and set
+        the shutdown flag instead of raising, leaving the executor unusable.
+        """
+        executor = SharedLoopAsyncioExecutor()
+        executor.start()
+
+        task = executor.submit('a', executor.ashutdown)
+        with self.assertRaisesRegex(RuntimeError, 'outside'):
+            await task
+
+        # Never shut down, so still usable.
+        self.assertEqual(await executor.submit('b', lambda: 42), 42)
+        await executor.ashutdown()
+
+    async def test_self_return_from_owned_work_keeps_the_executor_usable(self) -> None:
+        """
+        The same case through the pool, which is how a caller meets it. The
+        executor must stay checked out AND stay usable, not end up owned but
+        shut down.
+        """
+        pool = SharedLoopAsyncioExecutorPool()
+        executor = pool.get_executor()
+
+        task = executor.submit('a', pool.areturn_executor, executor)
+        with self.assertRaisesRegex(RuntimeError, 'outside'):
+            await task
+
+        for _ in range(4):
+            await asyncio.sleep(0)
+        metrics: Dict[str, Any] = pool.get_threads_metrics()
+        self.assertEqual(metrics['used']['executors'], 1)
+        self.assertEqual(metrics['retiring']['executors'], 0)
+
+        self.assertEqual(await executor.submit('b', lambda: 7), 7)
+        await pool.areturn_executor(executor)
+        self.assertEqual(pool.get_threads_metrics()['used']['executors'], 0)
+        pool.shutdown()
+
+    async def test_cleaning_up_another_executor_is_still_allowed(self) -> None:
+        """
+        The marker is per executor, so work owned by one executor may still
+        clean up a different one. Guarding on "inside any owned work" would
+        wrongly forbid this.
+        """
+        first = SharedLoopAsyncioExecutor()
+        second = SharedLoopAsyncioExecutor()
+        first.start()
+        second.start()
+
+        task = first.submit('a', second.ashutdown)
+        await task
+
+        with self.assertRaises(RuntimeError):
+            second.submit('b', lambda: None)
+        await first.ashutdown()
+
+    @staticmethod
+    async def _record_current_task(seen: Dict[str, Any]) -> None:
+        """
+        Record what asyncio reports as the running task.
+
+        :param seen: Dict to record into
+        """
+        seen['current'] = asyncio.current_task()
+
     @staticmethod
     async def _block_until_cancelled(cleaned: asyncio.Event) -> None:
         """

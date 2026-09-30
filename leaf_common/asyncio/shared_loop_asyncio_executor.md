@@ -90,6 +90,15 @@ finally:
   `cancel_futures=True` to request cancellation. It does not await cleanup.
   `shutdown(wait=True)` raises if unfinished tasks would require blocking.
 - Cleanup must be awaited outside executor-owned tasks to avoid self-deadlock.
+  This is enforced by a ContextVar marker stamped into the context every
+  submitted task runs in, not by comparing the running task against the tracked
+  one: under a task factory returning a non-Task Future, the tracked object is
+  the factory's wrapper while `asyncio.current_task()` is the inner Task that
+  drives the coroutine, so an identity comparison never matches. The marker is
+  per executor, so owned work may still clean up a *different* executor. A
+  factory that discards the `context=` it is handed defeats the marker, but such
+  a factory already breaks per-request ContextVar isolation; tasks adopted via
+  `track_task()` are covered by the identity check instead.
 - Only submitted or explicitly tracked tasks are owned. Await child tasks or
   register them with `track_task()`; cleanup does not inspect global loop tasks.
 
