@@ -46,6 +46,11 @@ class AsyncioExecutorFactory():
         pool.return_executor(executor)      # shuts it down when reuse_mode=False
         pool.shutdown()
 
+    Note that the SHARED_LOOP pool cannot complete cleanup synchronously, since
+    its executors run on the caller's own loop. There, retire with
+    "await pool.areturn_executor(executor)" instead. See
+    shared_loop_asyncio_executor.md.
+
     A caller needing exactly one long-lived executor -- a background service,
     say -- makes a pool-of-one with reuse_mode=False. That costs nothing: the
     pool's GC thread only exists when reuse_mode is True.

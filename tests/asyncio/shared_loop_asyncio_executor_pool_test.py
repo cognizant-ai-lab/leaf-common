@@ -98,11 +98,159 @@ class SharedLoopAsyncioExecutorPoolTest(IsolatedAsyncioTestCase):
         self.assertEqual(pool.get_threads_metrics(), {
             'used': {'executors': 2, 'work_threads': 0, 'threads_running': 0},
             'available': {'executors': 0, 'work_threads': 0, 'threads_running': 0},
+            'retiring': {'executors': 0, 'work_threads': 0, 'threads_running': 0},
         })
         for executor in (first, second):
             pool.return_executor(executor)
             await executor.ashutdown(cancel_futures=False)
         self.assertEqual(pool.format_task_dump(pool.dump_tasks_in_used_executors()), '(no used executors)')
+
+    async def test_sync_return_keeps_ownership_of_unfinished_work(self) -> None:
+        """
+        A task that catches CancelledError outlives return_executor(). The pool
+        must keep reporting the executor rather than dropping it while it runs.
+        """
+        pool = SharedLoopAsyncioExecutorPool()
+        executor = pool.get_executor()
+        release: asyncio.Event = asyncio.Event()
+        executor.submit('a', self._resist_cancellation, release)
+        await self._settle()
+
+        pool.return_executor(executor)
+        await self._settle()
+
+        metrics = pool.get_threads_metrics()
+        self.assertEqual(metrics['used']['executors'], 0)
+        self.assertEqual(metrics['retiring']['executors'], 1)
+
+        dump = pool.dump_tasks_in_used_executors()
+        self.assertTrue(dump[str(id(executor))]['retiring'])
+        self.assertEqual(len(dump[str(id(executor))]['tasks']), 1)
+
+        release.set()
+        await pool.ashutdown()
+
+    async def test_sync_return_of_finished_work_retains_nothing(self) -> None:
+        """
+        The happy path must not accumulate: an executor with no pending work is
+        released outright rather than parked as retiring.
+        """
+        pool = SharedLoopAsyncioExecutorPool()
+        executor = pool.get_executor()
+        self.assertEqual(await executor.submit('a', lambda: 42), 42)
+
+        pool.return_executor(executor)
+
+        metrics = pool.get_threads_metrics()
+        self.assertEqual(metrics['used']['executors'], 0)
+        self.assertEqual(metrics['retiring']['executors'], 0)
+        self.assertEqual(pool.dump_tasks_in_used_executors(), {})
+        pool.shutdown()
+
+    async def test_areturn_executor_completes_cleanup(self) -> None:
+        """
+        The awaitable path drains the work and only then gives up ownership,
+        which is the guarantee the native pool's return_executor() provides.
+        """
+        pool = SharedLoopAsyncioExecutorPool()
+        executor = pool.get_executor()
+        cleaned: asyncio.Event = asyncio.Event()
+        executor.submit('a', self._block_until_cancelled, cleaned)
+        await self._settle()
+
+        await pool.areturn_executor(executor)
+
+        self.assertTrue(cleaned.is_set())
+        self.assertFalse(executor.has_pending_tasks())
+        metrics = pool.get_threads_metrics()
+        self.assertEqual(metrics['used']['executors'], 0)
+        self.assertEqual(metrics['retiring']['executors'], 0)
+        pool.shutdown()
+
+    async def test_shutdown_refuses_to_abandon_retiring_work(self) -> None:
+        """
+        shutdown(wait=True) cannot drain the shared loop, so it says so instead
+        of silently losing the executor. wait=False opts out of the check.
+        """
+        pool = SharedLoopAsyncioExecutorPool()
+        executor = pool.get_executor()
+        release: asyncio.Event = asyncio.Event()
+        executor.submit('a', self._resist_cancellation, release)
+        await self._settle()
+        pool.return_executor(executor)
+        await self._settle()
+
+        with self.assertRaisesRegex(RuntimeError, 'ashutdown'):
+            pool.shutdown()
+        pool.shutdown(wait=False)
+
+        release.set()
+        await pool.ashutdown()
+
+    async def test_pool_ashutdown_drains_retiring_executors(self) -> None:
+        """
+        await ashutdown() is the recovery point for anything left retiring by a
+        synchronous return.
+        """
+        pool = SharedLoopAsyncioExecutorPool()
+        first, second = pool.get_executor(), pool.get_executor()
+        first_cleaned: asyncio.Event = asyncio.Event()
+        second_cleaned: asyncio.Event = asyncio.Event()
+        first.submit('first', self._block_until_cancelled, first_cleaned)
+        second.submit('second', self._block_until_cancelled, second_cleaned)
+        await self._settle()
+        pool.return_executor(first)
+        pool.return_executor(second)
+
+        await pool.ashutdown()
+
+        self.assertTrue(first_cleaned.is_set())
+        self.assertTrue(second_cleaned.is_set())
+        self.assertEqual(pool.get_threads_metrics()['retiring']['executors'], 0)
+        pool.shutdown()
+
+    async def test_areturn_timeout_keeps_the_executor_retiring(self) -> None:
+        """
+        A task that outlasts the timeout must not be dropped. The pool keeps
+        the executor so metrics still show it and ashutdown() can retry.
+        """
+        pool = SharedLoopAsyncioExecutorPool()
+        executor = pool.get_executor()
+        release: asyncio.Event = asyncio.Event()
+        executor.submit('a', self._resist_cancellation, release)
+        await self._settle()
+
+        with self.assertRaises(TimeoutError):
+            await pool.areturn_executor(executor, timeout=0.01)
+
+        self.assertEqual(pool.get_threads_metrics()['retiring']['executors'], 1)
+        self.assertTrue(pool.dump_tasks_in_used_executors()[str(id(executor))]['retiring'])
+
+        release.set()
+        await pool.ashutdown()
+        self.assertEqual(pool.get_threads_metrics()['retiring']['executors'], 0)
+
+    @staticmethod
+    async def _settle() -> None:
+        """
+        Yield to the loop enough times for a cancellation to be delivered and,
+        where the task swallows it, for the task to resume and park again.
+        """
+        for _ in range(4):
+            await asyncio.sleep(0)
+
+    @staticmethod
+    async def _resist_cancellation(release: asyncio.Event) -> None:
+        """
+        Swallow the first cancellation and keep waiting. This is the adversary
+        the retiring lifecycle exists for.
+
+        :param release: The event that finally lets this finish
+        """
+        try:
+            await release.wait()
+        except asyncio.CancelledError:
+            await release.wait()
 
     @staticmethod
     async def _block_until_cancelled(cleaned: asyncio.Event) -> None:

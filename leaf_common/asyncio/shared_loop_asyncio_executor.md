@@ -26,13 +26,18 @@ Executors are constructed solely by their pool, so every executor has an owner
 that knows how to start it, hand it out, and tear it down.
 
 A caller needing exactly one long-lived executor — a background service, say —
-makes a pool-of-one with `reuse_mode=False`:
+makes a pool-of-one with `reuse_mode=False`. **Cleanup differs by type**, and the
+difference matters:
 
 ```python
-pool = AsyncioExecutorFactory.create_pool(reuse_mode=False, max_workers=max_workers)
-executor = pool.get_executor()
-...
-pool.return_executor(executor)        # shuts it down when reuse_mode=False
+# THREADED: return_executor() shuts the executor down with wait=True, joining
+# its thread, so cleanup is complete when the call returns.
+pool.return_executor(executor)
+pool.shutdown()
+
+# SHARED_LOOP: there is no thread to join and the executor runs on the caller's
+# own loop, so a synchronous method cannot drain it. Await instead:
+await pool.areturn_executor(executor)
 pool.shutdown()
 ```
 
@@ -92,6 +97,31 @@ finally:
 branch on type, but the shared-loop implementations have no worker threads and
 ignore it.
 
+## Returning an executor
+
+`SharedLoopAsyncioExecutorPool` offers two return paths, because a synchronous
+one cannot keep the native pool's promise that "returned means finished".
+
+`await pool.areturn_executor(executor)` is the complete path. It awaits
+`ashutdown()` and only then gives up ownership. Pass a `timeout` to bound the
+wait; if it expires, `TimeoutError` is raised and the executor stays owned by
+the pool — deliberately, so a misbehaving executor is not lost precisely when
+you need to see it.
+
+`pool.return_executor(executor)` requests cancellation and returns at once. It
+does **not** guarantee cleanup has finished. A task that catches
+`CancelledError` and keeps running leaves the executor *retiring*: still owned
+by the pool, still counted by `get_threads_metrics()` under a `retiring` bucket,
+and still listed by `dump_tasks_in_used_executors()` with `"retiring": True`.
+An executor with nothing pending is released outright, so the ordinary path
+accumulates nothing.
+
+`await pool.ashutdown()` drains anything left retiring. Synchronous
+`pool.shutdown()` cannot, so it raises `RuntimeError` pointing at `ashutdown()`
+when retiring work remains — the same way
+`SharedLoopAsyncioExecutor.shutdown(wait=True)` does one level down. Pass
+`wait=False` to shut down without that check.
+
 ## What this is not
 
 This is **not** a drop-in replacement for every `AsyncioExecutor` caller. Anything
@@ -103,6 +133,7 @@ request cleanup when completion must be guaranteed.
 `SharedLoopAsyncioExecutorPool` mirrors the `AsyncioExecutorPool` surface, but
 has no reuse, no idle expiry, no worker pool, and no GC thread: every acquisition
 builds a fresh executor. It accepts the pool configuration arguments and honors
-none of them.
+none of them. Its return lifecycle also differs, as described above — that one is
+a behavioral difference, not just an ignored argument.
 
 No global monkey patch of leaf-common is required or performed.

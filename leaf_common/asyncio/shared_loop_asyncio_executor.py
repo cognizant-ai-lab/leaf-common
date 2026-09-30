@@ -188,6 +188,27 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
                 "task": task,
             })
 
+    def get_tracked_tasks(self) -> List[asyncio.Task]:
+        """Report the tasks this executor owns, finished ones included.
+
+        Ownership bookkeeping is this executor's business, so callers that need
+        to see it -- a pool rendering a task dump, say -- ask here rather than
+        reading the internal table.
+
+        :return: A snapshot list of every task still tracked by this executor
+        """
+        return list(self._tasks)
+
+    def has_pending_tasks(self) -> bool:
+        """Report whether any owned task is still running.
+
+        Unlike _pending(), this never raises when called from inside an owned
+        task, because it is a question a caller may ask from anywhere.
+
+        :return: True if at least one owned task has not finished
+        """
+        return any(not task.done() for task in self._tasks)
+
     def _pending(self) -> List[asyncio.Task]:
         tasks = [task for task in self._tasks if not task.done()]
         if asyncio.current_task() in tasks:
