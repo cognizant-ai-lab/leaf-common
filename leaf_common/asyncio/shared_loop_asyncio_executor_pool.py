@@ -41,6 +41,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 
+from asyncio import Future
 
 from leaf_common.asyncio.shared_loop_asyncio_executor import SharedLoopAsyncioExecutor
 
@@ -193,15 +194,12 @@ class SharedLoopAsyncioExecutorPool:
             # These executors share one loop: all_tasks() would incorrectly
             # attribute other requests' tasks to every executor.
             for task in executor.get_tracked_tasks():
-                coro = task.get_coro()
                 tasks.append({
-                    "name": task.get_name(),
-                    "coro": getattr(coro, "__qualname__", repr(coro)),
+                    "name": SharedLoopAsyncioExecutor.get_task_name(task),
+                    "coro": self._describe_coro(task),
                     "done": task.done(),
                     "cancelled": task.cancelled(),
-                    "stack": [{"file": frame.f_code.co_filename,
-                               "line": frame.f_lineno,
-                               "func": frame.f_code.co_name} for frame in task.get_stack()],
+                    "stack": self._describe_stack(task),
                 })
             state: str = "responded" if executor.get_event_loop().is_running() else "not_running"
             result[str(id(executor))] = {
@@ -210,6 +208,40 @@ class SharedLoopAsyncioExecutorPool:
                 "tasks": tasks,
             }
         return result
+
+    @staticmethod
+    def _describe_coro(task: Future) -> str:
+        """Describe what a tracked task is running, whatever the factory made.
+
+        get_coro() is an asyncio.Task method; a Future-compatible factory
+        result need not have it. See the SharedLoopAsyncioExecutor module
+        comment.
+
+        :param task: The tracked Future to describe
+        :return: The coroutine's qualified name, or the task's repr
+        """
+        get_coro = getattr(task, "get_coro", None)
+        if not callable(get_coro):
+            return repr(task)
+        coro: Any = get_coro()
+        return getattr(coro, "__qualname__", repr(coro))
+
+    @staticmethod
+    def _describe_stack(task: Future) -> List[Dict[str, Any]]:
+        """Render a tracked task's suspended stack, when it can provide one.
+
+        get_stack() is an asyncio.Task method; a Future-compatible factory
+        result need not have it, in which case there is no stack to show.
+
+        :param task: The tracked Future to describe
+        :return: One dict per stack frame, or an empty list
+        """
+        get_stack = getattr(task, "get_stack", None)
+        if not callable(get_stack):
+            return []
+        return [{"file": frame.f_code.co_filename,
+                 "line": frame.f_lineno,
+                 "func": frame.f_code.co_name} for frame in get_stack()]
 
     def _check_owned(self, executor: SharedLoopAsyncioExecutor) -> None:
         """Verify this pool handed the executor out and has not taken it back.

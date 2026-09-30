@@ -21,7 +21,8 @@ it is the variant that works where threads do not exist -- Pyodide in the browse
 above all, and transpiled JavaScript, where threading.Thread.start() cannot run
 anything. It also works on native asyncio, which is how it is tested.
 
-Call start() from async code. submit() returns an awaitable asyncio.Task.
+Call start() from async code. submit() returns an awaitable Future (an
+asyncio.Task on a loop with no custom task factory; see below).
 Synchronous callables run on the loop and MUST be short and nonblocking.
 Use await cancel_current_tasks() and await ashutdown() for cleanup; synchronous
 shutdown(wait=True) refuses to block on pending tasks. This is not a drop-in
@@ -29,6 +30,16 @@ replacement for callers using AsyncToSyncGenerator or the threaded executor pool
 
 Only explicitly submitted/tracked tasks are owned. Callers must await or register
 any child tasks they create. The host loop and its global settings are untouched.
+
+That includes the host's task factory. loop.create_task() may validly return any
+Future-compatible object when a factory is installed -- on Python 3.12 such a
+result need not be an asyncio.Task, and need not provide get_name(), get_coro()
+or get_stack(). Ownership here needs only the Future API (add_done_callback,
+cancel, cancelled, exception, get_loop), so any Future on this loop can be
+tracked; the Task-only methods are used for reporting alone and are guarded.
+The alternative -- constructing asyncio.Task directly to guarantee the type --
+was rejected because it would silently bypass a factory the host installed for
+a reason, such as eager task execution or tracing.
 """
 import asyncio
 import contextvars
@@ -55,7 +66,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         self._loop: asyncio.AbstractEventLoop = None
         self._context: contextvars.Context = None
         self._shutdown: bool = False
-        self._tasks: Dict[asyncio.Task, bool] = {}
+        self._tasks: Dict[asyncio.Future, bool] = {}
 
     def get_event_loop(self) -> asyncio.AbstractEventLoop:
         """Return the borrowed loop, or None before start()."""
@@ -99,7 +110,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         name = getattr(function, "__qualname__", type(function).__name__)
         return f"{submitter_id}:{name}" if submitter_id else name
 
-    def submit(self, submitter_id: str, function: Any, /, *args: Any, **kwargs: Any) -> asyncio.Task:
+    def submit(self, submitter_id: str, function: Any, /, *args: Any, **kwargs: Any) -> asyncio.Future:
         """Schedule a callable or awaitable; return its task, including its result.
 
         Sync callables run inline when the task runs, never in a worker thread.
@@ -129,7 +140,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         return await result if inspect.isawaitable(result) else result
 
     def create_task(self, awaitable: Awaitable, submitter_id: str,
-                    raise_exception: bool = False) -> asyncio.Task:
+                    raise_exception: bool = False) -> asyncio.Future:
         """Schedule an awaitable; optionally report failures to the loop handler.
 
         Awaiting the returned task always propagates its exception, regardless of
@@ -157,25 +168,51 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         return await awaitable
 
-    def _schedule(self, coroutine: Coroutine, name: str, raise_exception: bool) -> asyncio.Task:
+    def _schedule(self, coroutine: Coroutine, name: str, raise_exception: bool) -> asyncio.Future:
+        """Create a task on the host loop and take ownership of it.
+
+        :param coroutine: The coroutine to schedule
+        :param name: The task name to request
+        :param raise_exception: True to report background failures to the loop
+        :return: The Future the host loop's task factory produced
+        """
         try:
             task = self._loop.create_task(coroutine, name=name, context=self._context.copy())
         except BaseException:
             coroutine.close()
             raise
-        return self.track_task(task, raise_exception)
 
-    def track_task(self, task: asyncio.Task, raise_exception: bool = False) -> asyncio.Task:
-        """Take ownership of an existing task on this loop (without changing its context)."""
+        # By this point the factory has already scheduled the work. If we
+        # cannot own the object it handed back, cancel it rather than let it
+        # run untracked and outside shutdown.
+        try:
+            return self.track_task(task, raise_exception)
+        except BaseException:
+            cancel = getattr(task, "cancel", None)
+            if callable(cancel):
+                cancel()
+            raise
+
+    def track_task(self, task: asyncio.Future, raise_exception: bool = False) -> asyncio.Future:
+        """Take ownership of an existing task on this loop (without changing its context).
+
+        Accepts any Future-compatible object, not just an asyncio.Task, since a
+        host loop with a custom task factory may hand back either. See the
+        module comment.
+
+        :param task: A Future on this executor's event loop
+        :param raise_exception: True to report background failures to the loop
+        :return: The same Future, now owned by this executor
+        """
         self._check_loop()
-        if not isinstance(task, asyncio.Task) or task.get_loop() is not self._loop:
-            raise ValueError("Expected an asyncio.Task on the executor's event loop")
+        if not isinstance(task, asyncio.Future) or task.get_loop() is not self._loop:
+            raise ValueError("Expected an asyncio.Future on the executor's event loop")
         if task not in self._tasks:
             task.add_done_callback(self.submission_done)
         self._tasks[task] = raise_exception
         return task
 
-    def submission_done(self, task: asyncio.Task) -> None:
+    def submission_done(self, task: asyncio.Future) -> None:
         """Release references and retrieve errors, including unawaited failures."""
         report = self._tasks.pop(task, False)
         if task.cancelled():
@@ -183,19 +220,34 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         exception = task.exception()
         if report and exception is not None:
             self._loop.call_exception_handler({
-                "message": f"Executor task failed: {task.get_name()}",
+                "message": f"Executor task failed: {self.get_task_name(task)}",
                 "exception": exception,
                 "task": task,
             })
 
-    def get_tracked_tasks(self) -> List[asyncio.Task]:
+    @staticmethod
+    def get_task_name(task: asyncio.Future) -> str:
+        """Name a tracked task for reporting, whatever the factory produced.
+
+        get_name() is an asyncio.Task method. A Future-compatible factory
+        result need not have it, so fall back to repr().
+
+        :param task: The tracked Future to name
+        :return: The task's name, or its repr when it has none
+        """
+        get_name = getattr(task, "get_name", None)
+        if callable(get_name):
+            return get_name()
+        return repr(task)
+
+    def get_tracked_tasks(self) -> List[asyncio.Future]:
         """Report the tasks this executor owns, finished ones included.
 
         Ownership bookkeeping is this executor's business, so callers that need
         to see it -- a pool rendering a task dump, say -- ask here rather than
         reading the internal table.
 
-        :return: A snapshot list of every task still tracked by this executor
+        :return: A snapshot list of every Future still tracked by this executor
         """
         return list(self._tasks)
 
@@ -209,14 +261,14 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         return any(not task.done() for task in self._tasks)
 
-    def _pending(self) -> List[asyncio.Task]:
+    def _pending(self) -> List[asyncio.Future]:
         tasks = [task for task in self._tasks if not task.done()]
         if asyncio.current_task() in tasks:
             raise RuntimeError("Await executor cleanup outside its owned tasks")
         return tasks
 
     @staticmethod
-    async def _drain(tasks: List[asyncio.Task], timeout: float) -> None:
+    async def _drain(tasks: List[asyncio.Future], timeout: float) -> None:
         if tasks:
             _, pending = await asyncio.wait(tasks, timeout=timeout)
             if pending:
