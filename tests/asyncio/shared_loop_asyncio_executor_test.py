@@ -23,6 +23,8 @@ from unittest.mock import patch
 
 from leaf_common.asyncio.shared_loop_asyncio_executor import SharedLoopAsyncioExecutor
 
+from tests.asyncio.structural_future import StructuralFuture
+
 
 class SharedLoopAsyncioExecutorTest(IsolatedAsyncioTestCase):
     """
@@ -147,6 +149,55 @@ class SharedLoopAsyncioExecutorTest(IsolatedAsyncioTestCase):
         task = executor.submit('a', executor.ashutdown)
         with self.assertRaisesRegex(RuntimeError, 'outside'):
             await task
+        await executor.ashutdown()
+
+    async def test_structural_future_from_another_loop_is_rejected_unscheduled(self) -> None:
+        """
+        A Future-compatible object that is not an asyncio.Future subclass must
+        still get the loop check. With a subclass check it slipped past, was
+        scheduled, and failed only once _consume() awaited it -- by which point
+        its underlying work was running outside this executor's cleanup.
+        """
+        executor = SharedLoopAsyncioExecutor()
+        executor.start()
+        other_loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
+        try:
+            foreign: StructuralFuture = StructuralFuture(other_loop)
+            self.assertTrue(asyncio.isfuture(foreign))
+            self.assertNotIsInstance(foreign, asyncio.Future)
+
+            with self.assertRaisesRegex(ValueError, 'another event loop'):
+                executor.create_task(foreign, 'a')
+
+            # Rejected before anything was scheduled or owned.
+            self.assertEqual(executor.get_tracked_tasks(), [])
+            self.assertFalse(foreign.done())
+        finally:
+            other_loop.close()
+
+        await executor.ashutdown()
+
+    async def test_cancelling_the_wrapper_cancels_a_structural_future(self) -> None:
+        """
+        Cancelling our wrapping task must reach the awaitable it wraps, even
+        when the wrapper is cancelled before its first step -- _consume() never
+        awaits the awaitable at all in that case, so without the hand-off the
+        work behind it would keep running untracked.
+        """
+        executor = SharedLoopAsyncioExecutor()
+        executor.start()
+        wrapped: StructuralFuture = StructuralFuture(asyncio.get_running_loop())
+
+        task = executor.create_task(wrapped, 'a')
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        for _ in range(4):
+            await asyncio.sleep(0)
+
+        self.assertEqual(wrapped.cancel_calls, 1)
+        self.assertTrue(wrapped.cancelled())
+
         await executor.ashutdown()
 
     @staticmethod

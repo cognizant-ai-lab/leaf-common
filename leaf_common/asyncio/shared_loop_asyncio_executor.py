@@ -172,10 +172,18 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         self._check_loop()
         if not inspect.isawaitable(awaitable):
             raise TypeError("create_task() requires an awaitable")
-        if isinstance(awaitable, asyncio.Future):
+        # asyncio.isfuture(), not isinstance(), so that the loop check and the
+        # cancellation hand-off below cover the same structural Future objects
+        # track_task() accepts. A subclass check would let a wrapper from
+        # another loop through to be scheduled, failing only once _consume()
+        # awaited it -- with its underlying work already running outside this
+        # executor's cleanup.
+        if asyncio.isfuture(awaitable):
             if awaitable.get_loop() is not self._loop:
                 raise ValueError("Awaitable belongs to another event loop")
             if isinstance(awaitable, asyncio.Task):
+                # Already a real Task on this loop: own it as it is rather
+                # than wrapping it in a second one.
                 return self.track_task(awaitable, raise_exception)
         # Use coroutine objects directly so cancellation before the first step
         # cannot leave a nested coroutine unawaited.
@@ -185,7 +193,11 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         else:
             coroutine = self._consume(awaitable)
         task = self._schedule(coroutine, self.get_function_name(awaitable, submitter_id), raise_exception)
-        if isinstance(awaitable, asyncio.Future):
+        if asyncio.isfuture(awaitable):
+            # Cancelling our wrapper must reach the awaitable it wraps, or the
+            # work behind it keeps running once we stop tracking. This matters
+            # most when the wrapper is cancelled before its first step, since
+            # _consume() never gets to await the awaitable at all.
             task.add_done_callback(
                 lambda completed: awaitable.cancel()
                 if completed.cancelled() and not awaitable.done() else None)
