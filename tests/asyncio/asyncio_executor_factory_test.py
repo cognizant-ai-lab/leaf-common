@@ -18,22 +18,18 @@
 Unit tests for AsyncioExecutorFactory's type selection.
 
 The factory builds pools only, never a bare executor, so these tests check the
-pool surface and the pool-of-one shape that long-lived callers use. The
-SHARED_LOOP cases assert the property the browser depends on: nothing the
-factory builds for that type starts a thread. threading.Thread.start is patched
-to fail rather than merely counted, so a regression shows up as a test failure
-at the point of the call rather than as a count mismatch later.
+pool surface and the pool-of-one shape that long-lived callers use.
+
+The SHARED_LOOP type has its own thread-free assertions in
+asyncio_executor_factory_shared_loop_test.py, which needs an async test case.
 """
 
-from unittest import IsolatedAsyncioTestCase
 from unittest import TestCase
-from unittest.mock import patch
 
 from leaf_common.asyncio.asyncio_executor import AsyncioExecutor
 from leaf_common.asyncio.asyncio_executor_factory import AsyncioExecutorFactory
 from leaf_common.asyncio.asyncio_executor_pool import AsyncioExecutorPool
 from leaf_common.asyncio.asyncio_executor_types import AsyncioExecutorTypes
-from leaf_common.asyncio.shared_loop_asyncio_executor import SharedLoopAsyncioExecutor
 from leaf_common.asyncio.shared_loop_asyncio_executor_pool import SharedLoopAsyncioExecutorPool
 
 
@@ -132,27 +128,3 @@ class AsyncioExecutorFactoryTest(TestCase):
         """
         declared = set(AsyncioExecutorTypes.ASYNCIO_EXECUTOR_TYPES)
         self.assertEqual(declared, set(AsyncioExecutorFactory.POOL_CLASSES.keys()))
-
-
-class AsyncioExecutorFactorySharedLoopTest(IsolatedAsyncioTestCase):
-    """
-    Tests that the SHARED_LOOP type really is thread-free, which is the whole
-    reason for it to exist.
-    """
-
-    async def test_shared_loop_type_starts_no_threads(self) -> None:
-        """
-        Building a shared-loop pool and using the executor it hands out touches
-        no thread, and borrows the loop the caller is already on.
-        """
-        import asyncio  # pylint: disable=import-outside-toplevel
-
-        with patch("threading.Thread.start", side_effect=AssertionError("No threads")):
-            pool = AsyncioExecutorFactory.create_pool(AsyncioExecutorTypes.SHARED_LOOP,
-                                                      max_workers=4)
-            executor = pool.get_executor()
-            self.assertIsInstance(executor, SharedLoopAsyncioExecutor)
-            self.assertIs(executor.get_event_loop(), asyncio.get_running_loop())
-            self.assertEqual(await executor.submit("request", lambda: 42), 42)
-            pool.return_executor(executor)
-            await executor.ashutdown(cancel_futures=False)
