@@ -149,8 +149,11 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         self._check_loop()
         if not inspect.isawaitable(awaitable):
             raise TypeError("create_task() requires an awaitable")
-        if isinstance(awaitable, asyncio.Future) and awaitable.get_loop() is not self._loop:
-            raise ValueError("Awaitable belongs to another event loop")
+        if isinstance(awaitable, asyncio.Future):
+            if awaitable.get_loop() is not self._loop:
+                raise ValueError("Awaitable belongs to another event loop")
+            if isinstance(awaitable, asyncio.Task):
+                return self.track_task(awaitable, raise_exception)
         # Use coroutine objects directly so cancellation before the first step
         # cannot leave a nested coroutine unawaited.
         coroutine: Coroutine = None
@@ -158,7 +161,12 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             coroutine = awaitable
         else:
             coroutine = self._consume(awaitable)
-        return self._schedule(coroutine, self.get_function_name(awaitable, submitter_id), raise_exception)
+        task = self._schedule(coroutine, self.get_function_name(awaitable, submitter_id), raise_exception)
+        if isinstance(awaitable, asyncio.Future):
+            task.add_done_callback(
+                lambda completed: awaitable.cancel()
+                if completed.cancelled() and not awaitable.done() else None)
+        return task
 
     @staticmethod
     async def _consume(awaitable: Awaitable) -> Any:
