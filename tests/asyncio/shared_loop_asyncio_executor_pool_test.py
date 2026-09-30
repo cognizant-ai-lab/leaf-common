@@ -230,6 +230,60 @@ class SharedLoopAsyncioExecutorPoolTest(IsolatedAsyncioTestCase):
         await pool.ashutdown()
         self.assertEqual(pool.get_threads_metrics()['retiring']['executors'], 0)
 
+    async def test_areturn_from_an_owned_task_keeps_pool_ownership(self) -> None:
+        """
+        ashutdown() refuses to run when called from one of the executor's own
+        tasks, and that executor is left fully usable -- _shutdown is never
+        set, because _pending() raises first. So the pool must still own it.
+
+        The bug this guards against was delayed: the executor was retired
+        before ashutdown() was consulted, so once the calling task ended
+        _prune_retired() forgot it, leaving a usable executor with no owner.
+        """
+        pool = SharedLoopAsyncioExecutorPool()
+        executor = pool.get_executor()
+
+        task = executor.submit('a', pool.areturn_executor, executor)
+        with self.assertRaisesRegex(RuntimeError, 'outside'):
+            await task
+
+        # Still checked out, not retiring, right after the refusal.
+        metrics = pool.get_threads_metrics()
+        self.assertEqual(metrics['used']['executors'], 1)
+        self.assertEqual(metrics['retiring']['executors'], 0)
+
+        # And still checked out after the calling task has ended and a prune
+        # has run -- this is where the old behavior lost it.
+        await self._settle()
+        metrics = pool.get_threads_metrics()
+        self.assertEqual(metrics['used']['executors'], 1)
+        self.assertEqual(metrics['retiring']['executors'], 0)
+        self.assertIn(str(id(executor)), pool.dump_tasks_in_used_executors())
+
+        # The executor was never shut down, so it still works and can still
+        # be returned properly.
+        self.assertEqual(await executor.submit('b', lambda: 42), 42)
+        await pool.areturn_executor(executor)
+        self.assertEqual(pool.get_threads_metrics()['used']['executors'], 0)
+        pool.shutdown()
+
+    async def test_areturn_of_a_foreign_executor_raises(self) -> None:
+        """
+        An executor this pool never handed out is an error, and checking that
+        must not disturb the pool that does own it.
+        """
+        pool = SharedLoopAsyncioExecutorPool()
+        foreign = SharedLoopAsyncioExecutorPool()
+        executor = pool.get_executor()
+
+        with self.assertRaises(ValueError):
+            await foreign.areturn_executor(executor)
+
+        self.assertEqual(pool.get_threads_metrics()['used']['executors'], 1)
+        await pool.areturn_executor(executor)
+        pool.shutdown()
+        foreign.shutdown()
+
     @staticmethod
     async def _settle() -> None:
         """

@@ -102,11 +102,18 @@ ignore it.
 `SharedLoopAsyncioExecutorPool` offers two return paths, because a synchronous
 one cannot keep the native pool's promise that "returned means finished".
 
-`await pool.areturn_executor(executor)` is the complete path. It awaits
-`ashutdown()` and only then gives up ownership. Pass a `timeout` to bound the
-wait; if it expires, `TimeoutError` is raised and the executor stays owned by
-the pool — deliberately, so a misbehaving executor is not lost precisely when
-you need to see it.
+`await pool.areturn_executor(executor)` is the complete path. The executor keeps
+whatever ownership it already had until cleanup resolves, and only then moves:
+
+- **Drained** — the pool gives up ownership entirely.
+- **Timed out** — `TimeoutError` is raised and the executor becomes *retiring*.
+  It has already stopped accepting submissions, but some task outlasted the
+  wait, so the pool keeps it: a misbehaving executor must not be lost precisely
+  when you need to see it. Await `ashutdown()` or call this again to retry.
+- **Refused** — `ashutdown()` will not run at all when called from one of the
+  executor's own tasks, and in that case the executor was never shut down and
+  is still perfectly usable. It stays checked out, so it keeps its owner rather
+  than being retired and then pruned away once the calling task ends.
 
 `pool.return_executor(executor)` requests cancellation and returns at once. It
 does **not** guarantee cleanup has finished. A task that catches

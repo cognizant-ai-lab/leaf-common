@@ -107,24 +107,31 @@ class SharedLoopAsyncioExecutorPool:
                                timeout: float = None) -> None:
         """Retire an executor and await its cleanup. The complete path.
 
-        On success the pool gives up ownership. If a timeout is given and it
-        expires, ashutdown() raises TimeoutError and the executor stays
-        retiring -- deliberately, so the pool does not lose track of an
-        executor precisely when it has misbehaved. Await ashutdown() or call
-        this again to retry.
+        The executor keeps whatever ownership it already had until cleanup
+        resolves one way or the other, and only then moves:
+
+          - Drained: the pool gives up ownership entirely.
+          - Timed out: ashutdown() has already rejected new submissions but
+            some task outlasted the wait, so the executor becomes retiring.
+            TimeoutError is re-raised. Await ashutdown() or call this again.
+          - Anything else: ownership is left exactly as it was. ashutdown()
+            refuses to run at all when called from one of the executor's own
+            tasks, and that executor is still perfectly usable -- so it stays
+            checked out rather than being quietly retired and then pruned
+            away once the calling task ends.
 
         :param executor: The executor to retire
         :param timeout: Seconds to wait for owned tasks, or None to wait
                     indefinitely
         """
-        if executor in self.pool_used:
-            self.pool_used.remove(executor)
-            self.pool_retiring.append(executor)
-        elif executor not in self.pool_retiring:
+        if executor not in self.pool_used and executor not in self.pool_retiring:
             raise ValueError(f"Returned executor {id(executor)} is not in the pool of used executors")
 
-        # A TimeoutError here leaves the executor in pool_retiring on purpose.
-        await executor.ashutdown(cancel_futures=True, timeout=timeout)
+        try:
+            await executor.ashutdown(cancel_futures=True, timeout=timeout)
+        except TimeoutError:
+            self._retire(executor)
+            raise
         self._release(executor)
 
     def shutdown(self, wait: bool = True) -> None:
@@ -251,11 +258,29 @@ class SharedLoopAsyncioExecutorPool:
         if executor not in self.pool_used:
             raise ValueError(f"Returned executor {id(executor)} is not in the pool of used executors")
 
+    def _retire(self, executor: SharedLoopAsyncioExecutor) -> None:
+        """Move a checked-out executor to the retiring list.
+
+        Idempotent, so a retry of areturn_executor() on an already retiring
+        executor leaves it where it is.
+
+        :param executor: The executor to retire
+        """
+        if executor in self.pool_used:
+            self.pool_used.remove(executor)
+        if executor not in self.pool_retiring:
+            self.pool_retiring.append(executor)
+
     def _release(self, executor: SharedLoopAsyncioExecutor) -> None:
-        """Give up ownership of a retiring executor that is finished.
+        """Give up ownership of an executor whose cleanup is finished.
+
+        Covers both lists, since a drained executor may never have been
+        retired at all.
 
         :param executor: The executor to forget
         """
+        if executor in self.pool_used:
+            self.pool_used.remove(executor)
         if executor in self.pool_retiring:
             self.pool_retiring.remove(executor)
 
