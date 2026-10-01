@@ -93,6 +93,9 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         self._context: contextvars.Context = None
         self._shutdown: bool = False
         self._tasks: Dict[asyncio.Future, bool] = {}
+        # Whether this loop's create_task() accepts context=. Probed once on
+        # first use. See _create_task_in_context().
+        self._loop_takes_context: bool = None
 
     def get_event_loop(self) -> asyncio.AbstractEventLoop:
         """Return the borrowed loop, or None before start()."""
@@ -206,6 +209,56 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
                 if completed.cancelled() and not awaitable.done() else None)
         return task
 
+    def _create_task_in_context(self, coroutine: Coroutine, name: str,
+                                context: contextvars.Context) -> asyncio.Future:
+        """Schedule a coroutine so it runs in the given context.
+
+        CPython's AbstractEventLoop.create_task takes context=, but this class
+        borrows whatever loop the host is running, and a hand-written loop need
+        not implement the full signature. Pyodide's WebLoop is exactly such a
+        loop, and it is this class's main reason to exist, so a loop that
+        rejects context= must not break every submission.
+
+        The loop is probed once rather than discovered by catching TypeError,
+        because a TypeError from anywhere else in create_task() would leave us
+        unable to tell a rejected keyword from work that was already scheduled,
+        and retrying would schedule it twice.
+
+        :param coroutine: The coroutine to schedule
+        :param name: The task name to request
+        :param context: The context the task should run in
+        :return: Whatever the loop's create_task() produced
+        """
+        if self._loop_takes_context is None:
+            self._loop_takes_context = self._takes_context(self._loop.create_task)
+        if self._loop_takes_context:
+            return self._loop.create_task(coroutine, name=name, context=context)
+
+        # The loop cannot be told which context to use, so enter it ourselves.
+        # asyncio.Task snapshots copy_context() at construction when given no
+        # context, and that snapshot is taken inside this run(), so the task
+        # still gets this context -- ContextVar isolation and the ownership
+        # marker included.
+        return context.run(self._loop.create_task, coroutine, name=name)
+
+    @staticmethod
+    def _takes_context(create_task: Callable) -> bool:
+        """Report whether a loop's create_task() accepts a context keyword.
+
+        :param create_task: The bound create_task of the loop in use
+        :return: True if context= can be passed. A loop whose signature cannot
+                 be read is assumed to follow the standard contract, since
+                 that is what CPython's own loops do.
+        """
+        try:
+            parameters = inspect.signature(create_task).parameters
+        except (TypeError, ValueError):
+            return True
+        if "context" in parameters:
+            return True
+        return any(parameter.kind is inspect.Parameter.VAR_KEYWORD
+                   for parameter in parameters.values())
+
     @staticmethod
     async def _consume(awaitable: Awaitable) -> Any:
         """Wrap a non-coroutine awaitable so it can be handed to create_task().
@@ -228,7 +281,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         context: contextvars.Context = self._context.copy()
         context.run(self._OWNING_ROOT.set, root_holder)
         try:
-            task = self._loop.create_task(coroutine, name=name, context=context)
+            task = self._create_task_in_context(coroutine, name, context)
         except BaseException:
             coroutine.close()
             raise

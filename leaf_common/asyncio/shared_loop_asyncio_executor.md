@@ -143,6 +143,24 @@ when retiring work remains — the same way
 `SharedLoopAsyncioExecutor.shutdown(wait=True)` does one level down. Pass
 `wait=False` to shut down without that check.
 
+## Loops that do not take `context=`
+
+CPython's `AbstractEventLoop.create_task` accepts `context=`, and this class
+uses it to give each submission its own ContextVar copy. But this class borrows
+whatever loop the host is running, and a hand-written loop need not implement
+the full signature — **Pyodide's `WebLoop` is exactly such a loop**, and it is
+this class's main reason to exist.
+
+So the loop's `create_task` is probed once, by signature, and a loop without a
+`context` parameter gets a fallback: the context is entered around the call
+instead. `asyncio.Task` snapshots `copy_context()` at construction when given no
+context, and that snapshot is taken inside the entered context, so per-request
+isolation and the ownership marker both survive unchanged.
+
+The probe reads the signature rather than catching `TypeError`, because a
+`TypeError` from anywhere else inside `create_task()` would be indistinguishable
+from a rejected keyword — and retrying would schedule the work twice.
+
 ## What this is not
 
 This is **not** a drop-in replacement for every `AsyncioExecutor` caller. Anything
