@@ -55,8 +55,12 @@ class TaskExecutor:
     def submit(self, submitter_id: str, function, /, *args, **kwargs) -> Future:
         """
         Submit a function to be run in the executor.
-        Note that the function is run in "fire and forget" mode,
-        so no result, successful or otherwise, is returned to the caller.
+        Submission does not block: the function runs on the executor's event
+        loop and this call returns as soon as it has been scheduled. The
+        returned Future is the caller's handle on it -- await it to observe the
+        result or the exception. A caller that discards the Future is using
+        this in "fire and forget" mode, and failures then surface through the
+        executor's own reporting rather than to the caller.
 
         :param submitter_id: A string id denoting who is doing the submitting.
         :param function: The function handle to run

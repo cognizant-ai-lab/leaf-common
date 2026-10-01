@@ -95,10 +95,15 @@ finally:
   one: under a task factory returning a non-Task Future, the tracked object is
   the factory's wrapper while `asyncio.current_task()` is the inner Task that
   drives the coroutine, so an identity comparison never matches. The marker is
-  per executor, so owned work may still clean up a *different* executor. A
-  factory that discards the `context=` it is handed defeats the marker, but such
-  a factory already breaks per-request ContextVar isolation; tasks adopted via
-  `track_task()` are covered by the identity check instead.
+  per *owned task*, not per executor, so the test is whether a still-pending
+  owned task is an ancestor of the caller. Owned work may therefore still clean
+  up a different executor, and a detached child may clean up once the owned root
+  it descends from has finished — it was never drained, cancelled or reported,
+  so it cannot be waited on. While that root is still pending, cleanup from a
+  descendant stays refused, because draining would wait on work the descendant
+  is holding up. A factory that discards the `context=` it is handed defeats the
+  marker, but such a factory already breaks per-request ContextVar isolation;
+  tasks adopted via `track_task()` are covered by the identity check instead.
 - Only submitted or explicitly tracked tasks are owned. Await child tasks or
   register them with `track_task()`; cleanup does not inspect global loop tasks.
 
