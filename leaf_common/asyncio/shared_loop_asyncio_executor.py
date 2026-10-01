@@ -204,9 +204,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             # work behind it keeps running once we stop tracking. This matters
             # most when the wrapper is cancelled before its first step, since
             # _consume() never gets to await the awaitable at all.
-            task.add_done_callback(
-                lambda completed: awaitable.cancel()
-                if completed.cancelled() and not awaitable.done() else None)
+
+            def callback(completed):
+                if completed.cancelled() and not awaitable.done():
+                    return awaitable.cancel()
+                return None
+            
+            task.add_done_callback(callback)
         return task
 
     def _create_task_in_context(self, coroutine: Coroutine, name: str,
