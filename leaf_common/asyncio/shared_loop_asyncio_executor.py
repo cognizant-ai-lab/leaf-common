@@ -209,7 +209,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
                 if completed.cancelled() and not awaitable.done():
                     return awaitable.cancel()
                 return None
-            
+
             task.add_done_callback(callback)
         return task
 
