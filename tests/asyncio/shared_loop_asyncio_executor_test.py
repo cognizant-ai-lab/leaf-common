@@ -289,10 +289,9 @@ class SharedLoopAsyncioExecutorTest(IsolatedAsyncioTestCase):
 
     async def test_tracking_is_not_part_of_the_public_surface(self) -> None:
         """
-        Ownership is taken only of work this executor scheduled, or of a real
-        asyncio.Task handed to create_task(). There is no public way to adopt
-        anything else, because the self-cleanup guard cannot recognise work the
-        executor did not schedule.
+        Ownership is taken only of work this executor scheduled. There is no
+        public way to hand anything over, because the self-cleanup guard
+        cannot recognise work the executor did not schedule.
         """
         self.assertFalse(hasattr(SharedLoopAsyncioExecutor, 'track_task'))
 
@@ -316,24 +315,26 @@ class SharedLoopAsyncioExecutorTest(IsolatedAsyncioTestCase):
         self.assertEqual(await task, 11)
         await executor.ashutdown()
 
-    async def test_an_adopted_real_task_is_still_guarded(self) -> None:
+    async def test_an_existing_task_is_rejected_rather_than_adopted(self) -> None:
         """
-        create_task() does adopt a real Task directly, which is safe precisely
-        because the identity check covers it: current_task() is the tracked
-        object, so cleanup from inside it is refused rather than deadlocking.
+        create_task() refuses an already-running Task. With that gone, every
+        object in _tasks came from _schedule() and so carries the ownership
+        marker -- there is no longer any adoption path at all.
+
+        The rejection must also leave the caller's task alone: it was never
+        this executor's to cancel.
         """
         executor = SharedLoopAsyncioExecutor()
         executor.start()
-        outcome: Dict[str, Any] = {}
+        inner = asyncio.create_task(asyncio.sleep(0, result=5))
 
-        inner = asyncio.create_task(self._clean_other_and_record(executor, outcome))
-        self.assertIs(executor.create_task(inner, 'a'), inner)
+        with self.assertRaises(TypeError):
+            executor.create_task(inner, 'a')
 
-        await inner
+        self.assertEqual(executor.get_tracked_tasks(), [])
+        self.assertEqual(await inner, 5)
+        self.assertFalse(inner.cancelled())
 
-        self.assertIn('refused', outcome['result'])
-        # Never shut down, so still usable.
-        self.assertEqual(await executor.submit('b', lambda: 3), 3)
         await executor.ashutdown()
 
     @staticmethod

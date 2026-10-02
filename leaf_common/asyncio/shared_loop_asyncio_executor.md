@@ -109,8 +109,8 @@ finally:
   descendant stays refused, because draining would wait on work the descendant
   is holding up. A factory that discards the `context=` it is handed defeats the
   marker, but such a factory already breaks per-request ContextVar isolation;
-  an already-running `asyncio.Task` passed to `create_task()` is covered by the
-  identity check instead.
+  a factory that hands back a real Task is covered by the identity check
+  instead.
 - Only work submitted through the executor is owned. Await any child tasks you
   spawn; there is no public way to hand one over, since the self-cleanup guard
   cannot recognise work the executor did not schedule. Cleanup does not inspect

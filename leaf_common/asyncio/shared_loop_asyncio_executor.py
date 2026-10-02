@@ -324,13 +324,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """Take ownership of a task on this loop (without changing its context).
 
         Internal: not part of the TaskExecutor interface, and deliberately not
-        public. Ownership is only ever taken of something this executor either
-        scheduled itself or was handed as a real asyncio.Task, because the
-        self-cleanup guard has to be able to recognise the work that is
-        running. A non-Task Future adopted from outside would defeat that: it
-        carries no ownership marker, and asyncio.current_task() reports its
-        inner runner rather than the wrapper in _tasks, so cleanup called from
-        that work would wait on the caller itself instead of being refused.
+        public. Ownership is only ever taken of work this executor scheduled
+        itself, because the self-cleanup guard has to be able to recognise the
+        work that is running. Anything adopted from outside would defeat that:
+        it carries no ownership marker, and for a non-Task Future
+        asyncio.current_task() reports its inner runner rather than the
+        wrapper in _tasks, so cleanup called from that work would wait on the
+        caller itself instead of being refused.
 
         Accepts any Future-compatible object because a host task factory may
         hand one back from _schedule(); those carry the marker. See the module
@@ -414,13 +414,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             Future wrapper whose inner Task is what current_task() reports, and
             including that work's child tasks. Because `tasks` holds only this
             executor's pending work, a root belonging to another executor, or
-            one that has already finished, simply is not in it. It cannot catch
-            an already-running asyncio.Task handed to create_task(), which
-            runs in a context this executor never stamped, nor work under a
-            factory that discards the context= it is handed (such a factory
-            already breaks per-request ContextVar isolation).
-          - The identity check catches exactly those: any tracked object that
-            *is* the running task.
+            one that has already finished, simply is not in it. What it cannot
+            catch is work under a factory that discards the context= it is
+            handed -- such a factory already breaks per-request ContextVar
+            isolation, but it should not also cost us the guard.
+          - The identity check catches exactly that: any tracked object that
+            *is* the running task, which is the case whenever such a factory
+            hands back a real Task.
 
         :return: The owned tasks that have not finished
         """
