@@ -205,9 +205,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             if awaitable.get_loop() is not self._loop:
                 raise ValueError("Awaitable belongs to another event loop")
             if isinstance(awaitable, asyncio.Task):
-                # Already a real Task on this loop: own it as it is rather
-                # than wrapping it in a second one.
-                return self._track_task(awaitable, raise_exception)
+                raise TypeError("create_task() cannot adopt an existing asyncio.Task")
         # Use coroutine objects directly so cancellation before the first step
         # cannot leave a nested coroutine unawaited.
         coroutine: Coroutine = None
