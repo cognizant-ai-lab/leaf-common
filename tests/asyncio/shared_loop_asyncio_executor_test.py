@@ -179,27 +179,21 @@ class SharedLoopAsyncioExecutorTest(IsolatedAsyncioTestCase):
 
         await executor.ashutdown()
 
-    async def test_cancelling_the_wrapper_cancels_a_structural_future(self) -> None:
+    async def test_a_settled_future_is_accepted(self) -> None:
         """
-        Cancelling our wrapping task must reach the awaitable it wraps, even
-        when the wrapper is cancelled before its first step -- _consume() never
-        awaits the awaitable at all in that case, so without the hand-off the
-        work behind it would keep running untracked.
+        A Future that has already settled contributes no execution of its own,
+        so there is nothing unmarked for cleanup to wait on. Awaiting it simply
+        yields its value, and refusing it would be a gratuitous restriction.
         """
         executor = SharedLoopAsyncioExecutor()
         executor.start()
-        wrapped: StructuralFuture = StructuralFuture(asyncio.get_running_loop())
+        settled: StructuralFuture = StructuralFuture(asyncio.get_running_loop())
+        settled.set_result(13)
 
-        task = executor.create_task(wrapped, 'a')
-        task.cancel()
-        with self.assertRaises(asyncio.CancelledError):
-            await task
-        for _ in range(4):
-            await asyncio.sleep(0)
+        task = executor.create_task(settled, 'a')
 
-        self.assertEqual(wrapped.cancel_calls, 1)
-        self.assertTrue(wrapped.cancelled())
-
+        self.assertIn(task, executor.get_tracked_tasks())
+        self.assertEqual(await task, 13)
         await executor.ashutdown()
 
     async def test_cleanup_from_a_detached_child_after_its_root_finishes(self) -> None:
@@ -295,24 +289,30 @@ class SharedLoopAsyncioExecutorTest(IsolatedAsyncioTestCase):
         """
         self.assertFalse(hasattr(SharedLoopAsyncioExecutor, 'track_task'))
 
-    async def test_a_foreign_future_is_wrapped_rather_than_adopted(self) -> None:
+    async def test_a_pending_future_is_rejected_and_its_driver_untouched(self) -> None:
         """
-        A non-Task Future passed to create_task() must not enter _tasks itself.
-        Owning it would be the unrecognisable case: no ownership marker, and
-        current_task() reporting its inner runner rather than the wrapper.
+        A pending Future is a handle on work being driven somewhere else -- for
+        a non-Task Future necessarily so, since a bare Future cannot run a
+        coroutine. Wrapping one made this executor wait on an execution it
+        never scheduled and could not mark, so if that execution called
+        ashutdown(cancel_futures=False) the guard missed it and the drain
+        waited on the wrapper while the wrapper waited on the caller.
+
+        Refused at the door instead. The caller's Future must be left alone:
+        it was never this executor's to touch.
         """
         executor = SharedLoopAsyncioExecutor()
         executor.start()
-        foreign: StructuralFuture = StructuralFuture(asyncio.get_running_loop())
+        pending: StructuralFuture = StructuralFuture(asyncio.get_running_loop())
 
-        task = executor.create_task(foreign, 'a')
+        with self.assertRaisesRegex(TypeError, 'pending Future'):
+            executor.create_task(pending, 'a')
 
-        tracked = executor.get_tracked_tasks()
-        self.assertIn(task, tracked)
-        self.assertNotIn(foreign, tracked)
+        self.assertEqual(executor.get_tracked_tasks(), [])
+        self.assertFalse(pending.done())
+        self.assertEqual(pending.cancel_calls, 0)
 
-        foreign.set_result(11)
-        self.assertEqual(await task, 11)
+        pending.set_result(11)
         await executor.ashutdown()
 
     async def test_an_existing_task_is_rejected_rather_than_adopted(self) -> None:

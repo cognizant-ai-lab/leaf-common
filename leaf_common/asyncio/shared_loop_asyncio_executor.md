@@ -78,6 +78,14 @@ finally:
   into subsequent tasks. Thread-local logging state is not request-isolated.
 - `submit()` supports async callables, awaitables, and short synchronous callables.
   Synchronous work runs on the host loop. Blocking I/O must be adapted separately.
+- `create_task()` accepts a coroutine, or any awaitable that runs *inside* the
+  task it schedules. It refuses work already being driven elsewhere — an
+  existing `asyncio.Task`, or a Future still pending. A pending Future is a
+  handle on an execution this executor never scheduled and cannot mark, so
+  wrapping one meant cleanup called from that execution went unrecognised and
+  the drain waited on the wrapper while the wrapper waited on the caller. A
+  Future that has already settled is accepted: it contributes no execution.
+  Submit the work that completes a Future, rather than the Future.
 - `create_task()` returns an awaitable task. Exceptions propagate when awaited.
   `raise_exception=True` additionally reports background errors to the existing
   loop exception handler. It does not install a new handler.

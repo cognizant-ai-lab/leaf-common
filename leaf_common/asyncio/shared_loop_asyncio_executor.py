@@ -189,23 +189,41 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
                     raise_exception: bool = False) -> asyncio.Future:
         """Schedule an awaitable; optionally report failures to the loop handler.
 
+        Accepts a coroutine, or any awaitable that runs inside the task this
+        schedules. It does NOT accept work already being driven elsewhere: an
+        existing Task, or a Future still pending. Everything this executor can
+        be asked to drain must be an execution it scheduled, and therefore one
+        carrying the ownership marker -- otherwise cleanup called from that
+        execution would not be recognised and would wait on itself.
+
         Awaiting the returned task always propagates its exception, regardless of
         raise_exception. The flag controls reporting of background failures only.
         """
         self._check_loop()
         if not inspect.isawaitable(awaitable):
             raise TypeError("create_task() requires an awaitable")
-        # asyncio.isfuture(), not isinstance(), so that the loop check and the
-        # cancellation hand-off below cover the same structural Future objects
-        # _track_task() accepts. A subclass check would let a wrapper from
-        # another loop through to be scheduled, failing only once _consume()
-        # awaited it -- with its underlying work already running outside this
-        # executor's cleanup.
+
+        # asyncio.isfuture(), not isinstance(), so these checks cover the same
+        # structural Future objects the rest of the class accepts. A subclass
+        # check would let one through to be scheduled, failing only once
+        # _consume() awaited it.
         if asyncio.isfuture(awaitable):
             if awaitable.get_loop() is not self._loop:
                 raise ValueError("Awaitable belongs to another event loop")
             if isinstance(awaitable, asyncio.Task):
                 raise TypeError("create_task() cannot adopt an existing asyncio.Task")
+            if not awaitable.done():
+                # A pending Future is a handle on work being driven somewhere
+                # else -- for a non-Task Future, necessarily so, since a bare
+                # Future cannot run a coroutine. Wrapping it would make this
+                # executor wait on an execution it never scheduled and cannot
+                # mark, so if that execution called ashutdown(), the guard
+                # would miss it and the drain would wait on the wrapper while
+                # the wrapper waited on the caller. Submit the work that
+                # drives the Future instead of the Future.
+                raise TypeError("create_task() cannot adopt a pending Future; "
+                                "submit the work that completes it instead")
+
         # Use coroutine objects directly so cancellation before the first step
         # cannot leave a nested coroutine unawaited.
         coroutine: Coroutine = None
@@ -213,20 +231,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             coroutine = awaitable
         else:
             coroutine = self._consume(awaitable)
-        task = self._schedule(coroutine, self.get_function_name(awaitable, submitter_id), raise_exception)
-        if asyncio.isfuture(awaitable):
-            # Cancelling our wrapper must reach the awaitable it wraps, or the
-            # work behind it keeps running once we stop tracking. This matters
-            # most when the wrapper is cancelled before its first step, since
-            # _consume() never gets to await the awaitable at all.
-
-            def callback(completed):
-                if completed.cancelled() and not awaitable.done():
-                    return awaitable.cancel()
-                return None
-
-            task.add_done_callback(callback)
-        return task
+        return self._schedule(coroutine, self.get_function_name(awaitable, submitter_id), raise_exception)
 
     def _create_task_in_context(self, coroutine: Coroutine, name: str,
                                 context: contextvars.Context) -> asyncio.Future:
