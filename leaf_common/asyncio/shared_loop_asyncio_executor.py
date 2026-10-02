@@ -387,6 +387,17 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         return list(self._tasks)
 
+    def is_shutdown(self) -> bool:
+        """Report whether this executor has stopped accepting new work.
+
+        ashutdown() and shutdown() set this before they do anything that can
+        fail or be interrupted, so an owner that sees it set knows the executor
+        is unusable regardless of how its cleanup call ended.
+
+        :return: True once shutdown has begun
+        """
+        return self._shutdown
+
     def has_pending_tasks(self) -> bool:
         """Report whether any owned task is still running.
 

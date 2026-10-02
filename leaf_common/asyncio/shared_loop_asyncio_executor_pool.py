@@ -111,14 +111,21 @@ class SharedLoopAsyncioExecutorPool:
         resolves one way or the other, and only then moves:
 
           - Drained: the pool gives up ownership entirely.
-          - Timed out: ashutdown() has already rejected new submissions but
-            some task outlasted the wait, so the executor becomes retiring.
-            TimeoutError is re-raised. Await ashutdown() or call this again.
-          - Anything else: ownership is left exactly as it was. ashutdown()
-            refuses to run at all when called from one of the executor's own
-            tasks, and that executor is still perfectly usable -- so it stays
-            checked out rather than being quietly retired and then pruned
-            away once the calling task ends.
+          - Cleanup began but did not finish: the executor becomes retiring and
+            the error is re-raised. ashutdown() sets the executor's shutdown
+            flag before it awaits anything, so an executor that reports itself
+            shut down is unusable and must not be left checked out, whether the
+            wait timed out, the awaiting task was cancelled, or anything else
+            went wrong. Await ashutdown() or call this again to finish the job.
+          - Cleanup never began: ownership is left exactly as it was.
+            ashutdown() refuses to run at all when called from one of the
+            executor's own tasks, and that executor is still perfectly usable
+            -- so it stays checked out rather than being quietly retired and
+            then pruned away once the calling task ends.
+
+        The two are told apart by asking the executor, not by the type of the
+        error, so a path nobody anticipated cannot leave an unusable executor
+        checked out where neither ashutdown() nor shutdown() would notice it.
 
         :param executor: The executor to retire
         :param timeout: Seconds to wait for owned tasks, or None to wait
@@ -127,12 +134,15 @@ class SharedLoopAsyncioExecutorPool:
         if executor not in self.pool_used and executor not in self.pool_retiring:
             raise ValueError(f"Returned executor {id(executor)} is not in the pool of used executors")
 
+        drained: bool = False
         try:
             await executor.ashutdown(cancel_futures=True, timeout=timeout)
-        except TimeoutError:
-            self._retire(executor)
-            raise
-        self._release(executor)
+            drained = True
+        finally:
+            if drained:
+                self._release(executor)
+            elif executor.is_shutdown():
+                self._retire(executor)
 
     def shutdown(self, wait: bool = True) -> None:
         """Shut the pool down. There is no GC thread to stop.

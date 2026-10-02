@@ -284,6 +284,61 @@ class SharedLoopAsyncioExecutorPoolTest(IsolatedAsyncioTestCase):
         pool.shutdown()
         foreign.shutdown()
 
+    async def test_cancelling_areturn_retires_the_executor(self) -> None:
+        """
+        If the task awaiting areturn_executor() is cancelled mid-drain, the
+        executor's shutdown flag is already set, so it is unusable. It must not
+        be left checked out: pool.ashutdown() drains only retiring executors,
+        so cancellation-resistant work would otherwise survive pool cleanup
+        with nothing left to retry the drain.
+        """
+        pool = SharedLoopAsyncioExecutorPool()
+        executor = pool.get_executor()
+        release: asyncio.Event = asyncio.Event()
+        executor.submit('a', self._resist_cancellation, release)
+        await self._settle()
+
+        returner = asyncio.create_task(pool.areturn_executor(executor))
+        await self._settle()
+        returner.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await returner
+
+        self.assertTrue(executor.is_shutdown())
+        metrics = pool.get_threads_metrics()
+        self.assertEqual(metrics['used']['executors'], 0)
+        self.assertEqual(metrics['retiring']['executors'], 1)
+
+        # And the pool can now finish what the cancelled call started.
+        release.set()
+        await pool.ashutdown()
+        self.assertEqual(pool.get_threads_metrics()['retiring']['executors'], 0)
+        self.assertFalse(executor.has_pending_tasks())
+
+    async def test_refused_cleanup_leaves_the_executor_checked_out(self) -> None:
+        """
+        The other side of the same decision: when ashutdown() refuses before
+        beginning, the executor was never shut down and must stay checked out
+        and usable. Keying on the executor's own state has to preserve that,
+        not just the cancellation case.
+        """
+        pool = SharedLoopAsyncioExecutorPool()
+        executor = pool.get_executor()
+
+        task = executor.submit('a', pool.areturn_executor, executor)
+        with self.assertRaisesRegex(RuntimeError, 'outside'):
+            await task
+        await self._settle()
+
+        self.assertFalse(executor.is_shutdown())
+        metrics = pool.get_threads_metrics()
+        self.assertEqual(metrics['used']['executors'], 1)
+        self.assertEqual(metrics['retiring']['executors'], 0)
+
+        self.assertEqual(await executor.submit('b', lambda: 9), 9)
+        await pool.areturn_executor(executor)
+        pool.shutdown()
+
     @staticmethod
     async def _settle() -> None:
         """

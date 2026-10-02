@@ -129,14 +129,22 @@ one cannot keep the native pool's promise that "returned means finished".
 whatever ownership it already had until cleanup resolves, and only then moves:
 
 - **Drained** — the pool gives up ownership entirely.
-- **Timed out** — `TimeoutError` is raised and the executor becomes *retiring*.
-  It has already stopped accepting submissions, but some task outlasted the
-  wait, so the pool keeps it: a misbehaving executor must not be lost precisely
-  when you need to see it. Await `ashutdown()` or call this again to retry.
-- **Refused** — `ashutdown()` will not run at all when called from one of the
-  executor's own tasks, and in that case the executor was never shut down and
-  is still perfectly usable. It stays checked out, so it keeps its owner rather
-  than being retired and then pruned away once the calling task ends.
+- **Interrupted** — cleanup began but did not finish, so the executor becomes
+  *retiring* and the error is re-raised. It has already stopped accepting
+  submissions, so it must not be left checked out, where neither
+  `pool.ashutdown()` nor `pool.shutdown()` would notice it. This covers a
+  `TimeoutError` from the wait, a `CancelledError` delivered to the awaiting
+  task mid-drain, and anything else that goes wrong. Await `ashutdown()` or call
+  it again to finish the job.
+- **Refused** — cleanup never began. `ashutdown()` will not run at all when
+  called from one of the executor's own tasks, and in that case the executor was
+  never shut down and is still perfectly usable. It stays checked out, so it
+  keeps its owner rather than being retired and then pruned away once the
+  calling task ends.
+
+The two are told apart by asking the executor whether it is shut down, not by
+the type of the error, so an unanticipated failure path cannot strand an
+unusable executor in `pool_used`.
 
 `pool.return_executor(executor)` requests cancellation and returns at once. It
 does **not** guarantee cleanup has finished. A task that catches
