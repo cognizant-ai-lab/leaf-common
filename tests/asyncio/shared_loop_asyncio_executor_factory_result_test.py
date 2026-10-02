@@ -137,7 +137,7 @@ class SharedLoopAsyncioExecutorFactoryResultTest(IsolatedAsyncioTestCase):
     async def test_factory_result_is_owned_and_returns_its_value(self) -> None:
         """
         A non-Task factory result must be tracked and awaitable. Before the fix
-        track_task() rejected it, after the factory had already scheduled it.
+        tracking rejected it, after the factory had already scheduled it.
         """
         executor = SharedLoopAsyncioExecutor()
         executor.start()

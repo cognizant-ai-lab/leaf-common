@@ -28,8 +28,10 @@ Use await cancel_current_tasks() and await ashutdown() for cleanup; synchronous
 shutdown(wait=True) refuses to block on pending tasks. This is not a drop-in
 replacement for callers using AsyncToSyncGenerator or the threaded executor pool.
 
-Only explicitly submitted/tracked tasks are owned. Callers must await or register
-any child tasks they create. The host loop and its global settings are untouched.
+Only work submitted through this executor is owned. Callers must await any child
+tasks they spawn from within it; there is no public way to hand one over, because
+ownership of work the executor did not schedule cannot be reconciled with the
+self-cleanup guard. The host loop and its global settings are untouched.
 
 That includes the host's task factory. loop.create_task() may validly return any
 Future-compatible object when a factory is installed -- on Python 3.12 such a
@@ -195,7 +197,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             raise TypeError("create_task() requires an awaitable")
         # asyncio.isfuture(), not isinstance(), so that the loop check and the
         # cancellation hand-off below cover the same structural Future objects
-        # track_task() accepts. A subclass check would let a wrapper from
+        # _track_task() accepts. A subclass check would let a wrapper from
         # another loop through to be scheduled, failing only once _consume()
         # awaited it -- with its underlying work already running outside this
         # executor's cleanup.
@@ -205,7 +207,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             if isinstance(awaitable, asyncio.Task):
                 # Already a real Task on this loop: own it as it is rather
                 # than wrapping it in a second one.
-                return self.track_task(awaitable, raise_exception)
+                return self._track_task(awaitable, raise_exception)
         # Use coroutine objects directly so cancellation before the first step
         # cannot leave a nested coroutine unawaited.
         coroutine: Coroutine = None
@@ -313,19 +315,28 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         # cannot own the object it handed back, cancel it rather than let it
         # run untracked and outside shutdown.
         try:
-            return self.track_task(task, raise_exception)
+            return self._track_task(task, raise_exception)
         except BaseException:
             cancel = getattr(task, "cancel", None)
             if callable(cancel):
                 cancel()
             raise
 
-    def track_task(self, task: asyncio.Future, raise_exception: bool = False) -> asyncio.Future:
-        """Take ownership of an existing task on this loop (without changing its context).
+    def _track_task(self, task: asyncio.Future, raise_exception: bool = False) -> asyncio.Future:
+        """Take ownership of a task on this loop (without changing its context).
 
-        Accepts any Future-compatible object, not just an asyncio.Task, since a
-        host loop with a custom task factory may hand back either. See the
-        module comment.
+        Internal: not part of the TaskExecutor interface, and deliberately not
+        public. Ownership is only ever taken of something this executor either
+        scheduled itself or was handed as a real asyncio.Task, because the
+        self-cleanup guard has to be able to recognise the work that is
+        running. A non-Task Future adopted from outside would defeat that: it
+        carries no ownership marker, and asyncio.current_task() reports its
+        inner runner rather than the wrapper in _tasks, so cleanup called from
+        that work would wait on the caller itself instead of being refused.
+
+        Accepts any Future-compatible object because a host task factory may
+        hand one back from _schedule(); those carry the marker. See the module
+        comment.
 
         :param task: A Future on this executor's event loop
         :param raise_exception: True to report background failures to the loop
@@ -406,10 +417,10 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             including that work's child tasks. Because `tasks` holds only this
             executor's pending work, a root belonging to another executor, or
             one that has already finished, simply is not in it. It cannot catch
-            a task adopted through track_task(), which runs in a context this
-            executor never stamped, nor work under a factory that discards the
-            context= it is handed (such a factory already breaks per-request
-            ContextVar isolation).
+            an already-running asyncio.Task handed to create_task(), which
+            runs in a context this executor never stamped, nor work under a
+            factory that discards the context= it is handed (such a factory
+            already breaks per-request ContextVar isolation).
           - The identity check catches exactly those: any tracked object that
             *is* the running task.
 

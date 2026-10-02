@@ -75,7 +75,7 @@ class SharedLoopAsyncioExecutorEagerFactoryTest(IsolatedAsyncioTestCase):
 
         It must still be recognised as this executor's own work. Otherwise the
         executor shuts itself down and the caller gets "Cannot schedule new
-        tasks after shutdown" from track_task() -- a confusing error for an
+        tasks after shutdown" when it was tracked -- a confusing error for an
         already-mistaken call, and a dead executor besides.
         """
         executor = SharedLoopAsyncioExecutor()

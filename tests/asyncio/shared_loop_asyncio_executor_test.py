@@ -287,6 +287,55 @@ class SharedLoopAsyncioExecutorTest(IsolatedAsyncioTestCase):
         self.assertEqual(outcome['result'], 'allowed')
         await first.ashutdown()
 
+    async def test_tracking_is_not_part_of_the_public_surface(self) -> None:
+        """
+        Ownership is taken only of work this executor scheduled, or of a real
+        asyncio.Task handed to create_task(). There is no public way to adopt
+        anything else, because the self-cleanup guard cannot recognise work the
+        executor did not schedule.
+        """
+        self.assertFalse(hasattr(SharedLoopAsyncioExecutor, 'track_task'))
+
+    async def test_a_foreign_future_is_wrapped_rather_than_adopted(self) -> None:
+        """
+        A non-Task Future passed to create_task() must not enter _tasks itself.
+        Owning it would be the unrecognisable case: no ownership marker, and
+        current_task() reporting its inner runner rather than the wrapper.
+        """
+        executor = SharedLoopAsyncioExecutor()
+        executor.start()
+        foreign: StructuralFuture = StructuralFuture(asyncio.get_running_loop())
+
+        task = executor.create_task(foreign, 'a')
+
+        tracked = executor.get_tracked_tasks()
+        self.assertIn(task, tracked)
+        self.assertNotIn(foreign, tracked)
+
+        foreign.set_result(11)
+        self.assertEqual(await task, 11)
+        await executor.ashutdown()
+
+    async def test_an_adopted_real_task_is_still_guarded(self) -> None:
+        """
+        create_task() does adopt a real Task directly, which is safe precisely
+        because the identity check covers it: current_task() is the tracked
+        object, so cleanup from inside it is refused rather than deadlocking.
+        """
+        executor = SharedLoopAsyncioExecutor()
+        executor.start()
+        outcome: Dict[str, Any] = {}
+
+        inner = asyncio.create_task(self._clean_other_and_record(executor, outcome))
+        self.assertIs(executor.create_task(inner, 'a'), inner)
+
+        await inner
+
+        self.assertIn('refused', outcome['result'])
+        # Never shut down, so still usable.
+        self.assertEqual(await executor.submit('b', lambda: 3), 3)
+        await executor.ashutdown()
+
     @staticmethod
     async def _run_inner_executor(outer: SharedLoopAsyncioExecutor,
                                   outcome: Dict[str, Any]) -> str:
