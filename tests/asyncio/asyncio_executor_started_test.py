@@ -216,9 +216,16 @@ class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
         self.assertIn("Cannot schedule new tasks after shutdown", str(context.exception))
         self.executor = None
 
+    def test_tracking_is_not_part_of_the_public_surface(self):
+        """
+        Task tracking is not in the TaskExecutor interface and is not public.
+        Ownership is only taken of work this executor itself scheduled.
+        """
+        self.assertFalse(hasattr(AsyncioExecutor, "track_task"))
+
     def test_track_task_adds_to_background_tasks(self):
         """
-        Test that track_task properly adds task to background tasks dict.
+        Test that submitted work is added to the background tasks dict.
         """
         started = threading.Event()
         task = self.executor.submit("track_test", AsyncTestHelpers.simple_task_with_event, started)
