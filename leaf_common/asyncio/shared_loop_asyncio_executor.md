@@ -95,8 +95,14 @@ finally:
   one: under a task factory returning a non-Task Future, the tracked object is
   the factory's wrapper while `asyncio.current_task()` is the inner Task that
   drives the coroutine, so an identity comparison never matches. The marker is
-  per *owned task*, not per executor, so the test is whether a still-pending
-  owned task is an ancestor of the caller. Owned work may therefore still clean
+  a *chain* of (executor, owned task) entries rather than a single slot, so an
+  executor used inside another executor's task appends rather than overwriting —
+  without that, the outer executor could be drained from inside the inner's
+  task while the outer's own task sat awaiting it. An entry is pushed before
+  `create_task()` is called, so a host *eager* task factory, which runs the
+  coroutine's first step inside `create_task()`, still sees the work as owned
+  before the task object exists. The test is whether a still-pending owned task
+  is an ancestor of the caller. Owned work may therefore still clean
   up a different executor, and a detached child may clean up once the owned root
   it descends from has finished — it was never drained, cancelled or reported,
   so it cannot be waited on. While that root is still pending, cleanup from a

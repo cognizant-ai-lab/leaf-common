@@ -75,14 +75,29 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
     # asyncio.current_task() is the inner Task, and comparing them never
     # matches.
     #
-    # The value is a one-slot list rather than the task itself, because the
-    # context has to be built before create_task() can hand the task back. The
-    # list goes in first and is filled immediately after. Child tasks inherit
-    # the same list, which is the point: it says which OWNED ROOT an execution
-    # descends from, so an untracked child is judged by whether that root is
-    # still pending rather than merely by which executor it came from.
+    # The value is a CHAIN of (executor, holder) pairs, appended to rather
+    # than overwritten, so an executor used inside another executor's task does
+    # not erase the outer one's entry. Overwriting would let the outer be
+    # drained from inside the inner's task -- while the outer's own task sits
+    # awaiting that very task.
+    #
+    # Each holder is a one-slot list rather than the task itself, because the
+    # context has to exist before create_task() can hand the task back. The
+    # holder is pushed EMPTY and filled immediately after, and an empty holder
+    # is itself meaningful: it says the task has not been handed back yet, so
+    # execution reaching the guard is the eager first step of the very
+    # coroutine being scheduled. That is still this executor's own work.
+    #
+    # Child tasks inherit the chain, which is the point: it says which OWNED
+    # ROOT an execution descends from, so an untracked child is judged by
+    # whether that root is still pending rather than merely by which executor
+    # it came from.
+    #
+    # One ContextVar for the whole class, never per instance: a Context holds a
+    # strong reference to every ContextVar set in it, and these executors are
+    # per request, so a per-instance var would retain one var per request.
     _OWNING_ROOT: ClassVar[contextvars.ContextVar] = \
-        contextvars.ContextVar("shared_loop_owning_root", default=None)
+        contextvars.ContextVar("shared_loop_owning_root", default=())
 
     # max_workers is accepted so callers need not branch on executor type.
     # pylint: disable=unused-argument
@@ -279,11 +294,14 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :param raise_exception: True to report background failures to the loop
         :return: The Future the host loop's task factory produced
         """
-        # The holder goes into the context before the task exists, then
-        # receives the task itself. See _OWNING_ROOT.
+        # The holder is pushed onto the chain before the task exists, so that
+        # a host eager task factory -- which runs the coroutine's first step
+        # inside create_task() below -- already sees this executor as the owner
+        # of what is running. It receives the task itself immediately after.
+        # See _OWNING_ROOT.
         root_holder: List[asyncio.Future] = []
         context: contextvars.Context = self._context.copy()
-        context.run(self._OWNING_ROOT.set, root_holder)
+        context.run(self._push_owning_root, root_holder)
         try:
             task = self._create_task_in_context(coroutine, name, context)
         except BaseException:
@@ -398,21 +416,34 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :return: The owned tasks that have not finished
         """
         tasks: List[asyncio.Future] = [task for task in self._tasks if not task.done()]
-        if self._owning_root() in tasks or asyncio.current_task() in tasks:
+        if self._owns_current_execution(tasks) or asyncio.current_task() in tasks:
             raise RuntimeError("Await executor cleanup outside its owned tasks")
         return tasks
 
-    @classmethod
-    def _owning_root(cls) -> asyncio.Future:
-        """Report the owned task the current execution descends from.
+    def _push_owning_root(self, holder: List[asyncio.Future]) -> None:
+        """Append this executor's ownership entry to the chain.
 
-        :return: The owned root, or None outside any submitted work. None is
-                 never in the pending list, so callers need not special-case it.
+        Must be run inside the context being prepared, so that the read and the
+        write both see that context rather than the submitter's.
+
+        :param holder: The one-slot list that will receive the task
         """
-        holder: List[asyncio.Future] = cls._OWNING_ROOT.get()
-        if not holder:
-            return None
-        return holder[0]
+        self._OWNING_ROOT.set(self._OWNING_ROOT.get() + ((self, holder),))
+
+    def _owns_current_execution(self, tasks: List[asyncio.Future]) -> bool:
+        """Report whether the caller is running inside this executor's own work.
+
+        :param tasks: This executor's unfinished owned tasks
+        :return: True if draining those tasks would wait on the caller
+        """
+        for executor, holder in self._OWNING_ROOT.get():
+            if executor is not self:
+                continue
+            # An empty holder means create_task() has not returned yet, so this
+            # is the eager first step of the coroutine being scheduled. It is
+            # ours, even though it is not in `tasks` yet.
+            return not holder or holder[0] in tasks
+        return False
 
     @staticmethod
     async def _drain(tasks: List[asyncio.Future], timeout: float) -> None:

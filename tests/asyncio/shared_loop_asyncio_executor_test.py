@@ -253,6 +253,83 @@ class SharedLoopAsyncioExecutorTest(IsolatedAsyncioTestCase):
         await parent
         await executor.ashutdown()
 
+    async def test_a_nested_executor_does_not_erase_the_outer_owner(self) -> None:
+        """
+        An executor used inside another executor's task must not overwrite the
+        outer executor's ownership entry.
+
+        With a single-slot marker the inner executor replaced it, so the outer
+        could be drained from inside the inner's task -- while the outer's own
+        task sat awaiting that very task. The chain keeps both entries.
+        """
+        outer = SharedLoopAsyncioExecutor()
+        outer.start()
+        outcome: Dict[str, Any] = {}
+
+        await outer.submit('outer', self._run_inner_executor, outer, outcome)
+
+        self.assertIn('refused', outcome['result'])
+        await outer.ashutdown()
+
+    async def test_an_unrelated_executor_can_still_be_cleaned_up(self) -> None:
+        """
+        The chain must not make the guard indiscriminate: an executor that is
+        not an ancestor of the caller is still fair game.
+        """
+        first = SharedLoopAsyncioExecutor()
+        second = SharedLoopAsyncioExecutor()
+        first.start()
+        second.start()
+        outcome: Dict[str, Any] = {}
+
+        await first.submit('a', self._clean_other_and_record, second, outcome)
+
+        self.assertEqual(outcome['result'], 'allowed')
+        await first.ashutdown()
+
+    @staticmethod
+    async def _run_inner_executor(outer: SharedLoopAsyncioExecutor,
+                                  outcome: Dict[str, Any]) -> str:
+        """
+        Build a second executor here, inside the outer's task, and have its
+        work try to clean the outer up while this task awaits it.
+
+        :param outer: The executor whose task this is
+        :param outcome: Dict the inner work records its result into
+        :return: A sentinel
+        """
+        inner = SharedLoopAsyncioExecutor()
+        inner.start()
+        result: str = await inner.submit(
+            'inner', SharedLoopAsyncioExecutorTest._clean_other_and_record, outer, outcome)
+        await inner.ashutdown()
+        return result
+
+    @staticmethod
+    async def _clean_other_and_record(other: SharedLoopAsyncioExecutor,
+                                      outcome: Dict[str, Any]) -> str:
+        """
+        Try to shut another executor down and record whether it was permitted.
+
+        cancel_futures=False so that a wrongly-permitted drain would really
+        wait, rather than cancelling its way out of the deadlock.
+
+        Bounded by wait_for, because the failure this guards against is a
+        deadlock: unbounded, a regression would hang CI instead of failing it.
+
+        :param other: The executor to attempt cleanup on
+        :param outcome: Dict to record the result into
+        :return: A sentinel
+        """
+        try:
+            await asyncio.wait_for(other.ashutdown(cancel_futures=False), timeout=2.0)
+            outcome['result'] = 'allowed'
+        except RuntimeError as exc:
+            outcome['result'] = f'refused: {exc}'
+        except TimeoutError:
+            outcome['result'] = 'deadlocked'
+        return 'inner done'
+
     @staticmethod
     async def _spawn_child_then_return(child: Coroutine) -> str:
         """
