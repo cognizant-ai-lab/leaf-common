@@ -21,7 +21,6 @@ from typing import Awaitable
 from typing import Callable
 
 from asyncio import AbstractEventLoop
-from asyncio import Task
 from asyncio import Future
 
 
@@ -53,11 +52,13 @@ class TaskExecutor:
         """
         raise NotImplementedError
 
-    def submit(self, submitter_id: str, function, /, *args, **kwargs) -> Task:
+    def submit(self, submitter_id: str, function, /, *args, **kwargs) -> Future:
         """
         Submit a function to be run in the executor.
-        Note that the function is run in "fire and forget" mode,
-        so no result, successful or otherwise, is returned to the caller.
+        This call returns a Future handle after the work has been scheduled.
+        How completion is observed depends on the implementation: callers must
+        not assume that the Future belongs to their current event loop. Consult
+        the concrete executor's contract for result and exception handling.
 
         :param submitter_id: A string id denoting who is doing the submitting.
         :param function: The function handle to run
@@ -65,7 +66,11 @@ class TaskExecutor:
             See https://realpython.com/python-asterisk-and-slash-special-parameters/
         :param args: args for the function
         :param kwargs: keyword args for the function
-        :return: An asyncio.Task that corresponds to the submitted task
+        :return: A Future that corresponds to the submitted task. Usually an
+                    asyncio.Task, but an implementation running on an event
+                    loop with a custom task factory may get back any
+                    Future-compatible object, so callers should not assume
+                    Task-only methods such as get_name() or get_stack().
         """
         raise NotImplementedError
 
@@ -76,7 +81,8 @@ class TaskExecutor:
         :param submitter_id: A string id denoting who is doing the submitting.
         :param raise_exception: True if exceptions are to be raised in the executor.
                     Default is False.
-        :return: The Task object bound to our event loop
+        :return: The Future bound to our event loop. See submit() on why this
+                    is not guaranteed to be an asyncio.Task.
         """
         raise NotImplementedError
 

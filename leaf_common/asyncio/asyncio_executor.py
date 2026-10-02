@@ -305,7 +305,7 @@ class AsyncioExecutor(TaskExecutor):
         # Wait for task to be created in event loop thread (blocking calling thread)
         task: Task = task_creation_future.result()
 
-        self.track_task(task)
+        self._track_task(task)
         return task
 
     def create_task(self, awaitable: Awaitable, submitter_id: str, raise_exception: bool = False) -> AsyncFuture:
@@ -328,11 +328,18 @@ class AsyncioExecutor(TaskExecutor):
         task_creation_future: SyncFuture = self._submit_as_task(submitter_id, awaitable)
         # Wait for task to be created and returned as the result of the Future (blocking calling thread)
         task: Task = task_creation_future.result()
-        self.track_task(task, raise_exception=raise_exception)
+        self._track_task(task, raise_exception=raise_exception)
         return task
 
-    def track_task(self, task: Task, raise_exception: bool = False):
+    def _track_task(self, task: Task, raise_exception: bool = False):
         """
+        Take ownership of a task this executor created.
+
+        Internal: not part of the TaskExecutor interface. Ownership is only
+        taken of work submit() or create_task() scheduled, so that everything
+        in the background task table is something this executor can also
+        cancel and drain.
+
         :param task: The task to track
         :param raise_exception: True if exceptions are to be raised in the executor.
                     Default is False.
