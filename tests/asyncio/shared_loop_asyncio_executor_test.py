@@ -20,6 +20,7 @@ import contextvars
 from typing import Any
 from typing import Coroutine
 from typing import Dict
+from typing import List
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import patch
 
@@ -336,6 +337,129 @@ class SharedLoopAsyncioExecutorTest(IsolatedAsyncioTestCase):
         self.assertFalse(inner.cancelled())
 
         await executor.ashutdown()
+
+    async def test_a_pending_outer_root_refuses_a_nested_descendant(self) -> None:
+        """
+        Each task runs in a copy of the context captured at start(), so a
+        nested submission used to begin a fresh ownership chain and lose its
+        ancestry. That went unnoticed while the nested task itself was pending,
+        since its own entry was enough to refuse.
+
+        It bit once the nested root had finished: a detached grandchild of it
+        was then judged against a finished root and allowed to clean up, while
+        the outer task was still pending and awaiting that very grandchild.
+        Draining waited on the outer task, the outer task waited on the
+        grandchild, and the grandchild was doing the draining.
+
+        The chain is now carried across the submission boundary and every entry
+        for this executor is considered, so a pending ancestor still refuses.
+        """
+        executor = SharedLoopAsyncioExecutor()
+        executor.start()
+        outcome: Dict[str, Any] = {}
+        grandchild: Coroutine = self._clean_other_and_record(executor, outcome)
+
+        await executor.submit('outer', self._submit_then_await_handed_back,
+                              executor, grandchild)
+
+        self.assertIn('refused', outcome['result'])
+        # Refused, so never shut down, so still usable.
+        self.assertFalse(executor.is_shutdown())
+        self.assertEqual(await executor.submit('after', lambda: 4), 4)
+        await executor.ashutdown()
+
+    async def test_a_pending_inner_root_refuses_after_the_outer_has_finished(self) -> None:
+        """
+        The chain is ordered outermost first, so checking only its first entry
+        for this executor answers the previous test correctly by luck. Here the
+        order is reversed: the OUTER root has finished and the inner one is
+        still pending, awaiting the grandchild that calls cleanup.
+
+        Draining waits on every pending owned task, so any one of them being an
+        ancestor is enough to refuse -- which is why every entry is checked,
+        not just the nearest or the outermost. Stopping at the first entry
+        deadlocks here.
+        """
+        executor = SharedLoopAsyncioExecutor()
+        executor.start()
+        outcome: Dict[str, Any] = {}
+        started: asyncio.Event = asyncio.Event()
+        done: asyncio.Event = asyncio.Event()
+
+        grandchild: Coroutine = self._clean_then_signal(executor, outcome, done)
+        inner: Coroutine = self._await_detached_child(grandchild)
+        executor.submit('outer', self._submit_without_awaiting, executor, inner, started)
+
+        await started.wait()
+        await asyncio.wait_for(done.wait(), timeout=5.0)
+
+        self.assertIn('refused', outcome['result'])
+        self.assertFalse(executor.is_shutdown())
+        await executor.ashutdown()
+
+    @staticmethod
+    async def _submit_without_awaiting(executor: SharedLoopAsyncioExecutor,
+                                       inner: Coroutine,
+                                       started: asyncio.Event) -> None:
+        """
+        Submit nested work without awaiting it, then finish, so this outer root
+        completes while the nested one is still running.
+
+        :param executor: The executor to submit the nested work to
+        :param inner: The coroutine to submit
+        :param started: Event signalling that the submission has happened
+        """
+        executor.submit('inner', inner)
+        started.set()
+
+    @staticmethod
+    async def _await_detached_child(child: Coroutine) -> None:
+        """
+        Spawn a detached child and await it, staying pending until it ends.
+
+        :param child: The coroutine to run as an untracked child task
+        """
+        await asyncio.create_task(child)
+
+    @staticmethod
+    async def _clean_then_signal(executor: SharedLoopAsyncioExecutor,
+                                 outcome: Dict[str, Any],
+                                 done: asyncio.Event) -> None:
+        """
+        Attempt cleanup, record the result, and signal completion.
+
+        :param executor: The executor to attempt cleanup on
+        :param outcome: Dict to record the result into
+        :param done: Event set once the attempt has resolved
+        """
+        await SharedLoopAsyncioExecutorTest._clean_other_and_record(executor, outcome)
+        done.set()
+
+    @staticmethod
+    async def _submit_then_await_handed_back(executor: SharedLoopAsyncioExecutor,
+                                             child: Coroutine) -> None:
+        """
+        Submit a nested task that spawns a detached child and finishes, then
+        await that child. Leaves this outer task pending on a grandchild whose
+        own owned root is already done.
+
+        :param executor: The executor to submit the nested task to
+        :param child: The coroutine the nested task will spawn detached
+        """
+        box: List[asyncio.Task] = []
+        await executor.submit('inner', SharedLoopAsyncioExecutorTest._spawn_into_box,
+                              box, child)
+        await box[0]
+
+    @staticmethod
+    async def _spawn_into_box(box: List[asyncio.Task], child: Coroutine) -> None:
+        """
+        Spawn a detached child, hand it back through the box, and finish.
+
+        :param box: List to append the spawned task to
+        :param child: The coroutine to run as an untracked child task
+        """
+        box.append(asyncio.create_task(child))
 
     @staticmethod
     async def _run_inner_executor(outer: SharedLoopAsyncioExecutor,

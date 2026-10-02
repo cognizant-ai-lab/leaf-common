@@ -306,7 +306,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         # See _OWNING_ROOT.
         root_holder: List[asyncio.Future] = []
         context: contextvars.Context = self._context.copy()
-        context.run(self._push_owning_root, root_holder)
+        context.run(self._push_owning_root, self._OWNING_ROOT.get(), root_holder)
         try:
             task = self._create_task_in_context(coroutine, name, context)
         except BaseException:
@@ -445,29 +445,39 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             raise RuntimeError("Await executor cleanup outside its owned tasks")
         return tasks
 
-    def _push_owning_root(self, holder: List[asyncio.Future]) -> None:
-        """Append this executor's ownership entry to the chain.
+    def _push_owning_root(self, inherited: Tuple, holder: List[asyncio.Future]) -> None:
+        """Append this executor's ownership entry to the submitter's chain.
 
-        Must be run inside the context being prepared, so that the read and the
-        write both see that context rather than the submitter's.
+        Must be run inside the context being prepared, so the write lands
+        there. The chain is passed in rather than read here, because each task
+        runs in a copy of the context captured at start(), not the submitter's
+        -- so without carrying it across, a task submitted from inside another
+        task would start a fresh chain and lose its ancestry.
 
+        :param inherited: The chain in effect where the submission was made
         :param holder: The one-slot list that will receive the task
         """
-        self._OWNING_ROOT.set(self._OWNING_ROOT.get() + ((self, holder),))
+        self._OWNING_ROOT.set(inherited + ((self, holder),))
 
     def _owns_current_execution(self, tasks: List[asyncio.Future]) -> bool:
         """Report whether the caller is running inside this executor's own work.
+
+        Every entry for this executor is considered, not just the innermost.
+        A nested submission appends its own entry, so a descendant may descend
+        from several of this executor's tasks at once; draining waits on all of
+        them, so any one still pending is enough to refuse. Stopping at the
+        first entry missed the case where the nearest root had finished while
+        an outer one was still pending and awaiting the caller.
 
         :param tasks: This executor's unfinished owned tasks
         :return: True if draining those tasks would wait on the caller
         """
         for executor, holder in self._OWNING_ROOT.get():
-            if executor is not self:
-                continue
             # An empty holder means create_task() has not returned yet, so this
             # is the eager first step of the coroutine being scheduled. It is
             # ours, even though it is not in `tasks` yet.
-            return not holder or holder[0] in tasks
+            if executor is self and (not holder or holder[0] in tasks):
+                return True
         return False
 
     @staticmethod
