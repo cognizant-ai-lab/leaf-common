@@ -313,10 +313,13 @@ class AsyncioExecutorPool:
         with self.lock:
             available_copy = copy(self.pool_available)
             used_copy = copy(self.pool_used)
+
         used_threads: int = 0
         used_running: int = 0
         available_threads: int = 0
         available_running: int = 0
+        threads: int = 0
+        running: int = 0
         for executor in used_copy:
             use_executor: AsyncioExecutor = executor
             threads, running = use_executor.get_threads_metrics()
@@ -459,7 +462,8 @@ class AsyncioExecutorPool:
                 task_cancelled: str = task_dict.get("cancelled")
                 lines.append(f"  - name={task_name!r}  coro={task_coro}  "
                              f"done={task_done}  cancelled={task_cancelled}")
-                for frame in task.get("stack", []):
+                frame_stack: List[Dict[str, Any]] = task_dict.get("stack")
+                for frame in frame_stack:
                     frame_dict: Dict[str, Any] = frame
                     frame_file: str = frame_dict.get("file")
                     frame_line: str = frame_dict.get("line")
