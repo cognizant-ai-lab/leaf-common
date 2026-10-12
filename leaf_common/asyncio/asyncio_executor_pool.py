@@ -238,12 +238,14 @@ class AsyncioExecutorPool:
     def _collect_executors(self, executors: Sequence[AsyncioExecutor]) -> None:
         sensitive_logger = SensitiveLogger(self.logger)
         for executor in executors:
+            use_executor: AsyncioExecutor = executor
+            executor_id: int = id(use_executor)
             try:
-                sensitive_logger.debug("GC: shutting down idle AsyncioExecutor %s", id(executor))
-                executor.shutdown(wait=True)
+                sensitive_logger.debug("GC: shutting down idle AsyncioExecutor %s", executor_id)
+                use_executor.shutdown(wait=True)
             except Exception as exc:  # pylint: disable=broad-exception-caught
                 sensitive_logger.warning(
-                    "GC: shutdown failed for AsyncioExecutor %s: %s", id(executor), exc, exc_info=True)
+                    "GC: shutdown failed for AsyncioExecutor %s: %s", executor_id, exc, exc_info=True)
 
     def _sweep_once(self, now: Optional[float] = None) -> None:
         """
@@ -271,14 +273,17 @@ class AsyncioExecutorPool:
             keep_from: int = 0
             prev_returned_at: float = 0.0
             for executor in self.pool_available:
-                if id(executor) not in self._returned_at:
+                use_executor: AsyncioExecutor = executor
+                executor_id: int = id(use_executor)
+                if executor_id not in self._returned_at:
                     # This should never happen, but log this and record executor
                     # as returned at the same time as the previous one - to keep sequence invariant still valid.
                     self.logger.warning(
                         "GC: executor %s in pool_available but missing return timestamp; fixing",
-                        id(executor))
-                    self._returned_at[id(executor)] = prev_returned_at
-                returned_at: float = self._returned_at.get(id(executor), prev_returned_at)
+                        executor_id)
+                    self._returned_at[executor_id] = prev_returned_at
+                returned_at_dict: Dict[int, float] = self._returned_at
+                returned_at: float = returned_at_dict.get(executor_id, prev_returned_at)
                 if now - returned_at > self.idle_timeout_seconds:
                     to_collect.append(executor)
                     keep_from += 1
@@ -287,7 +292,9 @@ class AsyncioExecutorPool:
                     break
             if keep_from > 0:
                 for executor in self.pool_available[:keep_from]:
-                    self._returned_at.pop(id(executor), None)
+                    use_executor: AsyncioExecutor = executor
+                    executor_id: int = id(use_executor)
+                    self._returned_at.pop(executor_id, None)
                 del self.pool_available[:keep_from]
         # Shutdown outside the lock to keep the critical section short.
         self._collect_executors(to_collect)
@@ -311,11 +318,13 @@ class AsyncioExecutorPool:
         available_threads: int = 0
         available_running: int = 0
         for executor in used_copy:
-            threads, running = executor.get_threads_metrics()
+            use_executor: AsyncioExecutor = executor
+            threads, running = use_executor.get_threads_metrics()
             used_threads += threads
             used_running += running
         for executor in available_copy:
-            threads, running = executor.get_threads_metrics()
+            use_executor: AsyncioExecutor = executor
+            threads, running = use_executor.get_threads_metrics()
             available_threads += threads
             available_running += running
         result_dict = {
@@ -368,8 +377,10 @@ class AsyncioExecutorPool:
             used_snapshot = list(self.pool_used)
 
         for executor in used_snapshot:
-            executor_key: str = str(id(executor))
-            loop: AbstractEventLoop = executor.get_event_loop()
+            use_executor: AsyncioExecutor = executor
+            executor_id: int = id(use_executor)
+            executor_key: str = str(executor_id)
+            loop: AbstractEventLoop = use_executor.get_event_loop()
             if not loop.is_running():
                 result[executor_key] = {"loop_state": "not_running", "tasks": []}
                 continue
@@ -420,6 +431,7 @@ class AsyncioExecutorPool:
         return tasks_info
 
     @staticmethod
+    # pylint: disable=too-many-locals
     def format_task_dump(dump: Dict[str, Any]) -> str:
         """
         Render the output of dump_tasks_in_used_executors() as a printable
@@ -440,9 +452,17 @@ class AsyncioExecutorPool:
             if loop_state == "probe_error":
                 lines.append(f"   probe_error: {entry.get('error')}")
             for task in tasks:
-                lines.append(f"  - name={task['name']!r}  coro={task['coro']}  "
-                             f"done={task['done']}  cancelled={task['cancelled']}")
+                task_dict: Dict[str, Any] = task
+                task_name: str = task_dict.get("name")
+                task_coro: str = task_dict.get("coro")
+                task_done: str = task_dict.get("done")
+                task_cancelled: str = task_dict.get("cancelled")
+                lines.append(f"  - name={task_name!r}  coro={task_coro}  "
+                             f"done={task_done}  cancelled={task_cancelled}")
                 for frame in task.get("stack", []):
-                    lines.append(f"      File \"{frame['file']}\", "
-                                 f"line {frame['line']}, in {frame['func']}")
+                    frame_dict: Dict[str, Any] = frame
+                    frame_file: str = frame_dict.get("file")
+                    frame_line: str = frame_dict.get("line")
+                    frame_func: str = frame_dict.get("func")
+                    lines.append(f"      File \"{frame_file}\", line {frame_line}, in {frame_func}")
         return "\n".join(lines)
