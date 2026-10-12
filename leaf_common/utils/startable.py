@@ -15,18 +15,24 @@
 #
 # END COPYRIGHT
 
+from abc import abstractmethod
+from leaf_common.utils.interface import interface
 
+
+@interface
 class Startable:
     """
     Interface for objects which have a specific starting phase.
     """
 
+    @abstractmethod
     def start(self):
         """
         Perform start up.
         """
         raise NotImplementedError
 
+    @abstractmethod
     def stop(self):
         """
         Perform steps to stop/shut-down
