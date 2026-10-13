@@ -13,29 +13,8 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""Uncached shared-loop executor pool with the leaf-common pool interface.
-
-Mirrors the surface of AsyncioExecutorPool so callers can hold either, but there
-is deliberately no reuse, idle expiry, worker pool, or GC thread: every
-acquisition builds a fresh SharedLoopAsyncioExecutor on the running loop.
-
-Returning an executor differs from the native pool, and the difference is not
-cosmetic. AsyncioExecutorPool.return_executor() shuts the executor down with
-wait=True, joining its thread, so when that call returns the work really is
-finished. Here there is no thread to join and the executor runs on the caller's
-own loop, so a synchronous method cannot drain it -- blocking would mean the
-loop waiting on itself. Hence two paths:
-
-  - await areturn_executor(executor) is the complete one. It awaits
-    ashutdown() and only then gives up ownership.
-  - return_executor(executor) requests cancellation and returns at once. The
-    pool KEEPS ownership of the executor until its tasks actually end, so a
-    task that catches CancelledError and keeps running stays visible in
-    get_threads_metrics() and dump_tasks_in_used_executors() instead of
-    vanishing. Such an executor is "retiring"; await ashutdown() drains any
-    that remain.
-
-All operations on active executors must run on their host event loop.
+"""
+See class comment for details.
 """
 from typing import Any
 from typing import Dict
@@ -47,7 +26,31 @@ from leaf_common.asyncio.shared_loop_asyncio_executor import SharedLoopAsyncioEx
 
 
 class SharedLoopAsyncioExecutorPool:
-    """Create a new shared-loop executor for every acquisition; never reuse it."""
+    """
+    Creates a new shared-loop executor for every acquisition; never reuses one.
+
+    Mirrors the surface of AsyncioExecutorPool so callers can hold either, but
+    provides no reuse, idle expiry, worker pool or GC thread. Every acquisition
+    builds a fresh SharedLoopAsyncioExecutor on the running loop.
+
+    Returning an executor differs from the native pool.
+    AsyncioExecutorPool.return_executor() shuts the executor down with
+    wait=True, joining its thread, so the work is finished when that call
+    returns. Here there is no thread to join and the executor runs on the
+    caller's own loop, so a synchronous method cannot drain it; blocking would
+    make the loop wait on itself. Two paths follow:
+
+      - await areturn_executor(executor) is the complete one. It awaits
+        ashutdown() and only then gives up ownership.
+      - return_executor(executor) requests cancellation and returns at once.
+        The pool keeps ownership until the tasks actually end, so a task that
+        catches CancelledError and continues stays visible in
+        get_threads_metrics() and dump_tasks_in_used_executors() rather than
+        disappearing. Such an executor is "retiring"; await ashutdown() drains
+        any that remain.
+
+    All operations on active executors must run on their host event loop.
+    """
 
     DEFAULT_IDLE_TIMEOUT_SECONDS: float = 180.0
     DEFAULT_GC_SWEEP_INTERVAL_SECONDS: float = 30.0
@@ -117,15 +120,14 @@ class SharedLoopAsyncioExecutorPool:
             shut down is unusable and must not be left checked out, whether the
             wait timed out, the awaiting task was cancelled, or anything else
             went wrong. Await ashutdown() or call this again to finish the job.
-          - Cleanup never began: ownership is left exactly as it was.
-            ashutdown() refuses to run at all when called from one of the
-            executor's own tasks, and that executor is still perfectly usable
-            -- so it stays checked out rather than being quietly retired and
-            then pruned away once the calling task ends.
+          - Cleanup never began: ownership is left unchanged. ashutdown()
+            refuses to run when called from one of the executor's own tasks,
+            and that executor remains usable, so it stays checked out rather
+            than being retired and then pruned once the calling task ends.
 
-        The two are told apart by asking the executor, not by the type of the
-        error, so a path nobody anticipated cannot leave an unusable executor
-        checked out where neither ashutdown() nor shutdown() would notice it.
+        The two cases are distinguished by asking the executor, not by the type
+        of the error, so an unanticipated path cannot leave an unusable
+        executor checked out where neither ashutdown() nor shutdown() sees it.
 
         :param executor: The executor to retire
         :param timeout: Seconds to wait for owned tasks, or None to wait
@@ -150,11 +152,11 @@ class SharedLoopAsyncioExecutorPool:
         Like leaf-common's pool.shutdown(), this does not close executors that
         are still checked out; return those individually.
 
-        :param wait: True to insist that no retiring executor is still
-                    working. Since this pool cannot block the shared loop, that
-                    insistence is expressed as a raise rather than a wait --
-                    the same way SharedLoopAsyncioExecutor.shutdown(wait=True)
-                    does. Pass False to shut down without that check.
+        :param wait: True to require that no retiring executor is still
+                    working. This pool cannot block the shared loop, so the
+                    requirement raises rather than waits, as
+                    SharedLoopAsyncioExecutor.shutdown(wait=True) does. Pass
+                    False to skip the check.
         """
         self._prune_retired()
         if wait and self.pool_retiring:

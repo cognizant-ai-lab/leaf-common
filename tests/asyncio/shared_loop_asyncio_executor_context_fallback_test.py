@@ -15,17 +15,7 @@
 #
 # END COPYRIGHT
 """
-Unit tests for SharedLoopAsyncioExecutor on a loop that rejects context=.
-
-CPython's AbstractEventLoop.create_task takes context=, so every other test in
-this suite exercises a loop that accepts it. This class borrows whatever loop
-the host is running, though, and a hand-written loop need not implement the
-full signature -- Pyodide's WebLoop is exactly such a loop, and it is this
-class's main reason to exist.
-
-The running loop's create_task is therefore replaced with one whose signature
-omits context=, so the executor has to take its fallback path. Without it every
-submission would raise TypeError on that platform.
+See class comment for details.
 """
 
 import asyncio
@@ -39,8 +29,14 @@ from leaf_common.asyncio.shared_loop_asyncio_executor import SharedLoopAsyncioEx
 
 class SharedLoopAsyncioExecutorContextFallbackTest(IsolatedAsyncioTestCase):
     """
-    Tests SharedLoopAsyncioExecutor against a loop whose create_task() takes
-    no context keyword.
+    Tests SharedLoopAsyncioExecutor on a loop whose create_task rejects context=.
+
+    CPython's AbstractEventLoop.create_task accepts context=, so every other
+    test in this suite exercises a loop that takes it. A hand-written loop need
+    not implement the full signature; Pyodide's WebLoop is one such loop. The
+    running loop's create_task is therefore replaced with one omitting
+    context=, forcing the executor's fallback path. Without that path every
+    submission would raise TypeError on that platform.
     """
 
     async def asyncSetUp(self) -> None:

@@ -33,10 +33,9 @@ class AsyncioExecutorFactory():
     Given a string from AsyncioExecutorTypes, create_pool() dishes out the pool
     that hands out that kind of executor.
 
-    Note what this factory deliberately does NOT do: build a bare executor.
-    Executors are constructed only by their pool, so that every executor in the
-    system has an owner that knows how to start it, hand it out, and tear it
-    down. A caller that wants one asks a pool for it:
+    This factory does not build a bare executor. Executors are constructed
+    only by their pool, so every executor has an owner that knows how to start
+    it, hand it out and tear it down. A caller that wants one asks a pool:
 
         pool = AsyncioExecutorFactory.create_pool(reuse_mode=False)
         executor = pool.get_executor()      # already started
@@ -49,25 +48,23 @@ class AsyncioExecutorFactory():
     "await pool.areturn_executor(executor)" instead. See
     shared_loop_asyncio_executor.md.
 
-    A caller needing exactly one long-lived executor -- a background service,
-    say -- makes a pool-of-one with reuse_mode=False. That costs nothing: the
-    pool's GC thread only exists when reuse_mode is True.
+    A caller needing one long-lived executor, such as a background service,
+    makes a pool-of-one with reuse_mode=False. That costs no threads: the
+    pool's GC thread exists only when reuse_mode is True.
 
-    Why a factory at all: the two pool implementations are not interchangeable
-    at run time, they are interchangeable per *deployment*. A server process
-    wants the threaded executor; a browser has no threads to run it on, so it
-    wants the shared-loop one. The choice belongs to whoever configures the
-    process, not to the code doing the submitting.
+    The two pool implementations are interchangeable per deployment, not at
+    run time. A server process wants the threaded executor; a browser has no
+    threads, so it wants the shared-loop one. The choice belongs to whoever
+    configures the process, not to the submitting code.
 
-    Two deliberate constraints, both so this survives transpilation to JavaScript:
+    Two constraints keep this transpilable to JavaScript:
 
     1. The registry below is a static dict of already-imported classes.
-       Resolving an implementation by module name through importlib would not
-       work in a browser bundle, where the importlib stub is built on Node's
-       createRequire.
-    2. The type is an explicit argument. This class deliberately does not sniff
-       sys.platform or probe for a running loop to pick for itself, because
-       platform branching is exactly what does not survive the trip.
+       Resolving an implementation by module name through importlib fails in a
+       browser bundle, where the importlib stub uses Node's createRequire.
+    2. The type is an explicit argument. This class does not sniff sys.platform
+       or probe for a running loop, because platform branching does not
+       survive transpilation.
     """
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments

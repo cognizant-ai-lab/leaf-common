@@ -26,9 +26,9 @@ class AsyncioExecutorTypes():
     Class containing string constants for the kinds of TaskExecutor
     that AsyncioExecutorFactory knows how to build.
 
-    These are plain strings rather than an enum.Enum so that they survive
-    transpilation to TypeScript as ordinary string constants, and so they can
-    come straight out of a config file without a lookup step.
+    Plain strings rather than an enum.Enum, so they transpile to TypeScript as
+    ordinary string constants and can come straight from a config file without
+    a lookup step.
     """
 
     # An executor that owns a background thread and the event loop running on

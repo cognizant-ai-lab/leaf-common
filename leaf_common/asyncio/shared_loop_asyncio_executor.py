@@ -13,41 +13,8 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""Run tasks on an event loop that is already running, without Python threads.
-
-The counterpart to AsyncioExecutor, which owns a thread and the loop running on
-it. This one borrows the caller's running loop and creates no threads at all, so
-it is the variant that works where threads do not exist -- Pyodide in the browser
-above all, and transpiled JavaScript, where threading.Thread.start() cannot run
-anything. It also works on native asyncio, which is how it is tested.
-
-Call start() from async code. submit() returns an awaitable Future (an
-asyncio.Task on a loop with no custom task factory; see below).
-Synchronous callables run on the loop and MUST be short and nonblocking.
-Use await cancel_current_tasks() and await ashutdown() for cleanup; synchronous
-shutdown(wait=True) refuses to block on pending tasks. This is not a drop-in
-replacement for callers using AsyncToSyncGenerator or the threaded executor pool.
-
-Only work submitted through this executor is owned. Callers must await any child
-tasks they spawn from within it; there is no public way to hand one over, because
-ownership of work the executor did not schedule cannot be reconciled with the
-self-cleanup guard. The host loop and its global settings are untouched.
-
-That includes the host's task factory. loop.create_task() may validly return any
-Future-compatible object when a factory is installed -- on Python 3.12 such a
-result need not be an asyncio.Task, and need not provide get_name(), get_coro()
-or get_stack(). Ownership here needs only the Future API (add_done_callback,
-cancel, cancelled, exception, get_loop), so any Future on this loop can be
-tracked; the Task-only methods are used for reporting alone and are guarded.
-The alternative -- constructing asyncio.Task directly to guarantee the type --
-was rejected because it would silently bypass a factory the host installed for
-a reason, such as eager task execution or tracing.
-
-One consequence: ownership cannot be decided by object identity. A factory
-returning a non-Task Future must delegate the running to an inner real Task, so
-the tracked object is not the task asyncio reports as current. The owned task an
-execution descends from is therefore marked in the context each submitted task
-runs in. See _OWNING_ROOT and _pending().
+"""
+See class comment for details.
 """
 import asyncio
 import contextvars
@@ -65,39 +32,61 @@ from leaf_common.asyncio.task_executor import TaskExecutor
 
 
 class SharedLoopAsyncioExecutor(TaskExecutor):
-    """Track one request's tasks while borrowing the host's running event loop."""
+    """
+    Tracks one request's tasks while borrowing the host's running event loop.
 
-    # Identifies the owned task the current execution descends from, so that
-    # "would cleaning up here wait on me?" can be answered without relying on
-    # the identity of whatever loop.create_task() returned.
+    The counterpart to AsyncioExecutor, which owns a thread and the loop on it.
+    This variant creates no threads, so it works where threads are unavailable:
+    Pyodide in the browser, and transpiled JavaScript. It also runs on native
+    asyncio, which is how it is tested.
+
+    Call start() from async code. submit() returns an awaitable Future.
+    Synchronous callables run on the loop and must not block. Clean up with
+    await cancel_current_tasks() and await ashutdown(); the synchronous
+    shutdown(wait=True) refuses to block on pending tasks. This is not a
+    drop-in replacement for callers of AsyncToSyncGenerator or the threaded
+    executor pool.
+
+    Only work submitted through this executor is owned; callers must await any
+    child tasks they spawn from within it. The host loop and its settings,
+    including its task factory, are left untouched.
+
+    A host task factory may return any Future-compatible object. Such a result
+    need not be an asyncio.Task and need not provide get_name(), get_coro() or
+    get_stack(), so ownership requires only the Future API and the Task-only
+    methods are guarded and used for reporting alone. Constructing asyncio.Task
+    directly would guarantee the type but bypass a factory the host installed
+    deliberately, so it is not done.
+
+    Ownership therefore cannot be decided by object identity: a factory
+    returning a non-Task Future delegates execution to an inner Task, so the
+    tracked object is not the task asyncio reports as current. The owned root
+    task is marked in the context each submitted task runs in instead. See
+    _OWNING_ROOT and _pending().
+    """
+
+    # Identifies the owned root task the current execution descends from.
     #
-    # It cannot rely on that identity: a task factory returning a non-Task
-    # Future has to delegate the running to an inner real Task, because a bare
-    # Future cannot drive a coroutine. So _tasks holds the wrapper while
-    # asyncio.current_task() is the inner Task, and comparing them never
-    # matches.
+    # Object identity cannot answer this: a factory returning a non-Task Future
+    # delegates to an inner Task, so _tasks holds the wrapper while
+    # asyncio.current_task() is the inner Task.
     #
-    # The value is a CHAIN of (executor, holder) pairs, appended to rather
-    # than overwritten, so an executor used inside another executor's task does
-    # not erase the outer one's entry. Overwriting would let the outer be
-    # drained from inside the inner's task -- while the outer's own task sits
-    # awaiting that very task.
+    # The value is a chain of (executor, holder) pairs, appended to rather than
+    # overwritten, so an executor used inside another executor's task does not
+    # erase the outer entry. Overwriting would allow the outer executor to be
+    # drained from inside the inner's task.
     #
-    # Each holder is a one-slot list rather than the task itself, because the
-    # context has to exist before create_task() can hand the task back. The
-    # holder is pushed EMPTY and filled immediately after, and an empty holder
-    # is itself meaningful: it says the task has not been handed back yet, so
-    # execution reaching the guard is the eager first step of the very
-    # coroutine being scheduled. That is still this executor's own work.
+    # Each holder is a one-slot list because the context must exist before
+    # create_task() returns the task. An empty holder is meaningful: it means
+    # execution reaching the guard is the eager first step of the coroutine
+    # being scheduled, which is still this executor's work.
     #
-    # Child tasks inherit the chain, which is the point: it says which OWNED
-    # ROOT an execution descends from, so an untracked child is judged by
-    # whether that root is still pending rather than merely by which executor
-    # it came from.
+    # Child tasks inherit the chain, so an untracked child is judged by whether
+    # its owned root is still pending.
     #
-    # One ContextVar for the whole class, never per instance: a Context holds a
-    # strong reference to every ContextVar set in it, and these executors are
-    # per request, so a per-instance var would retain one var per request.
+    # One ContextVar for the class, never per instance: a Context strongly
+    # references every ContextVar set in it, and these executors are per
+    # request.
     _OWNING_ROOT: ClassVar[contextvars.ContextVar] = \
         contextvars.ContextVar("shared_loop_owning_root", default=())
 
@@ -196,11 +185,11 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """Schedule an awaitable; optionally report failures to the loop handler.
 
         Accepts a coroutine, or any awaitable that runs inside the task this
-        schedules. It does NOT accept work already being driven elsewhere: an
-        existing Task, or a Future still pending. Everything this executor can
-        be asked to drain must be an execution it scheduled, and therefore one
-        carrying the ownership marker -- otherwise cleanup called from that
-        execution would not be recognised and would wait on itself.
+        schedules. Work already being driven elsewhere is rejected: an existing
+        Task, or a Future still pending. Everything this executor can be asked
+        to drain must be an execution it scheduled, and so must carry the
+        ownership marker. Otherwise cleanup called from that execution would go
+        unrecognised and wait on itself.
 
         Awaiting the returned task always propagates its exception, regardless of
         raise_exception. The flag controls reporting of background failures only.
@@ -219,14 +208,11 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             if isinstance(awaitable, asyncio.Task):
                 raise TypeError("create_task() cannot adopt an existing asyncio.Task")
             if not awaitable.done():
-                # A pending Future is a handle on work being driven somewhere
-                # else -- for a non-Task Future, necessarily so, since a bare
-                # Future cannot run a coroutine. Wrapping it would make this
-                # executor wait on an execution it never scheduled and cannot
-                # mark, so if that execution called ashutdown(), the guard
-                # would miss it and the drain would wait on the wrapper while
-                # the wrapper waited on the caller. Submit the work that
-                # drives the Future instead of the Future.
+                # A pending Future is a handle on work driven elsewhere; a
+                # bare Future cannot run a coroutine itself. Wrapping it would
+                # make this executor wait on an execution it never scheduled
+                # and cannot mark, so an ashutdown() from that execution would
+                # deadlock against its own wrapper.
                 raise TypeError("create_task() cannot adopt a pending Future; "
                                 "submit the work that completes it instead")
 
@@ -244,15 +230,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """Schedule a coroutine so it runs in the given context.
 
         CPython's AbstractEventLoop.create_task takes context=, but this class
-        borrows whatever loop the host is running, and a hand-written loop need
-        not implement the full signature. Pyodide's WebLoop is exactly such a
-        loop, and it is this class's main reason to exist, so a loop that
-        rejects context= must not break every submission.
+        borrows the host's loop, and a hand-written loop need not implement the
+        full signature. Pyodide's WebLoop is one such loop, so rejecting
+        context= must not break every submission.
 
-        The loop is probed once rather than discovered by catching TypeError,
-        because a TypeError from anywhere else in create_task() would leave us
-        unable to tell a rejected keyword from work that was already scheduled,
-        and retrying would schedule it twice.
+        The loop is probed once rather than by catching TypeError: a TypeError
+        raised elsewhere in create_task() would be indistinguishable from a
+        rejected keyword, and retrying would schedule the work twice.
 
         :param coroutine: The coroutine to schedule
         :param name: The task name to request
@@ -268,11 +252,10 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         if self._loop_takes_context:
             return self._loop.create_task(coroutine, name=name, context=context)
 
-        # The loop cannot be told which context to use, so enter it ourselves.
+        # The loop cannot be told which context to use, so enter it here.
         # asyncio.Task snapshots copy_context() at construction when given no
         # context, and that snapshot is taken inside this run(), so the task
-        # still gets this context -- ContextVar isolation and the ownership
-        # marker included.
+        # still receives this context, ownership marker included.
         return context.run(self._loop.create_task, coroutine, name=name)
 
     @staticmethod
@@ -281,8 +264,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
         :param create_task: The bound create_task of the loop in use
         :return: True if context= can be passed. A loop whose signature cannot
-                 be read is assumed to follow the standard contract, since
-                 that is what CPython's own loops do.
+                 be read is assumed to follow the standard contract, as
+                 CPython's own loops do.
         """
         try:
             parameters = inspect.signature(create_task).parameters
@@ -347,8 +330,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         wrapper in _tasks, so cleanup called from that work would wait on the
         caller itself instead of being refused.
 
-        Accepts any Future-compatible object because a host task factory may
-        hand one back from _schedule(); those carry the marker. See the module
+        Accepts any Future-compatible object, because a host task factory may
+        return one from _schedule(); those carry the marker. See the class
         comment.
 
         :param task: A Future on this executor's event loop
@@ -394,9 +377,9 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
     def get_tracked_tasks(self) -> List[asyncio.Future]:
         """Report the tasks this executor owns, finished ones included.
 
-        Ownership bookkeeping is this executor's business, so callers that need
-        to see it -- a pool rendering a task dump, say -- ask here rather than
-        reading the internal table.
+        Ownership bookkeeping is internal, so callers needing to see it, such
+        as a pool rendering a task dump, ask here rather than reading the
+        table directly.
 
         :return: A snapshot list of every Future still tracked by this executor
         """
@@ -427,26 +410,21 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """Report unfinished owned tasks, refusing to run inside one of them.
 
         Cleanup that would wait on the execution performing it is rejected.
-        That is the whole test, so the question is whether a STILL PENDING
-        owned task is an ancestor of the caller -- not merely whether the
-        caller came from this executor. A detached child whose owned root has
-        already finished is never in the drained set and cannot be waited on,
-        so cleanup from it is allowed.
+        The test is whether a still-pending owned task is an ancestor of the
+        caller, not merely whether the caller came from this executor. A
+        detached child whose owned root has finished is not in the drained set
+        and cannot be waited on, so cleanup from it is allowed.
 
-        Two independent checks, because neither covers every case:
+        Two checks are needed, because neither covers every case:
 
           - The owning root catches work submitted through this executor
-            whatever the host's task factory returned, including a non-Task
-            Future wrapper whose inner Task is what current_task() reports, and
-            including that work's child tasks. Because `tasks` holds only this
-            executor's pending work, a root belonging to another executor, or
-            one that has already finished, simply is not in it. What it cannot
-            catch is work under a factory that discards the context= it is
-            handed -- such a factory already breaks per-request ContextVar
-            isolation, but it should not also cost us the guard.
-          - The identity check catches exactly that: any tracked object that
-            *is* the running task, which is the case whenever such a factory
-            hands back a real Task.
+            whatever the task factory returned, including a non-Task wrapper
+            and that work's children. Since `tasks` holds only this executor's
+            pending work, a root from another executor, or one already
+            finished, is absent from it. It cannot catch work under a factory
+            that discards the context= it is given.
+          - The identity check covers that case: a tracked object that is
+            itself the running task, which such a factory returns.
 
         :return: The owned tasks that have not finished
         """
@@ -458,11 +436,11 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
     def _push_owning_root(self, inherited: Tuple, holder: List[asyncio.Future]) -> None:
         """Append this executor's ownership entry to the submitter's chain.
 
-        Must be run inside the context being prepared, so the write lands
-        there. The chain is passed in rather than read here, because each task
-        runs in a copy of the context captured at start(), not the submitter's
-        -- so without carrying it across, a task submitted from inside another
-        task would start a fresh chain and lose its ancestry.
+        Must run inside the context being prepared, so the write lands there.
+        The chain is passed in rather than read here because each task runs in
+        a copy of the context captured at start(), not the submitter's. Without
+        carrying it across, a task submitted from inside another task would
+        start a fresh chain and lose its ancestry.
 
         :param inherited: The chain in effect where the submission was made
         :param holder: The one-slot list that will receive the task

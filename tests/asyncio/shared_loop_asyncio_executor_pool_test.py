@@ -14,7 +14,9 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""Contract checks for the uncached shared-loop pool."""
+"""
+See class comment for details.
+"""
 import asyncio
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import patch
@@ -24,7 +26,8 @@ from leaf_common.asyncio.shared_loop_asyncio_executor_pool import SharedLoopAsyn
 
 class SharedLoopAsyncioExecutorPoolTest(IsolatedAsyncioTestCase):
     """
-    Tests the contract SharedLoopAsyncioExecutorPool shares with AsyncioExecutorPool.
+    Tests the contract SharedLoopAsyncioExecutorPool shares with
+    AsyncioExecutorPool.
     """
 
     async def test_fresh_executors_without_threads(self) -> None:

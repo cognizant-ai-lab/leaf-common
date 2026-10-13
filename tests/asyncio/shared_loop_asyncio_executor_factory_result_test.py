@@ -15,17 +15,7 @@
 #
 # END COPYRIGHT
 """
-Unit tests for SharedLoopAsyncioExecutor under a custom host task factory.
-
-loop.create_task() may validly return any Future-compatible object when the
-host loop has a task factory installed. On Python 3.12 such a result need not
-be an asyncio.Task, and need not provide get_name(), get_coro() or get_stack().
-
-These tests install a factory returning exactly that -- a Future that is not a
-Task -- and assert the executor still owns, drains and reports the work. The
-failure this guards against is specific: the factory schedules the work before
-the executor ever sees the object, so a rejection at that point leaves the work
-running untracked and outside shutdown.
+See class comment for details.
 """
 
 import asyncio
@@ -42,10 +32,9 @@ class NotATask(asyncio.Future):
     """
     A Future-compatible task-factory result that is deliberately not a Task.
 
-    It drives the coroutine through an inner Task so the work really runs, and
-    exposes none of get_name()/get_coro()/get_stack(), which is what makes it
-    the useful adversary here. set_name() is present because create_task()
-    calls it after the factory returns.
+    It drives the coroutine through an inner Task so the work runs, and
+    exposes none of get_name()/get_coro()/get_stack(). set_name() is present
+    because create_task() calls it after the factory returns.
     """
 
     def __init__(self, coro: Any, *, loop: asyncio.AbstractEventLoop = None,
@@ -99,8 +88,16 @@ class NotATask(asyncio.Future):
 
 class SharedLoopAsyncioExecutorFactoryResultTest(IsolatedAsyncioTestCase):
     """
-    Tests SharedLoopAsyncioExecutor against a host loop whose task factory
-    returns a non-Task Future.
+    Tests SharedLoopAsyncioExecutor against a host task factory that returns a
+    non-Task Future.
+
+    loop.create_task() may return any Future-compatible object when a task
+    factory is installed. On Python 3.12 such a result need not be an
+    asyncio.Task, and need not provide get_name(), get_coro() or get_stack().
+    These tests install such a factory and assert the executor still owns,
+    drains and reports the work. The factory schedules the work before the
+    executor sees the object, so rejecting it there would leave the work
+    running untracked and outside shutdown.
     """
 
     def setUp(self) -> None:

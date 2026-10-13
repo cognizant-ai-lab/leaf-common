@@ -31,9 +31,8 @@ class StructuralFuture:
 
     asyncio.isfuture() accepts anything whose type carries a non-None
     _asyncio_future_blocking, so this satisfies the Future protocol
-    structurally while failing isinstance(obj, asyncio.Future). That gap is
-    what separates a duck-typed check from a subclass check, and this class
-    exists to ensure we are doing the right check.
+    structurally while failing isinstance(obj, asyncio.Future). That gap
+    distinguishes a duck-typed check from a subclass check.
 
     Work is delegated to an inner asyncio.Future so awaiting and cancelling
     behave normally. cancel_calls records hand-offs from code under test.

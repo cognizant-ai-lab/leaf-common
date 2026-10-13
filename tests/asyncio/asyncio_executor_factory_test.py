@@ -15,13 +15,7 @@
 #
 # END COPYRIGHT
 """
-Unit tests for AsyncioExecutorFactory's type selection.
-
-The factory builds pools only, never a bare executor, so these tests check the
-pool surface and the pool-of-one shape that long-lived callers use.
-
-The SHARED_LOOP type has its own thread-free assertions in
-asyncio_executor_factory_shared_loop_test.py, which needs an async test case.
+See class comment for details.
 """
 
 from unittest import TestCase
@@ -36,6 +30,12 @@ from leaf_common.asyncio.shared_loop_asyncio_executor_pool import SharedLoopAsyn
 class AsyncioExecutorFactoryTest(TestCase):
     """
     Tests the synchronous surface of AsyncioExecutorFactory.
+
+    The factory builds pools only, never a bare executor, so these tests cover
+    the pool surface and the pool-of-one shape long-lived callers use. The
+    SHARED_LOOP type has its own thread-free assertions in
+    asyncio_executor_factory_shared_loop_test.py, which needs an async test
+    case.
     """
 
     def test_builds_pools_only(self) -> None:

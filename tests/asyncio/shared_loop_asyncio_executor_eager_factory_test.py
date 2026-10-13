@@ -15,18 +15,7 @@
 #
 # END COPYRIGHT
 """
-Unit tests for SharedLoopAsyncioExecutor under an eager task factory.
-
-asyncio.eager_task_factory runs a coroutine's first step inside create_task()
-itself, before the task object is handed back. That opens a window in which the
-executor is running its own submitted work while that work is neither in _tasks
-nor recorded as an owned root yet.
-
-Preserving a host's eager factory is one of this class's stated reasons for not
-constructing asyncio.Task directly, so the window has to be handled rather than
-assumed away: without it, work that cleans up in its first step shuts the
-executor down and the caller sees a misleading "Cannot schedule new tasks after
-shutdown" instead of the guard's refusal.
+See class comment for details.
 """
 
 import asyncio
@@ -40,6 +29,17 @@ from leaf_common.asyncio.shared_loop_asyncio_executor import SharedLoopAsyncioEx
 class SharedLoopAsyncioExecutorEagerFactoryTest(IsolatedAsyncioTestCase):
     """
     Tests SharedLoopAsyncioExecutor on a host loop running eager tasks.
+
+    asyncio.eager_task_factory runs a coroutine's first step inside
+    create_task(), before the task object is returned. During that window the
+    executor is running its own submitted work while that work is neither in
+    _tasks nor recorded as an owned root.
+
+    Preserving a host's eager factory is one reason this class does not
+    construct asyncio.Task directly, so the window must be handled. Otherwise
+    work that cleans up in its first step shuts the executor down and the
+    caller sees "Cannot schedule new tasks after shutdown" instead of the
+    guard's refusal.
     """
 
     async def asyncSetUp(self) -> None:

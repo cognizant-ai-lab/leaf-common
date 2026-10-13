@@ -14,7 +14,9 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""Shared-loop executor behavior; these scenarios also run in Pyodide."""
+"""
+See class comment for details.
+"""
 import asyncio
 import contextvars
 from typing import Any
@@ -32,6 +34,8 @@ from tests.asyncio.structural_future import StructuralFuture
 class SharedLoopAsyncioExecutorTest(IsolatedAsyncioTestCase):
     """
     Tests SharedLoopAsyncioExecutor against a real running loop.
+
+    These scenarios also run under Pyodide.
     """
 
     async def test_results_without_threads_or_loop_changes(self) -> None:

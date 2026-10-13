@@ -15,12 +15,7 @@
 #
 # END COPYRIGHT
 """
-Unit tests for AsyncioExecutorFactory's SHARED_LOOP type.
-
-These assert the property the browser depends on: nothing the factory builds for
-that type starts a thread. threading.Thread.start is patched to fail rather than
-merely counted, so a regression shows up as a test failure at the point of the
-call rather than as a count mismatch later.
+See class comment for details.
 """
 
 import asyncio
@@ -34,8 +29,11 @@ from leaf_common.asyncio.shared_loop_asyncio_executor import SharedLoopAsyncioEx
 
 class AsyncioExecutorFactorySharedLoopTest(IsolatedAsyncioTestCase):
     """
-    Tests that the SHARED_LOOP type really is thread-free, which is the whole
-    reason for it to exist.
+    Tests that AsyncioExecutorFactory's SHARED_LOOP type starts no thread.
+
+    threading.Thread.start is patched to fail rather than merely counted, so a
+    regression fails at the point of the call instead of as a count mismatch
+    later.
     """
 
     async def test_shared_loop_type_starts_no_threads(self) -> None:
