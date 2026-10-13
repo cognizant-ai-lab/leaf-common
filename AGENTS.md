@@ -35,7 +35,7 @@ Rules for coding agents in neuro-san. Follow them and make sure the checks in §
 - **Docstrings on every class, function and method.** A class docstring explains its purpose and
   responsibilities. A function/method docstring covers what it does, its parameters, its return value, and any
   exception it raises, in this exact format:
-- Keep all code comments brief, written in Standard Techincal English.
+- Keep all code comments brief, written in Standard Technical English.
 - Add code comments for every for loop.
 - Add type hints for every looping variable
 
