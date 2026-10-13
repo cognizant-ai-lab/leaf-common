@@ -56,7 +56,7 @@ class StreamToLogger(StringIO):
         self.last_logged: List[str] = []
         self.last_num_lines_logged: List[int] = []
 
-    def write(self, s):
+    def write(self, in_string: str):
         """
         Write the string s to the stream and return the number of characters
         written.  The "stream" in this case is really any set of logging
@@ -68,9 +68,9 @@ class StreamToLogger(StringIO):
         """
 
         # Monitor what is coming in.
-        stripped = s.rstrip()
-        lines = stripped.splitlines()
-        num_lines = len(lines)
+        stripped: str = in_string.rstrip()
+        lines: List[str] = stripped.splitlines()
+        num_lines: int = len(lines)
 
         # Look to break infinite loops in logging exceptions
         # _ is Pythonic for unused variable
@@ -104,6 +104,7 @@ class StreamToLogger(StringIO):
         self.last_num_lines_logged.append(num_lines)
 
         # If multiline, write each line separately with its own log message
+        line: str = None
         for line in lines:
             line_to_write = line.rstrip()
             self.logger.log(self.log_level, line_to_write)
@@ -113,7 +114,7 @@ class StreamToLogger(StringIO):
         self.last_num_lines_logged.pop()
 
         # Return what write() interface wants, more or less.
-        num_chars = len(s)
+        num_chars: int = len(in_string)
         return num_chars
 
     @classmethod

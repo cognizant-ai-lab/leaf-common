@@ -18,10 +18,9 @@
 See class comment for details.
 """
 
-import os
+from os.path import join
 
-from leaf_common.persistence.interface.persistence_mechanism \
-    import PersistenceMechanism
+from leaf_common.persistence.interface.persistence_mechanism import PersistenceMechanism
 
 
 class AbstractPersistenceMechanism(PersistenceMechanism):
@@ -87,7 +86,7 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
         # First determine the path from any fixed settings
         fixed_settings_path = self.folder
         if self.base_name is not None:
-            fixed_settings_path = os.path.join(self.folder, self.base_name)
+            fixed_settings_path = join(self.folder, self.base_name)
 
         file_extension = ""
         if file_extension_provider is not None:
@@ -102,7 +101,7 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
             file_reference_path = file_reference
             if not file_reference.startswith("/"):
                 # Not an Absolute path. Use our folder
-                file_reference_path = os.path.join(self.folder, file_reference)
+                file_reference_path = join(self.folder, file_reference)
 
             if not file_reference_path.endswith(file_extension):
                 # No file extension, only basename. Use ours

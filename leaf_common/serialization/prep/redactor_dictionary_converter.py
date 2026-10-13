@@ -14,9 +14,7 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
+from typing import Any
 from typing import Dict
 from typing import List
 
@@ -72,7 +70,7 @@ class RedactorDictionaryConverter(DictionaryConverter):
                 not isinstance(obj, dict):
             return None
 
-        obj_dict = self.redact_dict(obj)
+        obj_dict: Dict[str, object] = self.redact_dict(obj)
         return obj_dict
 
     def from_dict(self, obj_dict: Dict[str, object]) -> object:
@@ -161,7 +159,7 @@ class RedactorDictionaryConverter(DictionaryConverter):
         :return: The safe value, redacted or not, depending on the key
         """
 
-        safe_value = None
+        safe_value: Any = None
 
         if isinstance(unsafe_value, dict):
             safe_value = self.redact_dict(unsafe_value)

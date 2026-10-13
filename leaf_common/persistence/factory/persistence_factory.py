@@ -21,29 +21,16 @@ See class comment for details.
 import logging
 import os
 
-from leaf_common.persistence.factory.json_gzip_persistence \
-    import JsonGzipPersistence
-from leaf_common.persistence.factory.hocon_persistence \
-    import HoconPersistence
-from leaf_common.persistence.factory.json_persistence \
-    import JsonPersistence
-from leaf_common.persistence.factory.raw_bytes_persistence \
-    import RawBytesPersistence
-from leaf_common.persistence.factory.reference_helper \
-    import ReferenceHelper
-from leaf_common.persistence.factory.text_persistence \
-    import TextPersistence
-from leaf_common.persistence.factory.null_persistence \
-    import NullPersistence
-from leaf_common.persistence.factory.yaml_persistence \
-    import YamlPersistence
-
-from leaf_common.persistence.mechanism.persistence_mechanism_factory \
-    import PersistenceMechanismFactory
-
-
-from leaf_common.serialization.format.serialization_formats \
-    import SerializationFormats
+from leaf_common.persistence.factory.json_gzip_persistence import JsonGzipPersistence
+from leaf_common.persistence.factory.hocon_persistence import HoconPersistence
+from leaf_common.persistence.factory.json_persistence import JsonPersistence
+from leaf_common.persistence.factory.raw_bytes_persistence import RawBytesPersistence
+from leaf_common.persistence.factory.reference_helper import ReferenceHelper
+from leaf_common.persistence.factory.text_persistence import TextPersistence
+from leaf_common.persistence.factory.null_persistence import NullPersistence
+from leaf_common.persistence.factory.yaml_persistence import YamlPersistence
+from leaf_common.persistence.mechanism.persistence_mechanism_factory import PersistenceMechanismFactory
+from leaf_common.serialization.format.serialization_formats import SerializationFormats
 
 
 class PersistenceFactory():

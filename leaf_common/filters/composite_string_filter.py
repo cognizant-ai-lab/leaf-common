@@ -37,7 +37,8 @@ class CompositeStringFilter(StringFilter):
         if filters is not None:
             one_filter: StringFilter = None
             for one_filter in filters:
-                self.add_filter(one_filter)
+                typed_filter: StringFilter = one_filter
+                self.add_filter(typed_filter)
 
     def add_filter(self, new_filter: StringFilter):
         """

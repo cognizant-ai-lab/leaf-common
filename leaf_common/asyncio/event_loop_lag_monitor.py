@@ -113,19 +113,19 @@ class EventLoopLagMonitor:
         Compute and save a report of the collected lag samples,
         including percentiles and mean.
         """
-        samples = self._samples
-        samples_ms = [s * 1000 for s in samples]
-        samples_ms_sorted = sorted(samples_ms)
-        n = len(samples_ms_sorted)
-        p50 = samples_ms_sorted[n // 2]
-        p95 = samples_ms_sorted[int(n * 0.95)]
-        p99 = samples_ms_sorted[min(int(n * 0.99), n - 1)]
+        samples: List[float] = self._samples
+        samples_ms: List[float] = [s * 1000 for s in samples]
+        samples_ms_sorted: List[float] = sorted(samples_ms)
+        n: int = len(samples_ms_sorted)
+        p50: float = samples_ms_sorted[n // 2]
+        p95: float = samples_ms_sorted[int(n * 0.95)]
+        p99: float = samples_ms_sorted[min(int(n * 0.99), n - 1)]
         self.max_p50_ms = max(self.max_p50_ms, p50)
         self.max_p95_ms = max(self.max_p95_ms, p95)
-        mean_ms = fmean(samples_ms)
-        max_samples_ms = max(samples_ms)
+        mean_ms: float = fmean(samples_ms)
+        max_samples_ms: float = max(samples_ms)
         self.max_mean_ms = max(self.max_mean_ms, mean_ms)
-        self.max_max_ms = max(self.max_max_ms, max_samples_ms)
+        self.max_max_ms = float(max(self.max_max_ms, max_samples_ms))
         self.metrics_dict = {
             "p50_ms": p50,
             "p95_ms": p95,
