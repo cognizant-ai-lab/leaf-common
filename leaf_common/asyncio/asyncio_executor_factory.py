@@ -72,13 +72,6 @@ class AsyncioExecutorFactory():
        platform branching is exactly what does not survive the trip.
     """
 
-    # Maps an AsyncioExecutorTypes string to the pool class that hands out
-    # -- and solely constructs -- that kind of executor.
-    POOL_CLASSES: Dict[str, Type[Any]] = {
-        AsyncioExecutorTypes.THREADED: AsyncioExecutorPool,
-        AsyncioExecutorTypes.SHARED_LOOP: SharedLoopAsyncioExecutorPool,
-    }
-
     # pylint: disable=too-many-arguments,too-many-positional-arguments
     @staticmethod
     def create_pool(executor_type: str = AsyncioExecutorTypes.THREADED,
@@ -109,11 +102,13 @@ class AsyncioExecutorFactory():
         :param max_workers: Maximum number of threads per executor.
         :return: A new executor pool of the requested type
         """
-        pool_class: Type[Any] = AsyncioExecutorFactory.POOL_CLASSES.get(executor_type)
+        pool_class: Type[Any] = None
+        if executor_type == AsyncioExecutorTypes.THREADED:
+            pool_class = AsyncioExecutorPool
+        elif executor_type == AsyncioExecutorTypes.SHARED_LOOP:
+            pool_class = SharedLoopAsyncioExecutorPool
         if pool_class is None:
-            known: List[str] = sorted(AsyncioExecutorFactory.POOL_CLASSES.keys())
-            raise ValueError(f"Unknown executor pool type '{executor_type}'. "
-                             f"Known types are: {known}")
+            raise ValueError(f"Unknown executor pool type '{executor_type}'. ")
         return pool_class(reuse_mode,
                           idle_timeout_seconds=idle_timeout_seconds,
                           gc_sweep_interval_seconds=gc_sweep_interval_seconds,
