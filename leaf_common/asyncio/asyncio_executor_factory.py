@@ -106,7 +106,9 @@ class AsyncioExecutorFactory():
         elif executor_type == AsyncioExecutorTypes.SHARED_LOOP:
             pool_class = SharedLoopAsyncioExecutorPool
         if pool_class is None:
-            raise ValueError(f"Unknown executor pool type '{executor_type}'. ")
+            raise ValueError(
+                f"Unknown executor pool type '{executor_type}'. Expected one of: "
+                f"{', '.join(AsyncioExecutorTypes.ASYNCIO_EXECUTOR_TYPES)}")
         return pool_class(reuse_mode,
                           idle_timeout_seconds=idle_timeout_seconds,
                           gc_sweep_interval_seconds=gc_sweep_interval_seconds,
