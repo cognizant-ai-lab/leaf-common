@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Rules for coding agents in neuro-san. Follow them and make sure the checks in §6 pass on the first run.
+Rules for coding agents in leaf-common. Follow them and make sure the checks in §6 pass on the first run.
 
 ---
 
