@@ -261,6 +261,10 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         if self._loop_takes_context is None:
             self._loop_takes_context = self._takes_context(self._loop.create_task)
+            task_factory = self._loop.get_task_factory()
+            if task_factory is not None:
+                self._loop_takes_context = (
+                    self._loop_takes_context and self._takes_context(task_factory))
         if self._loop_takes_context:
             return self._loop.create_task(coroutine, name=name, context=context)
 
