@@ -60,12 +60,14 @@ class ConfigHandler():
         # Potentially read config from a file, if config arg is a string filename
         update_source: Dict[str, Any] = {}
         if isinstance(config_source, str):
-            update_source = self.read_config_from_file(config_source, must_exist)
+            config_source_string: str = config_source
+            update_source = self.read_config_from_file(config_source_string, must_exist)
 
         # Override entries from the defaults in setupConfig with the
         #     contents of the config arg that was passed in.
         elif isinstance(config_source, dict):
-            update_source = config_source
+            config_source_dict: Dict[str, Any] = config_source
+            update_source = config_source_dict
 
         new_config: Dict[str, Any] = self.deep_update(config, update_source)
         return new_config

@@ -17,6 +17,7 @@
 
 from typing import Any
 from typing import Dict
+from typing import List
 from typing import Set
 from typing import Type
 
@@ -158,4 +159,6 @@ class DeprecationRedirect:
         if fully_qualified_class is None:
             return None
 
-        return ".".join(fully_qualified_class.split(".")[:-1])
+        class_split: List[str] = fully_qualified_class.split(".")
+        truncated: List[str] = class_split[:-1]
+        return ".".join(truncated)

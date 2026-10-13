@@ -70,7 +70,8 @@ class FieldExtractor():
         # We know the value is a dictionary.
         # Get the remaining bit of the delimited field
         # into its own string for recursion
-        remaining_split: List[str] = field_split[1:len(field_split)+1]
+        field_split_length: int = len(field_split) + 1
+        remaining_split: List[str] = field_split[1:field_split_length]
         remaining_field: str = delimiter.join(remaining_split)
 
         deep_value: Any = self.get_field(value, remaining_field, default_value, delimiter)

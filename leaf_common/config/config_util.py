@@ -59,7 +59,8 @@ class ConfigUtil:
 
         value: Any = config[key]
         if isinstance(value, bool):
-            return value
+            value_boolean: bool = value
+            return value_boolean
 
         if isinstance(value, str):
             string_value: str = value

@@ -75,7 +75,8 @@ class FileOfClass:
         """
         :return: An absolute path to a file that resides within the basis.
         """
-        return str((self.get_basis_path() / filename).resolve())
+        file_path: Path = self.get_basis_path() / filename
+        return str(file_path.resolve())
 
     @staticmethod
     def check_file(filepath: str, basis: str = "/") -> str:

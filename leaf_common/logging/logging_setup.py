@@ -147,8 +147,9 @@ class LoggingSetup():
 
         # Use the configuration we got.
         if config is not None and isinstance(config, dict):
-            config = self.replace_log_file(config)
-            dictConfig(config)
+            config_dict: Dict[str, Any] = config
+            config_dict = self.replace_log_file(config_dict)
+            dictConfig(config_dict)
         else:
             log_level: str = self.determine_log_level()
             basicConfig(filename=self.log_file, level=log_level)
@@ -173,7 +174,8 @@ class LoggingSetup():
 
             # If it was a string, use that as the full path
             if isinstance(self.logging_config, str):
-                default_logging_config_file = self.logging_config
+                logging_config_string: str = self.logging_config
+                default_logging_config_file = logging_config_string
 
         # See if we need to get an override from environment
         log_config_file_path: str = default_logging_config_file
@@ -275,7 +277,8 @@ class LoggingSetup():
         # put into the logs.
         if metadata_dict is not None:
 
-            for key in extra:
+            key: str = None
+            for key in extra.keys():
                 if key in ("source", "thread_name"):
                     # Pass these up. They should not be coming from
                     # any metadata dictionary in the request
