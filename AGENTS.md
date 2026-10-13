@@ -13,6 +13,7 @@ Rules for coding agents in neuro-san. Follow them and make sure the checks in §
 
 - **One module, one class.** Each `.py` file defines exactly one class (a handful of pre-existing exceptions are
   not precedent). Split helper logic into a separate module rather than adding a second class to an existing file.
+  This should also mean that there should be no module comments - they should be really be the class's docstring.
 - **No module-level functions, no nested functions, no lambdas.** Every function is a method (or `@staticmethod`)
   on the module's class. If a method needs a helper, make it another method on the same class; bind arguments with
   `functools.partial` on a method or `@staticmethod` where a lambda would otherwise have been used.
@@ -90,7 +91,7 @@ Rules for coding agents in neuro-san. Follow them and make sure the checks in §
 ## 6. Checks before opening the PR
 
 ```bash
-flake8 at the top-level of the repo                                           # style, line length 120
+flake8 .   # at the top-level of the repo. style, line length 120
 build_scripts/run_pylint.sh                                                   # pylint --rcfile=.pylintrc
 
 export PYTHONPATH="${PYTHONPATH:+$PYTHONPATH:}."
