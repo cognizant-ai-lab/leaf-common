@@ -14,22 +14,9 @@
 #
 # END COPYRIGHT
 
-from abc import ABCMeta
-
 
 def interface(cls):
     """
-    A class decorator that transforms a class into an interface.
-    It prevents direct instantiation and ensures it uses ABCMeta
-    so that abstract methods are properly enforced.
+    Purely annotational class decorator that indicates a class is an interface.
     """
-    # Create a new class with ABCMeta to enforce abstract methods
-    # This allows it to be multiply inherited cleanly
-    interface_cls = ABCMeta(cls.__name__, cls.__bases__, dict(cls.__dict__))
-
-    # Patch the __init__ to prevent direct instantiation of the interface itself
-    def no_init(*args, **kwargs):
-        raise TypeError(f"Cannot instantiate interface '{cls.__name__}' directly.")
-
-    interface_cls.__init__ = no_init
-    return interface_cls
+    return cls
