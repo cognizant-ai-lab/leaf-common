@@ -173,8 +173,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         return self._schedule(self._invoke(function, *args, **kwargs),
                               self.get_function_name(function, submitter_id), False)
 
-    @staticmethod
-    async def _invoke(function: Callable, *args: Any, **kwargs: Any) -> Any:
+    async def _invoke(self, function: Callable, *args: Any, **kwargs: Any) -> Any:
         """Call a callable on the loop, awaiting its result when it is awaitable.
 
         :param function: The callable to invoke
@@ -183,6 +182,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :return: The callable's result, awaited if it was awaitable
         """
         result: Any = function(*args, **kwargs)
+        if asyncio.isfuture(result):
+            if result.get_loop() is not self._loop:
+                raise ValueError("Awaitable belongs to another event loop")
+            if isinstance(result, asyncio.Task):
+                raise TypeError("submit() cannot adopt an existing asyncio.Task")
+            if not result.done():
+                raise TypeError("submit() cannot adopt a pending Future; submit the work that completes it instead")
         return await result if inspect.isawaitable(result) else result
 
     def create_task(self, awaitable: Awaitable, submitter_id: str,
