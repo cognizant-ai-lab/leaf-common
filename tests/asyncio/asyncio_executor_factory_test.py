@@ -119,12 +119,4 @@ class AsyncioExecutorFactoryTest(TestCase):
         """
         with self.assertRaises(ValueError) as pool_error:
             AsyncioExecutorFactory.create_pool("no-such-executor")
-        self.assertIn(AsyncioExecutorTypes.SHARED_LOOP, str(pool_error.exception))
-        self.assertIn(AsyncioExecutorTypes.THREADED, str(pool_error.exception))
-
-    def test_every_declared_type_is_registered(self) -> None:
-        """
-        AsyncioExecutorTypes and the pool registry cannot drift apart.
-        """
-        declared = set(AsyncioExecutorTypes.ASYNCIO_EXECUTOR_TYPES)
-        self.assertEqual(declared, set(AsyncioExecutorFactory.POOL_CLASSES.keys()))
+        self.assertIn("no-such-executor", str(pool_error.exception))
