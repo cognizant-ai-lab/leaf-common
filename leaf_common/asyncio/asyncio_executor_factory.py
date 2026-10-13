@@ -19,8 +19,6 @@ See class comment for details.
 """
 
 from typing import Any
-from typing import Dict
-from typing import List
 from typing import Type
 
 from leaf_common.asyncio.asyncio_executor_pool import AsyncioExecutorPool
