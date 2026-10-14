@@ -233,17 +233,26 @@ class SharedLoopAsyncioExecutorPool:
         """Describe what a tracked task is running, whatever the factory made.
 
         get_coro() is an asyncio.Task method; a Future-compatible factory
-        result need not have it. See the SharedLoopAsyncioExecutor module
+        result need not have it. See the SharedLoopAsyncioExecutor class
         comment.
 
         :param task: The tracked Future to describe
         :return: The coroutine's qualified name, or the task's repr
         """
-        get_coro = getattr(task, "get_coro", None)
+        # Only the lookup is guarded, so an AttributeError from inside
+        # get_coro() is not mistaken for the method being absent.
+        get_coro: Any = None
+        try:
+            get_coro = task.get_coro
+        except AttributeError:
+            get_coro = None
         if not callable(get_coro):
             return repr(task)
         coro: Any = get_coro()
-        return getattr(coro, "__qualname__", repr(coro))
+        try:
+            return coro.__qualname__
+        except AttributeError:
+            return repr(coro)
 
     @staticmethod
     def _describe_stack(task: Future) -> List[Dict[str, Any]]:
@@ -255,12 +264,22 @@ class SharedLoopAsyncioExecutorPool:
         :param task: The tracked Future to describe
         :return: One dict per stack frame, or an empty list
         """
-        get_stack = getattr(task, "get_stack", None)
+        get_stack: Any = None
+        try:
+            get_stack = task.get_stack
+        except AttributeError:
+            get_stack = None
         if not callable(get_stack):
             return []
-        return [{"file": frame.f_code.co_filename,
-                 "line": frame.f_lineno,
-                 "func": frame.f_code.co_name} for frame in get_stack()]
+
+        frames: List[Dict[str, Any]] = []
+        # One entry per suspended frame, outermost first, as get_stack() returns them.
+        frame: Any = None
+        for frame in get_stack():
+            frames.append({"file": frame.f_code.co_filename,
+                           "line": frame.f_lineno,
+                           "func": frame.f_code.co_name})
+        return frames
 
     def _check_owned(self, executor: SharedLoopAsyncioExecutor) -> None:
         """Verify this pool handed the executor out and has not taken it back.

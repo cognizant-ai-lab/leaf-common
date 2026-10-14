@@ -142,7 +142,12 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
     @staticmethod
     def get_function_name(function: Any, submitter_id: str) -> str:
         """Build the same submitter-prefixed task names as leaf-common."""
-        name = getattr(function, "__qualname__", type(function).__name__)
+        name: str = None
+        try:
+            name = function.__qualname__
+        except AttributeError:
+            # Callables such as functools.partial carry no __qualname__.
+            name = type(function).__name__
         return f"{submitter_id}:{name}" if submitter_id else name
 
     def submit(self, submitter_id: str, function: Any, /, *args: Any, **kwargs: Any) -> asyncio.Future:
@@ -313,7 +318,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         try:
             return self._track_task(task, raise_exception)
         except BaseException:
-            cancel = getattr(task, "cancel", None)
+            # Only the lookup is guarded. Calling inside the try would also
+            # swallow an AttributeError raised by cancel() itself.
+            cancel: Any = None
+            try:
+                cancel = task.cancel
+            except AttributeError:
+                cancel = None
             if callable(cancel):
                 cancel()
             raise
@@ -369,7 +380,11 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :param task: The tracked Future to name
         :return: The task's name, or its repr when it has none
         """
-        get_name = getattr(task, "get_name", None)
+        get_name: Any = None
+        try:
+            get_name = task.get_name
+        except AttributeError:
+            get_name = None
         if callable(get_name):
             return get_name()
         return repr(task)
