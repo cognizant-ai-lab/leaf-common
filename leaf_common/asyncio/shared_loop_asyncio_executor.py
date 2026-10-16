@@ -16,9 +16,20 @@
 """
 See class comment for details.
 """
-import asyncio
-import contextvars
-import inspect
+from asyncio import AbstractEventLoop
+from asyncio import Future
+from asyncio import Task
+from asyncio import current_task
+from asyncio import get_running_loop
+from asyncio import isfuture
+from asyncio import wait
+from contextvars import Context
+from contextvars import ContextVar
+from contextvars import copy_context
+from inspect import Parameter
+from inspect import isawaitable
+from inspect import iscoroutine
+from inspect import signature
 from typing import Any
 from typing import Awaitable
 from typing import Callable
@@ -87,23 +98,22 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
     # One ContextVar for the class, never per instance: a Context strongly
     # references every ContextVar set in it, and these executors are per
     # request.
-    _OWNING_ROOT: ClassVar[contextvars.ContextVar] = \
-        contextvars.ContextVar("shared_loop_owning_root", default=())
+    _OWNING_ROOT: ClassVar[ContextVar] = ContextVar("shared_loop_owning_root", default=())
 
     # max_workers is accepted so callers need not branch on executor type.
     # pylint: disable=unused-argument
     def __init__(self, max_workers: int = None):
         # Accepted for constructor compatibility; no worker threads are created.
         super().__init__()
-        self._loop: asyncio.AbstractEventLoop = None
-        self._context: contextvars.Context = None
+        self._loop: AbstractEventLoop = None
+        self._context: Context = None
         self._shutdown: bool = False
-        self._tasks: Dict[asyncio.Future, bool] = {}
+        self._tasks: Dict[Future, bool] = {}
         # Whether this loop's create_task() accepts context=. Probed once on
         # first use. See _create_task_in_context().
         self._loop_takes_context: bool = None
 
-    def get_event_loop(self) -> asyncio.AbstractEventLoop:
+    def get_event_loop(self) -> AbstractEventLoop:
         """Return the borrowed loop, or None before start()."""
         return self._loop
 
@@ -111,17 +121,17 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """Bind to the running loop and capture this request's ContextVars."""
         if self._shutdown:
             raise RuntimeError("Cannot restart an executor after shutdown")
-        loop = asyncio.get_running_loop()
+        loop = get_running_loop()
         if self._loop is None:
             self._loop = loop
-            self._context = contextvars.copy_context()
+            self._context = copy_context()
         elif self._loop is not loop:
             raise RuntimeError("Executor must be used on its original event loop")
 
     def _check_loop(self, *, allow_shutdown: bool = False) -> None:
         if self._loop is None:
             raise RuntimeError("Call start() from async code before using the executor")
-        if asyncio.get_running_loop() is not self._loop:
+        if get_running_loop() is not self._loop:
             raise RuntimeError("Executor must be used on its original event loop")
         if self._shutdown and not allow_shutdown:
             raise RuntimeError("Cannot schedule new tasks after shutdown")
@@ -134,8 +144,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         self._check_loop()
         result = self._context.run(init_function)
-        if inspect.isawaitable(result):
-            if inspect.iscoroutine(result):
+        if isawaitable(result):
+            if iscoroutine(result):
                 result.close()
             raise TypeError("initialize() requires a synchronous initializer")
 
@@ -150,14 +160,14 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             name = type(function).__name__
         return f"{submitter_id}:{name}" if submitter_id else name
 
-    def submit(self, submitter_id: str, function: Any, /, *args: Any, **kwargs: Any) -> asyncio.Future:
+    def submit(self, submitter_id: str, function: Any, /, *args: Any, **kwargs: Any) -> Future:
         """Schedule a callable or awaitable; return its task, including its result.
 
         Sync callables run inline when the task runs, never in a worker thread.
         Callable results that are awaitable are awaited as well.
         """
         self._check_loop()
-        if inspect.isawaitable(function):
+        if isawaitable(function):
             if args or kwargs:
                 raise TypeError("Arguments cannot be supplied with an awaitable")
             return self.create_task(function, submitter_id)
@@ -176,17 +186,17 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :return: The callable's result, awaited if it was awaitable
         """
         result: Any = function(*args, **kwargs)
-        if asyncio.isfuture(result):
+        if isfuture(result):
             if result.get_loop() is not self._loop:
                 raise ValueError("Awaitable belongs to another event loop")
-            if isinstance(result, asyncio.Task):
+            if isinstance(result, Task):
                 raise TypeError("submit() cannot adopt an existing asyncio.Task")
             if not result.done():
                 raise TypeError("submit() cannot adopt a pending Future; submit the work that completes it instead")
-        return await result if inspect.isawaitable(result) else result
+        return await result if isawaitable(result) else result
 
     def create_task(self, awaitable: Awaitable, submitter_id: str,
-                    raise_exception: bool = False) -> asyncio.Future:
+                    raise_exception: bool = False) -> Future:
         """Schedule an awaitable; optionally report failures to the loop handler.
 
         Accepts a coroutine, or any awaitable that runs inside the task this
@@ -200,17 +210,17 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         raise_exception. The flag controls reporting of background failures only.
         """
         self._check_loop()
-        if not inspect.isawaitable(awaitable):
+        if not isawaitable(awaitable):
             raise TypeError("create_task() requires an awaitable")
 
         # asyncio.isfuture(), not isinstance(), so these checks cover the same
         # structural Future objects the rest of the class accepts. A subclass
         # check would let one through to be scheduled, failing only once
         # _consume() awaited it.
-        if asyncio.isfuture(awaitable):
+        if isfuture(awaitable):
             if awaitable.get_loop() is not self._loop:
                 raise ValueError("Awaitable belongs to another event loop")
-            if isinstance(awaitable, asyncio.Task):
+            if isinstance(awaitable, Task):
                 raise TypeError("create_task() cannot adopt an existing asyncio.Task")
             if not awaitable.done():
                 # A pending Future is a handle on work driven elsewhere; a
@@ -224,14 +234,14 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         # Use coroutine objects directly so cancellation before the first step
         # cannot leave a nested coroutine unawaited.
         coroutine: Coroutine = None
-        if inspect.iscoroutine(awaitable):
+        if iscoroutine(awaitable):
             coroutine = awaitable
         else:
             coroutine = self._consume(awaitable)
         return self._schedule(coroutine, self.get_function_name(awaitable, submitter_id), raise_exception)
 
     def _create_task_in_context(self, coroutine: Coroutine, name: str,
-                                context: contextvars.Context) -> asyncio.Future:
+                                context: Context) -> Future:
         """Schedule a coroutine so it runs in the given context.
 
         CPython's AbstractEventLoop.create_task takes context=, but this class
@@ -273,12 +283,12 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
                  CPython's own loops do.
         """
         try:
-            parameters = inspect.signature(create_task).parameters
+            parameters = signature(create_task).parameters
         except (TypeError, ValueError):
             return True
         if "context" in parameters:
             return True
-        return any(parameter.kind is inspect.Parameter.VAR_KEYWORD
+        return any(parameter.kind is Parameter.VAR_KEYWORD
                    for parameter in parameters.values())
 
     @staticmethod
@@ -289,7 +299,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         return await awaitable
 
-    def _schedule(self, coroutine: Coroutine, name: str, raise_exception: bool) -> asyncio.Future:
+    def _schedule(self, coroutine: Coroutine, name: str, raise_exception: bool) -> Future:
         """Create a task on the host loop and take ownership of it.
 
         :param coroutine: The coroutine to schedule
@@ -302,8 +312,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         # inside create_task() below -- already sees this executor as the owner
         # of what is running. It receives the task itself immediately after.
         # See _OWNING_ROOT.
-        root_holder: List[asyncio.Future] = []
-        context: contextvars.Context = self._context.copy()
+        root_holder: List[Future] = []
+        context: Context = self._context.copy()
         context.run(self._push_owning_root, self._OWNING_ROOT.get(), root_holder)
         try:
             task = self._create_task_in_context(coroutine, name, context)
@@ -329,7 +339,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
                 cancel()
             raise
 
-    def _track_task(self, task: asyncio.Future, raise_exception: bool = False) -> asyncio.Future:
+    def _track_task(self, task: Future, raise_exception: bool = False) -> Future:
         """Take ownership of a task on this loop (without changing its context).
 
         Internal: not part of the TaskExecutor interface, and deliberately not
@@ -350,14 +360,14 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :return: The same Future, now owned by this executor
         """
         self._check_loop()
-        if not asyncio.isfuture(task) or task.get_loop() is not self._loop:
+        if not isfuture(task) or task.get_loop() is not self._loop:
             raise ValueError("Expected a Future-compatible object on the executor's event loop")
         if task not in self._tasks:
             task.add_done_callback(self.submission_done)
         self._tasks[task] = raise_exception
         return task
 
-    def submission_done(self, task: asyncio.Future) -> None:
+    def submission_done(self, task: Future) -> None:
         """Release references and retrieve errors, including unawaited failures."""
         report = self._tasks.pop(task, False)
         if task.cancelled():
@@ -371,7 +381,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             })
 
     @staticmethod
-    def get_task_name(task: asyncio.Future) -> str:
+    def get_task_name(task: Future) -> str:
         """Name a tracked task for reporting, whatever the factory produced.
 
         get_name() is an asyncio.Task method. A Future-compatible factory
@@ -389,7 +399,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             return get_name()
         return repr(task)
 
-    def get_tracked_tasks(self) -> List[asyncio.Future]:
+    def get_tracked_tasks(self) -> List[Future]:
         """Report the tasks this executor owns, finished ones included.
 
         Ownership bookkeeping is internal, so callers needing to see it, such
@@ -421,7 +431,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         return any(not task.done() for task in self._tasks)
 
-    def _pending(self) -> List[asyncio.Future]:
+    def _pending(self) -> List[Future]:
         """Report unfinished owned tasks, refusing to run inside one of them.
 
         Cleanup that would wait on the execution performing it is rejected.
@@ -443,12 +453,12 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
         :return: The owned tasks that have not finished
         """
-        tasks: List[asyncio.Future] = [task for task in self._tasks if not task.done()]
-        if self._owns_current_execution(tasks) or asyncio.current_task() in tasks:
+        tasks: List[Future] = [task for task in self._tasks if not task.done()]
+        if self._owns_current_execution(tasks) or current_task() in tasks:
             raise RuntimeError("Await executor cleanup outside its owned tasks")
         return tasks
 
-    def _push_owning_root(self, inherited: Tuple, holder: List[asyncio.Future]) -> None:
+    def _push_owning_root(self, inherited: Tuple, holder: List[Future]) -> None:
         """Append this executor's ownership entry to the submitter's chain.
 
         Must run inside the context being prepared, so the write lands there.
@@ -462,7 +472,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         self._OWNING_ROOT.set(inherited + ((self, holder),))
 
-    def _owns_current_execution(self, tasks: List[asyncio.Future]) -> bool:
+    def _owns_current_execution(self, tasks: List[Future]) -> bool:
         """Report whether the caller is running inside this executor's own work.
 
         Every entry for this executor is considered, not just the innermost.
@@ -484,9 +494,9 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         return False
 
     @staticmethod
-    async def _drain(tasks: List[asyncio.Future], timeout: float) -> None:
+    async def _drain(tasks: List[Future], timeout: float) -> None:
         if tasks:
-            _, pending = await asyncio.wait(tasks, timeout=timeout)
+            _, pending = await wait(tasks, timeout=timeout)
             if pending:
                 raise TimeoutError(f"{len(pending)} executor task(s) did not finish")
 
