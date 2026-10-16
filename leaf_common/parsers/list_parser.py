@@ -60,7 +60,7 @@ class ListParser(Parser):
 
         self._delimiter_regex: str = delimiter_regex
         if self._delimiter_regex is None:
-            self._delimiter_regex = self.DEFAULT_DELIMITER
+            self._delimiter_regex = ListParser.DEFAULT_DELIMITER
 
         self._type_parser: Parser = type_parser
         if self._type_parser is None:
