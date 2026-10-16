@@ -424,7 +424,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
         :return: A snapshot list of every Future still tracked by this executor
         """
-        return list(self._tasks.keys())
+        return list(self._tasks)
 
     def is_shutdown(self) -> bool:
         """Report whether this executor has stopped accepting new work.
@@ -446,8 +446,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :return: True if at least one owned task has not finished
         """
         task: Future = None
-        # pylint: disable=consider-iterating-dictionary
-        for task in self._tasks.keys():
+        for task in self._tasks:
             if not task.done():
                 return True
         return False
@@ -476,8 +475,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         tasks: List[Future] = []
         task: Future = None
-        # pylint: disable=consider-iterating-dictionary
-        for task in self._tasks.keys():
+        for task in self._tasks:
             if not task.done():
                 tasks.append(task)
         if self._owns_current_execution(tasks) or current_task() in tasks:
