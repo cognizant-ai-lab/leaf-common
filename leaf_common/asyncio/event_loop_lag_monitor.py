@@ -114,6 +114,8 @@ class EventLoopLagMonitor:
         including percentiles and mean.
         """
         samples: List[float] = self._samples
+        if len(samples) == 0:
+            return
         samples_ms: List[float] = [s * 1000 for s in samples]
         samples_ms_sorted: List[float] = sorted(samples_ms)
         n: int = len(samples_ms_sorted)
@@ -123,7 +125,11 @@ class EventLoopLagMonitor:
         self.max_p50_ms = max(self.max_p50_ms, p50)
         self.max_p95_ms = max(self.max_p95_ms, p95)
         mean_ms: float = fmean(samples_ms)
-        max_samples_ms: float = max(samples_ms)
+        max_samples_ms: float = samples_ms[0]
+        sample: float = None
+        for sample in samples_ms:
+            use_sample: float = float(sample)
+            max_samples_ms = max(use_sample, max_samples_ms)
         self.max_mean_ms = max(self.max_mean_ms, mean_ms)
         self.max_max_ms = float(max(self.max_max_ms, max_samples_ms))
         self.metrics_dict = {
