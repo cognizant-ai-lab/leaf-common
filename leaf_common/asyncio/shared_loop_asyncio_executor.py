@@ -13,23 +13,22 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
 from asyncio import AbstractEventLoop
 from asyncio import Future
 from asyncio import Task
 from asyncio import current_task
 from asyncio import get_running_loop
 from asyncio import isfuture
-from asyncio import wait
+from asyncio import wait as wait_on_tasks
 from contextvars import Context
 from contextvars import ContextVar
 from contextvars import copy_context
 from inspect import Parameter
+from inspect import Signature
 from inspect import isawaitable
 from inspect import iscoroutine
 from inspect import signature
+from types import MappingProxyType
 from typing import Any
 from typing import Awaitable
 from typing import Callable
@@ -187,13 +186,19 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         result: Any = function(*args, **kwargs)
         if isfuture(result):
-            if result.get_loop() is not self._loop:
+            result_future: Future = result
+            if result_future.get_loop() is not self._loop:
                 raise ValueError("Awaitable belongs to another event loop")
-            if isinstance(result, Task):
+            if isinstance(result_future, Task):
                 raise TypeError("submit() cannot adopt an existing asyncio.Task")
-            if not result.done():
+            if not result_future.done():
                 raise TypeError("submit() cannot adopt a pending Future; submit the work that completes it instead")
-        return await result if isawaitable(result) else result
+
+        retval: Any = result
+        if isawaitable(result):
+            result_awaitable: Awaitable = result
+            retval = await result_awaitable
+        return retval
 
     def create_task(self, awaitable: Awaitable, submitter_id: str,
                     raise_exception: bool = False) -> Future:
@@ -282,14 +287,21 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
                  be read is assumed to follow the standard contract, as
                  CPython's own loops do.
         """
+        parameters: MappingProxyType = None
         try:
-            parameters = signature(create_task).parameters
+            task_signature: Signature = signature(create_task)
+            parameters = task_signature.parameters
         except (TypeError, ValueError):
             return True
+
         if "context" in parameters:
             return True
-        return any(parameter.kind is Parameter.VAR_KEYWORD
-                   for parameter in parameters.values())
+
+        parameter: Parameter = None
+        for parameter in parameters.values():
+            if parameter.kind is Parameter.VAR_KEYWORD:
+                return True
+        return False
 
     @staticmethod
     async def _consume(awaitable: Awaitable) -> Any:
@@ -496,7 +508,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
     @staticmethod
     async def _drain(tasks: List[Future], timeout: float) -> None:
         if tasks:
-            _, pending = await wait(tasks, timeout=timeout)
+            _, pending = await wait_on_tasks(tasks, timeout=timeout)
             if pending:
                 raise TimeoutError(f"{len(pending)} executor task(s) did not finish")
 
