@@ -124,8 +124,10 @@ class EventLoopLagMonitor:
         self.max_p95_ms = max(self.max_p95_ms, p95)
         mean_ms: float = fmean(samples_ms)
         max_samples_ms: float = samples_ms[0]
+        sample: float = None
         for sample in samples_ms:
-            max_samples_ms = max(sample, max_samples_ms)
+            use_sample: float = float(sample)
+            max_samples_ms = max(use_sample, max_samples_ms)
         self.max_mean_ms = max(self.max_mean_ms, mean_ms)
         self.max_max_ms = float(max(self.max_max_ms, max_samples_ms))
         self.metrics_dict = {

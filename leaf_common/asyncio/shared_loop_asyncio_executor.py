@@ -299,7 +299,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
         parameter: Parameter = None
         for parameter in parameters.values():
-            if parameter.kind is Parameter.VAR_KEYWORD:
+            use_parameter: Parameter = parameter
+            if use_parameter.kind is Parameter.VAR_KEYWORD:
                 return True
         return False
 
@@ -326,7 +327,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         # See _OWNING_ROOT.
         root_holder: List[Future] = []
         context: Context = self._context.copy()
-        context.run(self._push_owning_root, self._OWNING_ROOT.get(), root_holder)
+        context.run(self._push_owning_root, SharedLoopAsyncioExecutor._OWNING_ROOT.get(), root_holder)
         try:
             task = self._create_task_in_context(coroutine, name, context)
         except BaseException:
@@ -381,10 +382,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
     def submission_done(self, task: Future) -> None:
         """Release references and retrieve errors, including unawaited failures."""
-        report = self._tasks.pop(task, False)
+        report: bool = self._tasks.get(task, False)
+        del self._tasks[task]
+
         if task.cancelled():
             return
-        exception = task.exception()
+
+        exception: Exception = task.exception()
         if report and exception is not None:
             self._loop.call_exception_handler({
                 "message": f"Executor task failed: {self.get_task_name(task)}",
@@ -420,7 +424,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
         :return: A snapshot list of every Future still tracked by this executor
         """
-        return list(self._tasks)
+        return list(self._tasks.keys())
 
     def is_shutdown(self) -> bool:
         """Report whether this executor has stopped accepting new work.
@@ -441,7 +445,12 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
         :return: True if at least one owned task has not finished
         """
-        return any(not task.done() for task in self._tasks)
+        task: Future = None
+        # pylint: disable=consider-iterating-dictionary
+        for task in self._tasks.keys():
+            if not task.done():
+                return True
+        return False
 
     def _pending(self) -> List[Future]:
         """Report unfinished owned tasks, refusing to run inside one of them.
@@ -465,7 +474,12 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
         :return: The owned tasks that have not finished
         """
-        tasks: List[Future] = [task for task in self._tasks if not task.done()]
+        tasks: List[Future] = []
+        task: Future = None
+        # pylint: disable=consider-iterating-dictionary
+        for task in self._tasks.keys():
+            if not task.done():
+                tasks.append(task)
         if self._owns_current_execution(tasks) or current_task() in tasks:
             raise RuntimeError("Await executor cleanup outside its owned tasks")
         return tasks
@@ -482,7 +496,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :param inherited: The chain in effect where the submission was made
         :param holder: The one-slot list that will receive the task
         """
-        self._OWNING_ROOT.set(inherited + ((self, holder),))
+        SharedLoopAsyncioExecutor._OWNING_ROOT.set(inherited + ((self, holder),))
 
     def _owns_current_execution(self, tasks: List[Future]) -> bool:
         """Report whether the caller is running inside this executor's own work.
@@ -497,7 +511,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :param tasks: This executor's unfinished owned tasks
         :return: True if draining those tasks would wait on the caller
         """
-        for executor, holder in self._OWNING_ROOT.get():
+        for executor, holder in SharedLoopAsyncioExecutor._OWNING_ROOT.get():
             # An empty holder means create_task() has not returned yet, so this
             # is the eager first step of the coroutine being scheduled. It is
             # ours, even though it is not in `tasks` yet.
@@ -520,8 +534,10 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         self._check_loop(allow_shutdown=True)
         tasks = self._pending()
+        task: Future = None
         for task in tasks:
-            task.cancel()
+            use_task: Future = task
+            use_task.cancel()
         await self._drain(tasks, timeout)
 
     async def ashutdown(self, *, cancel_futures: bool = True, timeout: float = None) -> None:
@@ -534,8 +550,10 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         tasks = self._pending()
         self._shutdown = True
         if cancel_futures:
+            task: Future = None
             for task in tasks:
-                task.cancel()
+                use_task: Future = task
+                use_task.cancel()
         await self._drain(tasks, timeout)
 
     def shutdown(self, wait: bool = True, *, cancel_futures: bool = False) -> None:
@@ -546,8 +564,10 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             raise RuntimeError("Cannot block the shared loop; use await executor.ashutdown()")
         self._shutdown = True
         if cancel_futures:
+            task: Future = None
             for task in tasks:
-                task.cancel()
+                use_task: Future = task
+                use_task.cancel()
 
     def get_threads_metrics(self) -> Tuple[int, int]:
         """This executor creates no threads."""
