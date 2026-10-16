@@ -114,6 +114,8 @@ class EventLoopLagMonitor:
         including percentiles and mean.
         """
         samples: List[float] = self._samples
+        if len(samples) == 0:
+            return
         samples_ms: List[float] = [s * 1000 for s in samples]
         samples_ms_sorted: List[float] = sorted(samples_ms)
         n: int = len(samples_ms_sorted)
