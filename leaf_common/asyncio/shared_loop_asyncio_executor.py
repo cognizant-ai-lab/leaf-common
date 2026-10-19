@@ -328,8 +328,9 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         root_holder: List[Future] = []
         context: Context = self._context.copy()
         context.run(self._push_owning_root, SharedLoopAsyncioExecutor._OWNING_ROOT.get(), root_holder)
+        task: Future = None
         try:
-            task: Future = self._create_task_in_context(coroutine, name, context)
+            task = self._create_task_in_context(coroutine, name, context)
         except BaseException:
             coroutine.close()
             raise
