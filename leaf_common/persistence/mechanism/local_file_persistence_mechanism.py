@@ -17,6 +17,8 @@
 """
 See class comment for details.
 """
+from typing import IO
+
 from io import StringIO
 from logging import getLogger
 from logging import Logger
@@ -25,6 +27,8 @@ from os.path import dirname
 
 from leaf_common.persistence.mechanism.abstract_persistence_mechanism \
     import AbstractPersistenceMechanism
+from leaf_common.serialization.interface.file_extension_provider \
+    import FileExtensionProvider
 
 
 class LocalFilePersistenceMechanism(AbstractPersistenceMechanism):
@@ -33,9 +37,9 @@ class LocalFilePersistenceMechanism(AbstractPersistenceMechanism):
     saves objects to a local file.
     """
 
-    def open_source_for_read(self, read_to_fileobj,
-                             file_extension_provider=None,
-                             file_reference: str = None):
+    def open_source_for_read(self, read_to_fileobj: IO,
+                             file_extension_provider: FileExtensionProvider = None,
+                             file_reference: str = None) -> IO:
         """
         :param read_to_fileobj: A fileobj into which we will put all data
                             read in from the persisted instance.
@@ -56,11 +60,11 @@ class LocalFilePersistenceMechanism(AbstractPersistenceMechanism):
                and the read_to_fileobj has been already filled with data by
                this call.
         """
-        path = self.get_path(file_extension_provider, file_reference)
+        path: str = self.get_path(file_extension_provider, file_reference)
         logger: Logger = getLogger(__name__)
         logger.info("Reading %s", str(path))
 
-        fileobj = None
+        fileobj: IO = None
         try:
             # pylint: disable=consider-using-with
             fileobj = open(path, 'rb')
@@ -73,9 +77,9 @@ class LocalFilePersistenceMechanism(AbstractPersistenceMechanism):
         # We return a fileobj so a higher-level abstract API can close it.
         return fileobj
 
-    def open_dest_for_write(self, send_from_fileobj,
-                            file_extension_provider=None,
-                            file_reference: str = None):
+    def open_dest_for_write(self, send_from_fileobj: IO,
+                            file_extension_provider: FileExtensionProvider = None,
+                            file_reference: str = None) -> IO:
         """
         :param send_from_fileobj: A fileobj from which we will get all data
                             written out to the persisted instance.
@@ -90,15 +94,15 @@ class LocalFilePersistenceMechanism(AbstractPersistenceMechanism):
                 parent class that the send_from_fileobj has not yet been filled
                 with data by this call.
         """
-        path = self.get_path(file_extension_provider, file_reference)
+        path: str = self.get_path(file_extension_provider, file_reference)
         logger: Logger = getLogger(__name__)
         logger.info("Writing %s", str(path))
 
-        dirs = dirname(path)
+        dirs: str = dirname(path)
         makedirs(dirs, exist_ok=True)
 
         # Allow for string or bytes as input
-        writestyle = "wb"
+        writestyle: str = "wb"
         if isinstance(send_from_fileobj, StringIO):
             writestyle = "w"
 

@@ -19,12 +19,14 @@ from __future__ import annotations
 
 from typing import List
 from typing import Tuple
+from typing import Type
 
 from logging import getLogger
 from logging import Logger
 from os import environ
 from threading import Lock
 from time import perf_counter
+from types import TracebackType
 
 
 class ProfilingLock:
@@ -34,7 +36,7 @@ class ProfilingLock:
 
     INITIAL_STATE: str = "waiting for lock"
 
-    def __init__(self, name: str, lock_in: Lock = None):
+    def __init__(self, name: str, lock_in: Lock = None) -> None:
         """
         Constructor
 
@@ -58,7 +60,8 @@ class ProfilingLock:
         self.acquire(stats)
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+    def __exit__(self, exc_type: Type[BaseException], exc_val: BaseException,
+                 exc_tb: TracebackType) -> bool:
         """
         Release the lock
         :return: True to suppress exception. False or None to propagate exception.
@@ -66,7 +69,7 @@ class ProfilingLock:
         self.release()
         return False
 
-    def acquire(self, stats: List[Tuple[str, float]] = None):
+    def acquire(self, stats: List[Tuple[str, float]] = None) -> None:
         """
         Acquire the lock
         """
@@ -77,7 +80,7 @@ class ProfilingLock:
         self.add_stat("acquired lock", stats)
         self.stats_in_play = stats
 
-    def add_stat(self, key: str, stats: List[Tuple[str, float]] = None):
+    def add_stat(self, key: str, stats: List[Tuple[str, float]] = None) -> None:
         """
         Add a stat to the lock
         """
@@ -85,7 +88,7 @@ class ProfilingLock:
             stats = self.stats_in_play
         stats.append((key, perf_counter()))
 
-    def release(self):
+    def release(self) -> None:
         """
         Release the lock
         """
@@ -98,7 +101,7 @@ class ProfilingLock:
         if self.show_stats:
             self.print_stats(stats)
 
-    def print_stats(self, stats: List[Tuple[str, float]]):
+    def print_stats(self, stats: List[Tuple[str, float]]) -> None:
         """
         Print the stats
         """

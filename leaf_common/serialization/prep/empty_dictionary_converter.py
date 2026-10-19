@@ -14,9 +14,8 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
+from typing import Any
+from typing import Dict
 
 from leaf_common.serialization.interface.dictionary_converter \
     import DictionaryConverter
@@ -28,7 +27,7 @@ class EmptyDictionaryConverter(DictionaryConverter):
     an empty dictionary for to_dict() and returns None for from_dict().
     """
 
-    def to_dict(self, obj):
+    def to_dict(self, obj: Any) -> Dict[str, Any]:
         """
         :param obj: The object to be converted into a dictionary
         :return: A data-only dictionary that represents all the data for
@@ -38,10 +37,10 @@ class EmptyDictionaryConverter(DictionaryConverter):
                 None.  If obj is not the correct type, it is also reasonable
                 to return None.
         """
-        empty_dict = {}
+        empty_dict: Dict[str, Any] = {}
         return empty_dict
 
-    def from_dict(self, obj_dict):
+    def from_dict(self, obj_dict: Dict[str, Any]) -> Any:
         """
         :param obj_dict: The data-only dictionary to be converted into an object
         :return: An object instance created from the given dictionary.

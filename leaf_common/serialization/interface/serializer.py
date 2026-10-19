@@ -18,6 +18,9 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import IO
+
 
 class Serializer():
     """
@@ -25,7 +28,7 @@ class Serializer():
     serialized format.
     """
 
-    def from_object(self, obj):
+    def from_object(self, obj: Any) -> IO:
         """
         :param obj: The object to serialize
         :return: an open file-like object for streaming the serialized

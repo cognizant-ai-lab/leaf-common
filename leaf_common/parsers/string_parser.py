@@ -18,6 +18,8 @@
 See class comment for details.
 """
 
+from typing import Any
+
 from leaf_common.parsers.parser import Parser
 
 
@@ -26,7 +28,7 @@ class StringParser(Parser):
     Parser implementation getting a string from an object.
     """
 
-    def parse(self, input_obj):
+    def parse(self, input_obj: Any) -> str:
         """
         :param input_obj: the object to parse
 

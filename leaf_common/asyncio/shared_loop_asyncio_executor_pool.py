@@ -61,7 +61,7 @@ class SharedLoopAsyncioExecutorPool:
     def __init__(self, reuse_mode: bool = True, *,
                  idle_timeout_seconds: float = DEFAULT_IDLE_TIMEOUT_SECONDS,
                  gc_sweep_interval_seconds: float = DEFAULT_GC_SWEEP_INTERVAL_SECONDS,
-                 max_workers: int = None):
+                 max_workers: int = None) -> None:
         # Accept native pool options for import-level compatibility. There is
         # deliberately no reuse, idle expiry, worker pool, or cleanup thread.
         self.reuse_mode: bool = False
@@ -173,9 +173,11 @@ class SharedLoopAsyncioExecutorPool:
         :param timeout: Seconds to wait for each retiring executor's tasks, or
                     None to wait indefinitely
         """
+        # Drain each retiring executor in turn; still-checked-out ones are untouched.
         for executor in list(self.pool_retiring):
-            await executor.ashutdown(cancel_futures=True, timeout=timeout)
-            self._release(executor)
+            use_executor: SharedLoopAsyncioExecutor = executor
+            await use_executor.ashutdown(cancel_futures=True, timeout=timeout)
+            self._release(use_executor)
 
     def get_threads_metrics(self) -> Dict[str, Dict[str, int]]:
         """Report pool occupancy, with zero worker threads throughout.
@@ -208,17 +210,20 @@ class SharedLoopAsyncioExecutorPool:
         """
         self._prune_retired()
         result: Dict[str, Any] = {}
+        # One dump entry per executor, whether it is in use or retiring.
         for executor in self.pool_used + self.pool_retiring:
+            use_executor: SharedLoopAsyncioExecutor = executor
             tasks: List[Dict[str, Any]] = []
             # These executors share one loop: all_tasks() would incorrectly
             # attribute other requests' tasks to every executor.
-            for task in executor.get_tracked_tasks():
+            for task in use_executor.get_tracked_tasks():
+                use_task: Future = task
                 tasks.append({
-                    "name": SharedLoopAsyncioExecutor.get_task_name(task),
-                    "coro": self._describe_coro(task),
-                    "done": task.done(),
-                    "cancelled": task.cancelled(),
-                    "stack": self._describe_stack(task),
+                    "name": SharedLoopAsyncioExecutor.get_task_name(use_task),
+                    "coro": self._describe_coro(use_task),
+                    "done": use_task.done(),
+                    "cancelled": use_task.cancelled(),
+                    "stack": self._describe_stack(use_task),
                 })
             state: str = "responded" if executor.get_event_loop().is_running() else "not_running"
             result[str(id(executor))] = {
@@ -321,9 +326,11 @@ class SharedLoopAsyncioExecutorPool:
         Called from the public methods rather than on a timer, since this pool
         has no GC thread and the shared loop gives us no other tick.
         """
+        # Drop retiring executors that have nothing left to finish.
         for executor in list(self.pool_retiring):
-            if not executor.has_pending_tasks():
-                self.pool_retiring.remove(executor)
+            use_executor: SharedLoopAsyncioExecutor = executor
+            if not use_executor.has_pending_tasks():
+                self.pool_retiring.remove(use_executor)
 
     @staticmethod
     def format_task_dump(dump: Dict[str, Any]) -> str:
@@ -331,16 +338,21 @@ class SharedLoopAsyncioExecutorPool:
         if not dump:
             return "(no used executors)"
         lines: List[str] = []
+        # One block per executor, then one line per task and per stack frame.
         for key, entry in dump.items():
-            tasks: List[Dict[str, Any]] = entry.get("tasks", [])
-            lines.append(f"== executor {key}  loop_state={entry.get('loop_state', 'unknown')}  "
+            use_key: str = key
+            entry_dict: Dict[str, Any] = entry
+            tasks: List[Dict[str, Any]] = entry_dict.get("tasks", [])
+            lines.append(f"== executor {use_key}  loop_state={entry_dict.get('loop_state', 'unknown')}  "
                          f"tasks={len(tasks)} ==")
-            if entry.get("loop_state") == "probe_error":
-                lines.append(f"   probe_error: {entry.get('error')}")
+            if entry_dict.get("loop_state") == "probe_error":
+                lines.append(f"   probe_error: {entry_dict.get('error')}")
             for task in tasks:
-                lines.append(f"  - name={task['name']!r}  coro={task['coro']}  "
-                             f"done={task['done']}  cancelled={task['cancelled']}")
-                for frame in task.get("stack", []):
-                    lines.append(f"      File \"{frame['file']}\", "
-                                 f"line {frame['line']}, in {frame['func']}")
+                task_dict: Dict[str, Any] = task
+                lines.append(f"  - name={task_dict['name']!r}  coro={task_dict['coro']}  "
+                             f"done={task_dict['done']}  cancelled={task_dict['cancelled']}")
+                for frame in task_dict.get("stack", []):
+                    frame_dict: Dict[str, Any] = frame
+                    lines.append(f"      File \"{frame_dict['file']}\", "
+                                 f"line {frame_dict['line']}, in {frame_dict['func']}")
         return "\n".join(lines)

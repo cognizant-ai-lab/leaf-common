@@ -18,6 +18,10 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import Dict
+from typing import IO
+
 from io import BytesIO
 from json import dumps
 from json import load
@@ -36,7 +40,7 @@ class JsonSerializationFormat(SerializationFormat):
     """
 
     def __init__(self, reference_pruner: ReferencePruner = None, dictionary_converter: DictionaryConverter = None,
-                 pretty: bool = True):
+                 pretty: bool = True) -> None:
         """
         Constructor.
 
@@ -54,7 +58,7 @@ class JsonSerializationFormat(SerializationFormat):
             dictionary_converter=dictionary_converter,
             pretty=pretty)
 
-    def from_object(self, obj):
+    def from_object(self, obj: Any) -> IO:
         """
         :param obj: The object to serialize
         :return: an open file-like object for streaming the serialized
@@ -62,26 +66,26 @@ class JsonSerializationFormat(SerializationFormat):
                 of the data (ala seek to the beginning).
         """
 
-        pruned_dict = self.conversion_policy.convert_from_object(obj)
+        pruned_dict: Dict[str, Any] = self.conversion_policy.convert_from_object(obj)
 
         # See if JSON should be pretty or not
-        indent = None
-        sort_keys = False
+        indent: int = None
+        sort_keys: bool = False
         if self.conversion_policy.is_pretty():
             indent = 4
             sort_keys = True
 
         # Now convert the pruned dictionary to JSON
-        json_str = dumps(pruned_dict, indent=indent, sort_keys=sort_keys)
+        json_str: str = dumps(pruned_dict, indent=indent, sort_keys=sort_keys)
 
         # Make a file-like object out of the JSON string
-        byte_array = bytearray(json_str, 'utf-8')
-        fileobj = BytesIO(byte_array)
+        byte_array: bytearray = bytearray(json_str, 'utf-8')
+        fileobj: BytesIO = BytesIO(byte_array)
         fileobj.seek(0, SEEK_SET)
 
         return fileobj
 
-    def to_object(self, fileobj):
+    def to_object(self, fileobj: IO) -> Any:
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open and be
@@ -93,15 +97,15 @@ class JsonSerializationFormat(SerializationFormat):
         :return: the deserialized object
         """
 
-        pruned_dict = None
+        pruned_dict: Dict[str, Any] = None
         if fileobj is not None:
             # Load the JSON into a dictionary
             pruned_dict = load(fileobj)
 
-        obj = self.conversion_policy.convert_to_object(pruned_dict)
+        obj: Any = self.conversion_policy.convert_to_object(pruned_dict)
         return obj
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".".

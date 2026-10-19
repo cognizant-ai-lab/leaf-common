@@ -18,6 +18,8 @@
 See class comment for details.
 """
 
+from typing import Tuple
+
 from os import path
 
 
@@ -31,15 +33,15 @@ class ReferenceHelper():
     """
 
     @classmethod
-    def get_components(cls, full_ref=None, folder=".",
-                       base_name=None, file_extension=None):
+    def get_components(cls, full_ref: str = None, folder: str = ".",
+                       base_name: str = None, file_extension: str = None) -> Tuple[str, str, str]:
         """
         :return: a triple of folder, basename and file extension to use
         """
 
-        use_base_name = base_name
-        use_folder = folder
-        use_file_extension = file_extension
+        use_base_name: str = base_name
+        use_folder: str = folder
+        use_file_extension: str = file_extension
 
         if full_ref is not None:
 

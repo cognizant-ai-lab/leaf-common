@@ -18,6 +18,8 @@
 See class comment for details.
 """
 
+from typing import Any
+
 from logging import Logger
 from os import getenv
 
@@ -28,7 +30,7 @@ class ConditionalLogger:
     Uses the same general Logger interface as the whole world already uses.
     """
 
-    def __init__(self, logger: Logger, env_var: str):
+    def __init__(self, logger: Logger, env_var: str) -> None:
         """
         Constructor.
 
@@ -43,7 +45,7 @@ class ConditionalLogger:
         """
         return self._should_log
 
-    def debug(self, msg, *args, **kwargs):
+    def debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """
         Log 'msg % args' with severity 'DEBUG'.
 
@@ -56,7 +58,7 @@ class ConditionalLogger:
             return
         self.logger.debug(msg, *args, **kwargs)
 
-    def info(self, msg, *args, **kwargs):
+    def info(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """
         Log 'msg % args' with severity 'INFO'.
 
@@ -69,7 +71,7 @@ class ConditionalLogger:
             return
         self.logger.info(msg, *args, **kwargs)
 
-    def warning(self, msg, *args, **kwargs):
+    def warning(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """
         Log 'msg % args' with severity 'WARNING'.
 
@@ -82,7 +84,7 @@ class ConditionalLogger:
             return
         self.logger.warning(msg, *args, **kwargs)
 
-    def error(self, msg, *args, **kwargs):
+    def error(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """
         Log 'msg % args' with severity 'ERROR'.
 
@@ -95,7 +97,7 @@ class ConditionalLogger:
             return
         self.logger.error(msg, *args, **kwargs)
 
-    def exception(self, msg, *args, exc_info=True, **kwargs):
+    def exception(self, msg: str, *args: Any, exc_info: bool = True, **kwargs: Any) -> None:
         """
         Convenience method for logging an ERROR with exception information.
         """
@@ -103,7 +105,7 @@ class ConditionalLogger:
             return
         self.logger.exception(msg, *args, exc_info=exc_info, **kwargs)
 
-    def critical(self, msg, *args, **kwargs):
+    def critical(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """
         Log 'msg % args' with severity 'CRITICAL'.
 
@@ -116,7 +118,7 @@ class ConditionalLogger:
             return
         self.logger.critical(msg, *args, **kwargs)
 
-    def fatal(self, msg, *args, **kwargs):
+    def fatal(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """
         Don't use this method, use critical() instead.
         """
@@ -124,7 +126,7 @@ class ConditionalLogger:
             return
         self.logger.fatal(msg, *args, **kwargs)
 
-    def log(self, level, msg, *args, **kwargs):
+    def log(self, level: int, msg: str, *args: Any, **kwargs: Any) -> None:
         """
         Log 'msg % args' with the integer severity 'level'.
 

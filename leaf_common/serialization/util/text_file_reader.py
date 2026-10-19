@@ -18,6 +18,8 @@
 See class comment for details.
 """
 
+from typing import IO
+
 import asyncio
 
 from leaf_common.serialization.util.bytes_decoder import BytesDecoder
@@ -35,6 +37,7 @@ class TextFileReader:
         :param filepath: The path to the text file to read
         :return: The content of the text file as a string
         """
+        binary_file: IO
         with open(filepath, "rb") as binary_file:
             contents: bytes = binary_file.read()
             text, _ = BytesDecoder.decode_bytes(contents, source_name=filepath)

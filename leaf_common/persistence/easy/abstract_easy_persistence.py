@@ -18,6 +18,8 @@
 See class comment for details
 """
 
+from typing import Any
+
 from leaf_common.persistence.factory.persistence_factory import PersistenceFactory
 from leaf_common.persistence.interface.persistence import Persistence
 from leaf_common.persistence.mechanism.persistence_mechanisms import PersistenceMechanisms
@@ -40,7 +42,7 @@ class AbstractEasyPersistence(Persistence):
                  base_name: str = None, folder: str = ".", must_exist: bool = False,
                  object_type: str = "dict", dictionary_converter: DictionaryConverter = None,
                  use_file_extension: str = None, full_ref: str = None,
-                 persistence_mechanism: str = PersistenceMechanisms.LOCAL):
+                 persistence_mechanism: str = PersistenceMechanisms.LOCAL) -> None:
         """
         Constructor.
 
@@ -76,8 +78,8 @@ class AbstractEasyPersistence(Persistence):
             use_dictionary_converter = PassThroughDictionaryConverter()
 
         # default initialization
-        factory = PersistenceFactory(object_type=object_type,
-                                     dictionary_converter=use_dictionary_converter)
+        factory: PersistenceFactory = PersistenceFactory(object_type=object_type,
+                                                         dictionary_converter=use_dictionary_converter)
 
         # To be initialized further by concrete subclasses
         self.persistence: Persistence = factory.create_persistence(folder, base_name,
@@ -87,7 +89,7 @@ class AbstractEasyPersistence(Persistence):
                                                                    use_file_extension=use_file_extension,
                                                                    full_ref=full_ref)
 
-    def persist(self, obj, file_reference: str = None):
+    def persist(self, obj: Any, file_reference: str = None) -> object:
         """
         Persists the object passed in.
 
@@ -99,7 +101,7 @@ class AbstractEasyPersistence(Persistence):
         """
         return self.persistence.persist(obj, file_reference)
 
-    def restore(self, file_reference: str = None):
+    def restore(self, file_reference: str = None) -> object:
         """
         :param file_reference: An optional file reference string to override
                 any file settings fixed at construct time. Default of None
@@ -109,10 +111,10 @@ class AbstractEasyPersistence(Persistence):
                 by the constructor.  If must_exist is False,
                 this method can return None.
         """
-        obj = self.persistence.restore(file_reference)
+        obj: Any = self.persistence.restore(file_reference)
         return obj
 
-    def get_file_reference(self, file_reference: str = None):
+    def get_file_reference(self, file_reference: str = None) -> str:
         """
         :param file_reference: An optional file reference string to override
                 any file settings fixed at construct time. Default of None
@@ -120,10 +122,10 @@ class AbstractEasyPersistence(Persistence):
                 settings.
         :return: The full file reference of what is to be persisted
         """
-        filename = self.persistence.get_file_reference(file_reference)
+        filename: str = self.persistence.get_file_reference(file_reference)
         return filename
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> object:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".",

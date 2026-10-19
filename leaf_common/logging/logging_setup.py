@@ -56,7 +56,7 @@ class LoggingSetup():
                  log_file: str = None,
                  logging_config: Union[str, Dict[str, Any]] = None,
                  source_anchor: Any = None,
-                 default_logger_name: str = None):
+                 default_logger_name: str = None) -> None:
         """
         Constructor.
 
@@ -97,7 +97,7 @@ class LoggingSetup():
         self.source_anchor: Any = source_anchor
         self.default_logger_name: str = default_logger_name
 
-    def setup_with_diversion(self):
+    def setup_with_diversion(self) -> Logger:
         """
         Sets up logging while diverting stdout/err to the
         logger for the source anchor.
@@ -127,7 +127,7 @@ class LoggingSetup():
 
         return logger
 
-    def setup(self):
+    def setup(self) -> None:
         """
         Actually set up the logging per the parameters in the constructor.
         """
@@ -142,7 +142,7 @@ class LoggingSetup():
         if log_config_file_path is not None:
 
             # Read the logging config file
-            config_handler = ConfigHandler()
+            config_handler: ConfigHandler = ConfigHandler()
             config = config_handler.import_config(log_config_file_path)
 
         # Use the configuration we got.
@@ -218,8 +218,9 @@ class LoggingSetup():
         # Loop through each handler to find the first one with the filename set.
         handlers: Dict[str, Any] = config.get("handlers", {})
         for handler_key in handlers.keys():
+            use_handler_key: str = handler_key
 
-            handler: Dict[str, Any] = handlers.get(handler_key, {})
+            handler: Dict[str, Any] = handlers.get(use_handler_key, {})
 
             filename: str = handler.get("filename", None)
             if filename is not None:
@@ -254,7 +255,7 @@ class LoggingSetup():
 
     @staticmethod
     def setup_extra_logging_fields(metadata_dict: Dict[str, Any] = None,
-                                   extra_logging_fields: Dict[str, str] = None):
+                                   extra_logging_fields: Dict[str, str] = None) -> None:
         """
         Sets up extra thread-specific fields to be logged with each
         log message.
@@ -293,7 +294,7 @@ class LoggingSetup():
 
         # Create the ServiceLogRecord thread-local context.
         # In doing so like this, we actually are setting up global variables.
-        service_log_record = ServiceLogRecord()
+        service_log_record: ServiceLogRecord = ServiceLogRecord()
         service_log_record.set_logging_fields_dict(extra)
 
     @staticmethod
@@ -303,7 +304,7 @@ class LoggingSetup():
                       log_config_env: str = None,
                       log_level_env: str = None,
                       extra_logging_fields_defaults: Dict[str, str] = None,
-                      logging_config: Dict[str, Any] = None):
+                      logging_config: Dict[str, Any] = None) -> None:
         """
         Setup logging to be used by ServerLifeTime
         """
@@ -321,12 +322,12 @@ class LoggingSetup():
         if extras is None:
             extras = default_extra_logging_fields
 
-        logging_setup = LoggingSetup(default_log_config_dir=default_log_dir,
-                                     default_log_config_file="logging.json",
-                                     default_log_level="DEBUG",
-                                     log_config_env=log_config_env,
-                                     log_level_env=log_level_env,
-                                     logging_config=logging_config)
+        logging_setup: LoggingSetup = LoggingSetup(default_log_config_dir=default_log_dir,
+                                                   default_log_config_file="logging.json",
+                                                   default_log_level="DEBUG",
+                                                   log_config_env=log_config_env,
+                                                   log_level_env=log_level_env,
+                                                   logging_config=logging_config)
         logging_setup.setup()
 
         # Enable translation of log message args to MessageType

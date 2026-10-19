@@ -18,6 +18,8 @@
 See class comment for details.
 """
 
+from typing import Any
+
 from leaf_common.serialization.interface.reference_pruner \
     import ReferencePruner
 
@@ -27,7 +29,7 @@ class PassThroughReferencePruner(ReferencePruner):
     A ReferencePruner implementation where nothing is pruned or grafted.
     """
 
-    def prune(self, obj):
+    def prune(self, obj: Any) -> Any:
         """
         :param obj: The object to be pruned
         :return: A copy of the provided object which has no repeat
@@ -35,7 +37,7 @@ class PassThroughReferencePruner(ReferencePruner):
         """
         return obj
 
-    def graft(self, obj, graft_reference=None):
+    def graft(self, obj: Any, graft_reference: Any = None) -> Any:
         """
         :param obj: The object to be grafted onto
         :param graft_reference: the graft reference to be used for grafting

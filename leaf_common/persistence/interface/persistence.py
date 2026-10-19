@@ -41,7 +41,7 @@ class Persistence(Persistor, Restorer, FileExtensionProvider):
         """
         raise NotImplementedError
 
-    def restore(self, file_reference: str = None):
+    def restore(self, file_reference: str = None) -> object:
         """
         :param file_reference: The file reference to use when restoring.
                 Default is None, implying the file reference is up to the
@@ -50,7 +50,7 @@ class Persistence(Persistor, Restorer, FileExtensionProvider):
         """
         raise NotImplementedError
 
-    def get_file_extension(self) -> object:
+    def get_file_extension(self) -> str | list[str]:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".",

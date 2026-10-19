@@ -47,20 +47,25 @@ class MemoryUtil:
             if isinstance(obj_in, dict):
                 items = obj_in
             elif isinstance(obj_in, (list, set)):
+                # Index each element so list and set members get a stable key.
                 for index, item in enumerate(obj_in):
-                    key = f"{index}"
-                    items[key] = item
+                    use_index: int = index
+                    use_item: Any = item
+                    key: str = f"{use_index}"
+                    items[key] = use_item
             elif hasattr(obj_in, "__dict__"):
                 items = vars(obj_in)
             else:
                 items = {type_to_use: obj_in}
 
-            # Show detail
+            # Show detail: size each member separately
             for key, value in items.items():
+                use_key: str = key
+                use_value: Any = value
 
                 member_size: int = 0
                 try:
-                    member_size = get_deep_size(value)
+                    member_size = get_deep_size(use_value)
                 except Exception:  # pylint: disable=broad-except
                     # Ignore exceptions - these would come from methods as vars and other squirrely bits
                     pass
@@ -68,17 +73,17 @@ class MemoryUtil:
                 if member_size > 0:
                     member_type: str = "Unknown"
                     try:
-                        member_type = type(value).__name__
+                        member_type = type(use_value).__name__
                     except Exception:  # pylint: disable=broad-except
                         # Ignore exceptions - these would come from methods as vars and other squirrely bits
                         pass
 
-                    usage[key] = {
+                    usage[use_key] = {
                         "type": member_type,
                         "size": member_size
                     }
                 else:
-                    usage[key] = member_size
+                    usage[use_key] = member_size
         return usage
 
     @staticmethod

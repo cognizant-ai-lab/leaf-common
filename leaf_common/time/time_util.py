@@ -19,6 +19,7 @@ See class comment for details
 """
 
 from datetime import datetime
+from datetime import tzinfo
 
 from pytz import timezone
 
@@ -29,22 +30,22 @@ class TimeUtil:
     """
 
     @staticmethod
-    def get_time():
+    def get_time() -> str:
         """
         Creates a nicely formated timestamp
         """
-        now_for_local = datetime.now()
+        now_for_local: datetime = datetime.now()
 
-        local_now = now_for_local.astimezone()
-        use_tz = local_now.tzinfo
+        local_now: datetime = now_for_local.astimezone()
+        use_tz: tzinfo = local_now.tzinfo
 
         # If the user's machine doesn't care about the time zone,
         # make it nice for the debugging developers.
-        local_tzname = use_tz.tzname(local_now)
+        local_tzname: str = use_tz.tzname(local_now)
         if local_tzname == "UTC":
             use_tz = timezone('US/Pacific')
 
-        now_with_tz = datetime.now(use_tz)
-        formatted_time = now_with_tz.strftime("%Y-%m-%d %H:%M:%S %Z%z")
+        now_with_tz: datetime = datetime.now(use_tz)
+        formatted_time: str = now_with_tz.strftime("%Y-%m-%d %H:%M:%S %Z%z")
 
         return formatted_time

@@ -26,7 +26,7 @@ class CompositeDictionaryValidator(DictionaryValidator):
     Implementation of the DictionaryValidator interface that uses multiple validators
     """
 
-    def __init__(self, validators: List[DictionaryValidator], stop_on_error: bool = False):
+    def __init__(self, validators: List[DictionaryValidator], stop_on_error: bool = False) -> None:
         """
         Constructor
 
@@ -57,8 +57,10 @@ class CompositeDictionaryValidator(DictionaryValidator):
             errors.append("No validation policy.")
             return errors
 
+        # Run each validator in order, optionally stopping at the first failure.
         for validator in self.validators:
-            new_errors: List[str] = validator.validate(candidate)
+            use_validator: DictionaryValidator = validator
+            new_errors: List[str] = use_validator.validate(candidate)
             errors.extend(new_errors)
             if new_errors and self.stop_on_error:
                 break

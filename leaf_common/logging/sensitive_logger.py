@@ -34,7 +34,7 @@ class SensitiveLogger(ConditionalLogger):
     Strongly consider turning this off for production deployments.
     """
 
-    def __init__(self, logger: Logger):
+    def __init__(self, logger: Logger) -> None:
         """
         Constructor.
 

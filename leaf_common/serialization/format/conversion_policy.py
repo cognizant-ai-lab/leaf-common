@@ -18,6 +18,9 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import Dict
+
 from leaf_common.serialization.interface.dictionary_converter import DictionaryConverter
 from leaf_common.serialization.interface.reference_pruner import ReferencePruner
 
@@ -29,7 +32,7 @@ class ConversionPolicy():
     """
 
     def __init__(self, reference_pruner: ReferencePruner = None, dictionary_converter: DictionaryConverter = None,
-                 pretty: bool = True):
+                 pretty: bool = True) -> None:
         """
         Constructor.
 
@@ -46,24 +49,24 @@ class ConversionPolicy():
         self._dictionary_converter: DictionaryConverter = dictionary_converter
         self._pretty: bool = pretty
 
-    def is_pretty(self):
+    def is_pretty(self) -> bool:
         """
         :return: Whether or not the output should be pretty
         """
         return self._pretty
 
-    def convert_from_object(self, obj):
+    def convert_from_object(self, obj: Any) -> Dict[str, Any]:
         """
         :param obj: The object to convert into a pruned dictionary
         :return: a pruned dictionary representation of the object
         """
 
         # Prune the object of duplicate references
-        pruned_obj = obj
+        pruned_obj: Any = obj
         if self._reference_pruner is not None:
             pruned_obj = self._reference_pruner.prune(obj)
 
-        pruned_dict = None
+        pruned_dict: Dict[str, Any] = None
         if self._dictionary_converter is not None:
             pruned_dict = self._dictionary_converter.to_dict(pruned_obj)
         elif isinstance(pruned_obj, dict):
@@ -73,7 +76,7 @@ class ConversionPolicy():
 
         return pruned_dict
 
-    def convert_to_object(self, pruned_dict):
+    def convert_to_object(self, pruned_dict: Dict[str, Any]) -> Any:
         """
         :param pruned_dict: The pruned dictionary that is to
                 be converted back into the object.
@@ -82,7 +85,7 @@ class ConversionPolicy():
         """
 
         # Assume the input is a pruned dictionary. Convert it back to an object
-        pruned_obj = None
+        pruned_obj: Any = None
         if self._dictionary_converter is not None:
             pruned_obj = self._dictionary_converter.from_dict(pruned_dict)
         else:
@@ -90,7 +93,7 @@ class ConversionPolicy():
             pruned_obj = pruned_dict
 
         # Graft duplicate references back onto the object
-        obj = pruned_obj
+        obj: Any = pruned_obj
         if self._reference_pruner is not None:
             obj = self._reference_pruner.graft(pruned_obj)
 

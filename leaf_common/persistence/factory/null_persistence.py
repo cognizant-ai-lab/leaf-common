@@ -18,6 +18,8 @@
 See class comment for details.
 """
 
+from typing import Any
+
 from leaf_common.persistence.interface.persistence \
     import Persistence
 
@@ -27,7 +29,7 @@ class NullPersistence(Persistence):
     Null implementation of the Persistence interface.
     """
 
-    def persist(self, obj, file_reference: str = None):
+    def persist(self, obj: Any, file_reference: str = None) -> None:
         """
         Persists object passed in.
 
@@ -35,14 +37,14 @@ class NullPersistence(Persistence):
         :param file_reference: Ignored
         """
 
-    def restore(self, file_reference: str = None):
+    def restore(self, file_reference: str = None) -> object:
         """
         :param file_reference: Ignored
         :return: a restored instance of a previously persisted object
         """
         return None
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".",

@@ -43,7 +43,7 @@ class AsyncToSyncGenerator:
                  keep_alive_result: Any = None,
                  keep_alive_timeout_seconds: float = 0.0,
                  poll_seconds: float = 0.1,
-                 umbrella_timeout: Timeout = None):
+                 umbrella_timeout: Timeout = None) -> None:
         """
         Constructor
 
@@ -88,7 +88,7 @@ class AsyncToSyncGenerator:
         """
         return await anext(async_iter)
 
-    def synchronously_generate(self, function, /, *args, **kwargs) -> Generator[Any, None, None]:
+    def synchronously_generate(self, function: Any, /, *args: Any, **kwargs: Any) -> Generator[Any, None, None]:
         """
         :param function: An async function to run that yields its results asynchronously.
                          That is, it returns an AsyncGenerator/AsyncIterator.
@@ -125,7 +125,7 @@ class AsyncToSyncGenerator:
         while not done:
             try:
                 # Asynchronously call the anext() method on the asynchronous iterator
-                future = self.asyncio_executor.submit(self.submitter_id, self.my_anext, async_iter)
+                future: Future = self.asyncio_executor.submit(self.submitter_id, self.my_anext, async_iter)
 
                 # Wait for the result of the awaitable. It should be the iteration type.
                 iteration_result: Any = self.keep_alive_result

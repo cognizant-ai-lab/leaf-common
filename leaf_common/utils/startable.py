@@ -26,14 +26,14 @@ class Startable:
     """
 
     @abstractmethod
-    def start(self):
+    def start(self) -> None:
         """
         Perform start up.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def stop(self):
+    def stop(self) -> None:
         """
         Perform steps to stop/shut-down
         By default this does nothing

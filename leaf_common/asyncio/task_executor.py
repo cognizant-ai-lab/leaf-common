@@ -17,6 +17,7 @@
 """
 See class comment for details.
 """
+from typing import Any
 from typing import Awaitable
 from typing import Callable
 
@@ -36,14 +37,14 @@ class TaskExecutor:
         """
         return None
 
-    def start(self):
+    def start(self) -> None:
         """
         Starts the executor.
         Do this separately from constructor for more control.
         """
         raise NotImplementedError
 
-    def initialize(self, init_function: Callable):
+    def initialize(self, init_function: Callable) -> None:
         """
         Call initializing function on executor event loop
         and wait for it to finish.
@@ -52,7 +53,7 @@ class TaskExecutor:
         """
         raise NotImplementedError
 
-    def submit(self, submitter_id: str, function, /, *args, **kwargs) -> Future:
+    def submit(self, submitter_id: str, function: Any, /, *args: Any, **kwargs: Any) -> Future:
         """
         Submit a function to be run in the executor.
         This call returns a Future handle after the work has been scheduled.
@@ -86,7 +87,7 @@ class TaskExecutor:
         """
         raise NotImplementedError
 
-    def shutdown(self, wait: bool = True, *, cancel_futures: bool = False):
+    def shutdown(self, wait: bool = True, *, cancel_futures: bool = False) -> None:
         """
         Shuts down the executor.
         :param wait: True if we should wait for the background thread to join up.
