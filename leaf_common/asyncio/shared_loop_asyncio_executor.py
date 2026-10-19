@@ -34,11 +34,11 @@ from typing import Awaitable
 from typing import Callable
 from typing import ClassVar
 from typing import Coroutine
-from typing import Dict
 from typing import List
 from typing import Tuple
 
 from leaf_common.asyncio.task_executor import TaskExecutor
+from leaf_common.utils.map import Map
 
 
 class SharedLoopAsyncioExecutor(TaskExecutor):
@@ -107,7 +107,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         self._loop: AbstractEventLoop = None
         self._context: Context = None
         self._shutdown: bool = False
-        self._tasks: Dict[Future, bool] = {}
+        self._tasks: Map[Future, bool] = {}
         # Whether this loop's create_task() accepts context=. Probed once on
         # first use. See _create_task_in_context().
         self._loop_takes_context: bool = None
