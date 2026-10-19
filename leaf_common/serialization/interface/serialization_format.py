@@ -18,6 +18,9 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import IO
+
 from leaf_common.serialization.interface.deserializer import Deserializer
 from leaf_common.serialization.interface.serializer import Serializer
 from leaf_common.serialization.interface.file_extension_provider \
@@ -30,7 +33,7 @@ class SerializationFormat(Serializer, Deserializer, FileExtensionProvider):
     and a Deserializer with a format name for registration.
     """
 
-    def from_object(self, obj):
+    def from_object(self, obj: Any) -> IO:
         """
         :param obj: The object to serialize
         :return: an open file-like object for streaming the serialized
@@ -39,7 +42,7 @@ class SerializationFormat(Serializer, Deserializer, FileExtensionProvider):
         """
         raise NotImplementedError
 
-    def to_object(self, fileobj):
+    def to_object(self, fileobj: IO) -> Any:
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open

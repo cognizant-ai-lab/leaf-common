@@ -17,7 +17,10 @@
 """
 See class comment for details.
 """
+from typing import Any
+from typing import Callable
 from typing import Tuple
+from concurrent.futures import Future as SyncFuture
 from concurrent.futures import ThreadPoolExecutor
 from logging import getLogger
 from logging import Logger
@@ -29,20 +32,20 @@ class AsyncioThreadPoolExecutor(ThreadPoolExecutor):
     Class instrumenting a ThreadPoolExecutor with some additional run-time metrics
     such as number of created and active threads.
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Constructor."""
         super().__init__(*args, **kwargs)
         self.running: int = 0
-        self.lock = Lock()
+        self.lock: Lock = Lock()
         self.logger: Logger = getLogger(self.__class__.__name__)
         self.no_threads_warning_logged: bool = False
 
-    def submit(self, fn, /, *args, **kwargs):
+    def submit(self, fn: Callable, /, *args: Any, **kwargs: Any) -> SyncFuture:
         """
         Override of submit method to wrap the submitted function with additional logic
         for counting the number of active (running) threads.
         """
-        def wrapped(*a, **kw):
+        def wrapped(*a: Any, **kw: Any) -> Any:
             with self.lock:
                 self.running += 1
             try:

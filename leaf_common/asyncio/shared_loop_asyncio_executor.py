@@ -101,7 +101,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
     # max_workers is accepted so callers need not branch on executor type.
     # pylint: disable=unused-argument
-    def __init__(self, max_workers: int = None):
+    def __init__(self, max_workers: int = None) -> None:
         # Accepted for constructor compatibility; no worker threads are created.
         super().__init__()
         self._loop: AbstractEventLoop = None
@@ -120,7 +120,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """Bind to the running loop and capture this request's ContextVars."""
         if self._shutdown:
             raise RuntimeError("Cannot restart an executor after shutdown")
-        loop = get_running_loop()
+        loop: AbstractEventLoop = get_running_loop()
         if self._loop is None:
             self._loop = loop
             self._context = copy_context()
@@ -142,7 +142,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         Thread-local variables cannot provide request isolation on a shared loop.
         """
         self._check_loop()
-        result = self._context.run(init_function)
+        result: Any = self._context.run(init_function)
         if isawaitable(result):
             if iscoroutine(result):
                 result.close()
@@ -265,7 +265,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         if self._loop_takes_context is None:
             self._loop_takes_context = self._takes_context(self._loop.create_task)
-            task_factory = self._loop.get_task_factory()
+            task_factory: Callable = self._loop.get_task_factory()
             if task_factory is not None:
                 self._loop_takes_context = (
                     self._loop_takes_context and self._takes_context(task_factory))
@@ -329,7 +329,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         context: Context = self._context.copy()
         context.run(self._push_owning_root, SharedLoopAsyncioExecutor._OWNING_ROOT.get(), root_holder)
         try:
-            task = self._create_task_in_context(coroutine, name, context)
+            task: Future = self._create_task_in_context(coroutine, name, context)
         except BaseException:
             coroutine.close()
             raise
@@ -509,11 +509,14 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :param tasks: This executor's unfinished owned tasks
         :return: True if draining those tasks would wait on the caller
         """
+        # Walk every owning root on the caller's context, outermost included.
         for executor, holder in SharedLoopAsyncioExecutor._OWNING_ROOT.get():
+            use_executor: TaskExecutor = executor
+            use_holder: List[Future] = holder
             # An empty holder means create_task() has not returned yet, so this
             # is the eager first step of the coroutine being scheduled. It is
             # ours, even though it is not in `tasks` yet.
-            if executor is self and (not holder or holder[0] in tasks):
+            if use_executor is self and (not use_holder or use_holder[0] in tasks):
                 return True
         return False
 
@@ -531,8 +534,9 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         New tasks submitted during cancellation are outside this snapshot.
         """
         self._check_loop(allow_shutdown=True)
-        tasks = self._pending()
+        tasks: List[Future] = self._pending()
         task: Future = None
+        # Cancel each owned task in the snapshot before draining them.
         for task in tasks:
             use_task: Future = task
             use_task.cancel()
@@ -545,10 +549,11 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         finish. A timeout does not drop ownership of unfinished tasks.
         """
         self._check_loop(allow_shutdown=True)
-        tasks = self._pending()
+        tasks: List[Future] = self._pending()
         self._shutdown = True
         if cancel_futures:
             task: Future = None
+            # Cancel each owned task in the snapshot before draining them.
             for task in tasks:
                 use_task: Future = task
                 use_task.cancel()
@@ -557,12 +562,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
     def shutdown(self, wait: bool = True, *, cancel_futures: bool = False) -> None:
         """Nonblocking shutdown; use ashutdown() when pending work must be awaited."""
         self._check_loop(allow_shutdown=True)
-        tasks = self._pending()
+        tasks: List[Future] = self._pending()
         if wait and tasks:
             raise RuntimeError("Cannot block the shared loop; use await executor.ashutdown()")
         self._shutdown = True
         if cancel_futures:
             task: Future = None
+            # Cancel each owned task in the snapshot; nothing is awaited here.
             for task in tasks:
                 use_task: Future = task
                 use_task.cancel()

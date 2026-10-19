@@ -110,7 +110,7 @@ class ResolverUtil:
             module_name = class_split[-2]
 
         new_class_name: str = class_split[-1]
-        resolver = Resolver(packages)
+        resolver: Resolver = Resolver(packages)
 
         # Resolve the class name
         class_reference: Type[Any] = None
@@ -148,7 +148,7 @@ class ResolverUtil:
         module_name: str = ".".join(module_list)
         class_name: str = name_split[-1]
 
-        resolver = Resolver()
+        resolver: Resolver = Resolver()
         class_type: Type[Any] = resolver.resolve_class_in_module(class_name,
                                                                  module_name=module_name,
                                                                  raise_if_not_found=raise_if_not_found,
@@ -172,10 +172,12 @@ class ResolverUtil:
             return ()
 
         tuple_list: List[Type[Any]] = []
+        # Resolve each named type, silently skipping the ones that do not resolve.
         for class_name in type_list:
+            use_class_name: str = class_name
 
             # Try to resolve the single type and append to list if we get it.
-            one_type: Type[Any] = ResolverUtil.create_type(class_name,
+            one_type: Type[Any] = ResolverUtil.create_type(use_class_name,
                                                            raise_if_not_found=False,
                                                            install_if_missing=None)
             if one_type is not None:

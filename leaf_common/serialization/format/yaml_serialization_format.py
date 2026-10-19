@@ -18,6 +18,10 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import Dict
+from typing import IO
+
 import os
 
 from ruamel.yaml import YAML
@@ -28,6 +32,10 @@ from leaf_common.serialization.interface.serialization_format \
 
 from leaf_common.serialization.format.conversion_policy \
     import ConversionPolicy
+from leaf_common.serialization.interface.dictionary_converter \
+    import DictionaryConverter
+from leaf_common.serialization.interface.reference_pruner \
+    import ReferencePruner
 
 
 class YamlSerializationFormat(SerializationFormat):
@@ -36,8 +44,9 @@ class YamlSerializationFormat(SerializationFormat):
     Yaml Serializer and a Deserializer implementations under one roof.
     """
 
-    def __init__(self, reference_pruner=None, dictionary_converter=None,
-                 pretty=True):
+    def __init__(self, reference_pruner: ReferencePruner = None,
+                 dictionary_converter: DictionaryConverter = None,
+                 pretty: bool = True) -> None:
         """
         Constructor.
 
@@ -50,33 +59,33 @@ class YamlSerializationFormat(SerializationFormat):
         :param pretty: a boolean which says whether the output is to be
                 nicely formatted or not.  Try for: indent=4, sort_keys=True
         """
-        self.conversion_policy = ConversionPolicy(reference_pruner,
-                                                  dictionary_converter,
-                                                  pretty)
+        self.conversion_policy: ConversionPolicy = ConversionPolicy(reference_pruner,
+                                                                    dictionary_converter,
+                                                                    pretty)
 
-    def from_object(self, obj):
+    def from_object(self, obj: Any) -> IO:
         """
         :param obj: The object to serialize
         :return: an open file-like object for streaming the serialized
                 bytes.  Any file cursors should be set to the beginning
                 of the data (ala seek to the beginning).
         """
-        pruned_dict = self.conversion_policy.convert_from_object(obj)
+        pruned_dict: Dict[str, Any] = self.conversion_policy.convert_from_object(obj)
 
         # See if YAML should be pretty or not
-        yaml = YAML(typ='safe', pure=True)
+        yaml: YAML = YAML(typ='safe', pure=True)
         if self.conversion_policy.is_pretty():
             yaml.default_flow_style = False
             yaml.indent(mapping=4, sequence=6, offset=3)
 
         # Now convert the pruned dictionary to YAML
-        fileobj = BytesIO()
+        fileobj: BytesIO = BytesIO()
         yaml.dump(pruned_dict, fileobj)
         fileobj.seek(0, os.SEEK_SET)
 
         return fileobj
 
-    def to_object(self, fileobj):
+    def to_object(self, fileobj: IO) -> Any:
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open
@@ -89,16 +98,16 @@ class YamlSerializationFormat(SerializationFormat):
         :return: the deserialized object
         """
 
-        pruned_dict = None
+        pruned_dict: Dict[str, Any] = None
         if fileobj is not None:
             # Load the YAML into a dictionary
-            yaml = YAML(typ='safe', pure=True)
+            yaml: YAML = YAML(typ='safe', pure=True)
             pruned_dict = yaml.load(fileobj)
 
-        obj = self.conversion_policy.convert_to_object(pruned_dict)
+        obj: Any = self.conversion_policy.convert_to_object(pruned_dict)
         return obj
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".".

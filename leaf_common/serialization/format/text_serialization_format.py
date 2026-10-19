@@ -18,6 +18,9 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import IO
+
 import io
 import os
 
@@ -31,7 +34,7 @@ class TextSerializationFormat(SerializationFormat):
     (de/)serializes from text data.
     """
 
-    def __init__(self, must_exist=True):
+    def __init__(self, must_exist: bool = True) -> None:
         """
         Constructor
 
@@ -41,9 +44,9 @@ class TextSerializationFormat(SerializationFormat):
         """
 
         super().__init__()
-        self._must_exist = must_exist
+        self._must_exist: bool = must_exist
 
-    def from_object(self, obj):
+    def from_object(self, obj: Any) -> IO:
         """
         :param obj: The object to serialize
         :return: an open file-like object for streaming the serialized
@@ -51,8 +54,8 @@ class TextSerializationFormat(SerializationFormat):
                 of the data (ala seek to the beginning).
         """
 
-        obj_str = str(obj)
-        fileobj = io.BytesIO(bytearray(obj_str, 'UTF-8'))
+        obj_str: str = str(obj)
+        fileobj: io.BytesIO = io.BytesIO(bytearray(obj_str, 'UTF-8'))
 
         # Set to the beginning of the memory buffer
         # So next copy can work
@@ -60,7 +63,7 @@ class TextSerializationFormat(SerializationFormat):
 
         return fileobj
 
-    def to_object(self, fileobj):
+    def to_object(self, fileobj: IO) -> Any:
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open
@@ -77,17 +80,17 @@ class TextSerializationFormat(SerializationFormat):
             return None
 
         # By default, bytes are returned as string object.
-        obj = fileobj.read()
+        obj: Any = fileobj.read()
         return obj
 
-    def must_exist(self):
+    def must_exist(self) -> bool:
         """
         :return: False if its OK for a file not to exist.
                  True if a file must exist.
         """
         return self._must_exist
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".".

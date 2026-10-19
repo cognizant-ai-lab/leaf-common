@@ -23,6 +23,8 @@ from leaf_common.persistence.mechanism.local_file_persistence_mechanism \
     import LocalFilePersistenceMechanism
 from leaf_common.persistence.mechanism.persistence_mechanisms \
     import PersistenceMechanisms
+from leaf_common.persistence.interface.persistence_mechanism \
+    import PersistenceMechanism
 from leaf_common.persistence.mechanism.s3_file_persistence_mechanism \
     import S3FilePersistenceMechanism
 
@@ -40,8 +42,8 @@ class PersistenceMechanismFactory():
         PersistenceMechanism implementation.
     """
 
-    def __init__(self, bucket_base="", key_base="", must_exist=True,
-                 object_type="object"):
+    def __init__(self, bucket_base: str = "", key_base: str = "", must_exist: bool = True,
+                 object_type: str = "object") -> None:
         """
         Constructor.
 
@@ -53,15 +55,15 @@ class PersistenceMechanismFactory():
         :param object_type: A string describing what kind of object
                 is to be persisted.
         """
-        self.bucket_base = bucket_base
-        self.key_base = key_base
-        self.must_exist = must_exist
-        self.object_type = object_type
-        self.fallback = PersistenceMechanisms.NULL
+        self.bucket_base: str = bucket_base
+        self.key_base: str = key_base
+        self.must_exist: bool = must_exist
+        self.object_type: str = object_type
+        self.fallback: str = PersistenceMechanisms.NULL
 
-    def create_persistence_mechanism(self, folder, base_name,
-                                     persistence_mechanism=None,
-                                     must_exist=None):
+    def create_persistence_mechanism(self, folder: str, base_name: str,
+                                     persistence_mechanism: str = None,
+                                     must_exist: bool = None) -> PersistenceMechanism:
         """
         :param folder: Directory/Folder of where the persisted
                     file should reside.
@@ -74,14 +76,14 @@ class PersistenceMechanismFactory():
         :return: a new PersistenceMechanism given all the specifications
         """
 
-        use_must_exist = must_exist
+        use_must_exist: bool = must_exist
         if must_exist is None:
             use_must_exist = self.must_exist
 
-        use_persistence_mechanism = self._resolve_persistence_type(
+        use_persistence_mechanism: str = self._resolve_persistence_type(
             persistence_mechanism)
 
-        persistence_mechanism_instance = None
+        persistence_mechanism_instance: PersistenceMechanism = None
         if use_persistence_mechanism is None or \
                 use_persistence_mechanism.lower() == PersistenceMechanisms.NULL:
             persistence_mechanism_instance = None
@@ -96,15 +98,15 @@ class PersistenceMechanismFactory():
                 bucket_base=self.bucket_base,
                 key_base=self.key_base)
         else:
-            message = "Don't know persistence mechanism '%s' for type '%s'."
-            logger = logging.getLogger(__name__)
+            message: str = "Don't know persistence mechanism '%s' for type '%s'."
+            logger: logging.Logger = logging.getLogger(__name__)
             logger.warning(message, str(use_persistence_mechanism),
                            str(self.object_type))
             persistence_mechanism_instance = None
 
         return persistence_mechanism_instance
 
-    def _resolve_persistence_type(self, persistence_mechanism):
+    def _resolve_persistence_type(self, persistence_mechanism: str) -> str:
         """
         :param persistence_mechanism: a string description of the
                     persistence mechanism desired.
@@ -114,20 +116,20 @@ class PersistenceMechanismFactory():
         """
 
         # Find the Persistence Mechanism type to use
-        use_persistence_mechanism = self._find_persistence_mechanism(
+        use_persistence_mechanism: str = self._find_persistence_mechanism(
             persistence_mechanism)
         if use_persistence_mechanism is None:
             # None found for argument, use fallback
-            message = "Don't know persistence mechanism '%s' for type '%s'." + \
+            message: str = "Don't know persistence mechanism '%s' for type '%s'." + \
                         " Using fallback %s."
-            logger = logging.getLogger(__name__)
+            logger: logging.Logger = logging.getLogger(__name__)
             logger.warning(message, str(persistence_mechanism),
                            str(self.object_type), str(self.fallback))
             use_persistence_mechanism = self.fallback
 
         return use_persistence_mechanism
 
-    def _find_persistence_mechanism(self, persistence_mechanism):
+    def _find_persistence_mechanism(self, persistence_mechanism: str) -> str:
         """
         :param persistence_mechanism: The string name of the
                 persistence mechanism to use.
@@ -137,10 +139,12 @@ class PersistenceMechanismFactory():
         """
 
         # Figure out the Persistence Mechanism specified in the argument
-        found_persistence_mechanism = None
+        found_persistence_mechanism: str = None
         if persistence_mechanism is not None:
+            # Match the argument against each known mechanism, ignoring case.
             for mechanism in PersistenceMechanisms.PERSISTENCE_MECHANISMS:
-                if persistence_mechanism.lower() == mechanism.lower():
-                    found_persistence_mechanism = mechanism
+                use_mechanism: str = mechanism
+                if persistence_mechanism.lower() == use_mechanism.lower():
+                    found_persistence_mechanism = use_mechanism
 
         return found_persistence_mechanism

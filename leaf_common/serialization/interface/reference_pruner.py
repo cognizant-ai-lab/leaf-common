@@ -18,6 +18,8 @@
 See class comment for details.
 """
 
+from typing import Any
+
 
 class ReferencePruner():
     """
@@ -30,7 +32,7 @@ class ReferencePruner():
     Strive to eliminate the need for ReferencePruners at all in your code.
     """
 
-    def prune(self, obj):
+    def prune(self, obj: Any) -> Any:
         """
         :param obj: The object to be pruned
         :return: A copy of the provided object which has no repeat
@@ -38,7 +40,7 @@ class ReferencePruner():
         """
         raise NotImplementedError
 
-    def graft(self, obj, graft_reference=None):
+    def graft(self, obj: Any, graft_reference: Any = None) -> Any:
         """
         :param obj: The object to be grafted onto.
                     Can be None when no object is read in.

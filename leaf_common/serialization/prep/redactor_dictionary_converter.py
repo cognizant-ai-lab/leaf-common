@@ -30,7 +30,7 @@ class RedactorDictionaryConverter(DictionaryConverter):
 
     def __init__(self,
                  redacted_value: str = "<redacted>",
-                 unsafe_key_fragments: List[str] = None):
+                 unsafe_key_fragments: List[str] = None) -> None:
         """
         Constructor
 
@@ -92,12 +92,14 @@ class RedactorDictionaryConverter(DictionaryConverter):
         :return: The redacted dictionary
         """
 
-        safe_dict = {}
+        safe_dict: Dict[str, object] = {}
 
         # Loop through all the keys
         for key, value in unsafe_dict.items():
-            safe_value = self.redact_value(key, value)
-            safe_dict[key] = safe_value
+            use_key: str = key
+            use_value: object = value
+            safe_value: object = self.redact_value(use_key, use_value)
+            safe_dict[use_key] = safe_value
 
         return safe_dict
 
@@ -111,11 +113,13 @@ class RedactorDictionaryConverter(DictionaryConverter):
         :return: The redacted list
         """
 
-        key = None
-        safe_list = []
+        key: str = None
+        safe_list: List[object] = []
+        # Redact each component in turn; a None key means no scalar redaction.
         for component in unsafe_list:
+            use_component: object = component
 
-            redacted_component = self.redact_value(key, component)
+            redacted_component: object = self.redact_value(key, use_component)
             safe_list.append(redacted_component)
 
         return safe_list
@@ -132,16 +136,17 @@ class RedactorDictionaryConverter(DictionaryConverter):
         :return: The safe value, redacted or not, depending on the key
         """
 
-        safe_value = unsafe_value
+        safe_value: object = unsafe_value
 
         # Only redact keys that are not None
         if key is not None:
-            lower_key = key.lower()
+            lower_key: str = key.lower()
 
             # If the key name contains something sensitive,
             # redact it for output.
             for unsafe_key_fragment in self.unsafe_key_fragments:
-                if lower_key.find(unsafe_key_fragment) >= 0:
+                use_fragment: str = unsafe_key_fragment
+                if lower_key.find(use_fragment) >= 0:
                     safe_value = self.redacted_value
                     break
 

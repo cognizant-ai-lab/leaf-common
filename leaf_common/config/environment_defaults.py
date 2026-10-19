@@ -18,6 +18,9 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import Dict
+
 from os import environ
 
 
@@ -29,7 +32,7 @@ class EnvironmentDefaults():
     """
 
     @classmethod
-    def set_environment_defaults(cls, default_dict):
+    def set_environment_defaults(cls, default_dict: Dict[str, Any]) -> Dict[str, str]:
         """
         :param default_dict:  For each key in this dictionary, if there is
             not a corresponding key in the environ dictionary, then the
@@ -45,17 +48,19 @@ class EnvironmentDefaults():
                 not isinstance(default_dict, dict):
             return None
 
-        added = {}
+        added: Dict[str, str] = {}
+        # Copy over only those defaults the environment does not already define.
         for key in default_dict.keys():
+            use_key: str = key
 
             # See if the key exists
-            existing_value = environ.get(key, None)
+            existing_value: str = environ.get(use_key, None)
             if existing_value is None:
 
                 # Key does not exist, add from defaults
                 # environ values must be strings
-                new_value = str(default_dict.get(key))
-                environ[key] = new_value
-                added[key] = new_value
+                new_value: str = str(default_dict.get(use_key))
+                environ[use_key] = new_value
+                added[use_key] = new_value
 
         return added

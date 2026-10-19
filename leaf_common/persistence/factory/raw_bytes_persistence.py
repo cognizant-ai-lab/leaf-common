@@ -20,8 +20,12 @@ See class comment for details.
 
 from leaf_common.persistence.factory.abstract_persistence \
     import AbstractPersistence
+from leaf_common.persistence.interface.persistence_mechanism \
+    import PersistenceMechanism
 from leaf_common.serialization.format.raw_bytes_serialization_format \
     import RawBytesSerializationFormat
+from leaf_common.serialization.interface.serialization_format \
+    import SerializationFormat
 
 
 class RawBytesPersistence(AbstractPersistence):
@@ -30,7 +34,7 @@ class RawBytesPersistence(AbstractPersistence):
     saves raw bytes data of an object via some persistence mechanism.
     """
 
-    def __init__(self, persistence_mechanism, use_file_extension=None):
+    def __init__(self, persistence_mechanism: PersistenceMechanism, use_file_extension: str = None) -> None:
         """
         Constructor
 
@@ -44,12 +48,12 @@ class RawBytesPersistence(AbstractPersistence):
 
         super().__init__(persistence_mechanism,
                          use_file_extension=use_file_extension)
-        self._serialization = RawBytesSerializationFormat()
+        self._serialization: SerializationFormat = RawBytesSerializationFormat()
 
-    def get_serialization_format(self):
+    def get_serialization_format(self) -> SerializationFormat:
         return self._serialization
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".",

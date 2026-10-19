@@ -63,11 +63,13 @@ class ExceptionUtil:
         if isinstance(exception, ExceptionGroup):
             # Iterate through each sub-exception in the group
             for i, sub_exc in enumerate(exception.exceptions):
+                use_index: int = i
+                use_sub_exc: BaseException = sub_exc
                 # Add a header for each sub-exception with 1-based numbering
-                message += f"{spaces}Sub-exception {i+1}:\n"
+                message += f"{spaces}Sub-exception {use_index + 1}:\n"
 
                 # Recursively process the sub-exception with increased indentation
                 # This handles cases where sub-exceptions might themselves be ExceptionGroups
-                message += ExceptionUtil.get_exception_details(sub_exc, indent + 1)
+                message += ExceptionUtil.get_exception_details(use_sub_exc, indent + 1)
 
         return message

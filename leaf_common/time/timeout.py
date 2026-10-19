@@ -31,7 +31,7 @@ class Timeout:
     Class providing basic timeout functionality.
     """
 
-    def __init__(self, name: str = "", limit_in_seconds: float = -1):
+    def __init__(self, name: str = "", limit_in_seconds: float = -1) -> None:
         """
         Constructor.
 
@@ -56,7 +56,7 @@ class Timeout:
 
         return self.get_remaining_time_in_seconds() == 0
 
-    def set_name(self, name: str):
+    def set_name(self, name: str) -> None:
         """
         Sets the name for timeout object.
 
@@ -75,7 +75,7 @@ class Timeout:
 
         return self.name
 
-    def set_limit_in_seconds(self, timeout_limit_in_seconds: float):
+    def set_limit_in_seconds(self, timeout_limit_in_seconds: float) -> None:
         """
         Sets timeout active with given limit in seconds
         Start time will be set to current time.
@@ -111,8 +111,8 @@ class Timeout:
                 self.limit_in_seconds < 0:  # timeout is not set
             return -1
 
-        remain = self.start_time + self.limit_in_seconds - time()
-        new_remain = max(remain, 0)
+        remain: float = self.start_time + self.limit_in_seconds - time()
+        new_remain: float = max(remain, 0)
         return new_remain
 
     @classmethod
@@ -130,7 +130,7 @@ class Timeout:
         if timeout is None:
             return True
 
-        secs_remaining = timeout.get_remaining_time_in_seconds()
+        secs_remaining: float = timeout.get_remaining_time_in_seconds()
         if secs_remaining < 0:
             # Special case where timeout is not set
             return True
@@ -140,7 +140,7 @@ class Timeout:
 
         return False
 
-    def check_timeout(self):
+    def check_timeout(self) -> None:
         """
         Check if the task timeout is reached.
         If so, raise TimeoutReachedException exception
@@ -153,7 +153,7 @@ class Timeout:
             raise TimeoutReachedException(self)
 
     @classmethod
-    def check_if_not_none(cls, timeout: Timeout):
+    def check_if_not_none(cls, timeout: Timeout) -> None:
         """
         Helper that calls check_timeout() as long as the given timeout is not None.
         :param timeout:

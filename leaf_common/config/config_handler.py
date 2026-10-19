@@ -160,7 +160,7 @@ class ConfigHandler():
                 ignored and a dictionary value of None is returned
         :return: The dictionary parsed from the hocon config file
         """
-        persistence = EasyJsonPersistence(full_ref=filepath, must_exist=must_exist)
+        persistence: EasyJsonPersistence = EasyJsonPersistence(full_ref=filepath, must_exist=must_exist)
         config: Dict[str, Any] = persistence.restore(None)
         return config
 
@@ -173,7 +173,7 @@ class ConfigHandler():
                 ignored and a dictionary value of None is returned
         :return: The dictionary parsed from the hocon config file
         """
-        persistence = EasyHoconPersistence(full_ref=filepath, must_exist=must_exist)
+        persistence: EasyHoconPersistence = EasyHoconPersistence(full_ref=filepath, must_exist=must_exist)
         config: Dict[str, Any] = persistence.restore(None)
         return config
 
@@ -186,6 +186,6 @@ class ConfigHandler():
                 ignored and a dictionary value of None is returned
         :return: The dictionary parsed from the yaml config file
         """
-        persistence = EasyYamlPersistence(full_ref=filepath, must_exist=must_exist)
+        persistence: EasyYamlPersistence = EasyYamlPersistence(full_ref=filepath, must_exist=must_exist)
         config: Dict[str, Any] = persistence.restore(None)
         return config

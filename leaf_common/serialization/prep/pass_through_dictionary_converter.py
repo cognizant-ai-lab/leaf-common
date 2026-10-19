@@ -18,6 +18,8 @@
 See class comment for details.
 """
 
+from typing import Dict
+
 from leaf_common.serialization.interface.dictionary_converter \
     import DictionaryConverter
 
@@ -29,7 +31,7 @@ class PassThroughDictionaryConverter(DictionaryConverter):
     and returns the dictionary for from_dict().
     """
 
-    def __init__(self, allow_restore_none: bool = True):
+    def __init__(self, allow_restore_none: bool = True) -> None:
         """
         Constructor.
 
@@ -40,7 +42,7 @@ class PassThroughDictionaryConverter(DictionaryConverter):
         """
         self.allow_restore_none: bool = allow_restore_none
 
-    def to_dict(self, obj):
+    def to_dict(self, obj: object) -> Dict[str, object]:
         """
         :param obj: The object to be converted into a dictionary
         :return: A data-only dictionary that represents all the data for
@@ -53,7 +55,7 @@ class PassThroughDictionaryConverter(DictionaryConverter):
 
         return obj
 
-    def from_dict(self, obj_dict):
+    def from_dict(self, obj_dict: Dict[str, object]) -> object:
         """
         :param obj_dict: The data-only dictionary to be converted into an object
         :return: An object instance created from the given dictionary.

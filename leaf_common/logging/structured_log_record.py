@@ -15,12 +15,16 @@
 #
 # END COPYRIGHT
 
+from typing import Any
+from typing import Callable
+
 from logging import CRITICAL
 from logging import DEBUG
 from logging import ERROR
 from logging import INFO
 from logging import WARNING
 from logging import getLogRecordFactory
+from logging import LogRecord
 from logging import setLogRecordFactory
 from datetime import datetime
 
@@ -30,10 +34,10 @@ from leaf_common.logging.message_types import METRICS
 
 
 # Set up a global variable to allow cascading of LogRecord factories
-_STRUCTURED_OLD_FACTORY = None
+_STRUCTURED_OLD_FACTORY: Callable = None
 
 
-def _structured_log_record_factory(*args, **kwargs):
+def _structured_log_record_factory(*args: Any, **kwargs: Any) -> LogRecord:
     """
     Expected entry point for standard Python logging system to be
     used with the StructuredLogRecord class below.
@@ -48,7 +52,7 @@ def _structured_log_record_factory(*args, **kwargs):
     """
 
     # Use the class variable to get a handle on the old LogRecord factory
-    log_record = _STRUCTURED_OLD_FACTORY(*args, **kwargs)
+    log_record: LogRecord = _STRUCTURED_OLD_FACTORY(*args, **kwargs)
 
     message_type: str = None
 
@@ -76,9 +80,9 @@ def _structured_log_record_factory(*args, **kwargs):
     log_record.message_type = message_type.value
 
     # Add a log_record field for the structured timestamp
-    log_timestamp_since_epoch = log_record.created
-    log_datetime = datetime.fromtimestamp(log_timestamp_since_epoch)
-    iso_timestamp = log_datetime.isoformat()
+    log_timestamp_since_epoch: float = log_record.created
+    log_datetime: datetime = datetime.fromtimestamp(log_timestamp_since_epoch)
+    iso_timestamp: str = log_datetime.isoformat()
     log_record.iso_timestamp = iso_timestamp
 
     # Return the new LogRecord with the new logging fields set
@@ -99,7 +103,7 @@ class StructuredLogRecord():
     """
 
     @classmethod
-    def set_up_record_factory(cls):
+    def set_up_record_factory(cls) -> None:
         """
         Called early on in the lifetime of a service to redirect the standard
         Python LogRecord creation to our _record_factory() call at the top

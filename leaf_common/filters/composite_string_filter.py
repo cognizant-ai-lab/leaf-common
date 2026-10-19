@@ -25,7 +25,7 @@ class CompositeStringFilter(StringFilter):
     multiple string filter operations in a certain order
     """
 
-    def __init__(self, filters: List[StringFilter] = None):
+    def __init__(self, filters: List[StringFilter] = None) -> None:
         """
         Constructor
 
@@ -40,7 +40,7 @@ class CompositeStringFilter(StringFilter):
                 typed_filter: StringFilter = one_filter
                 self.add_filter(typed_filter)
 
-    def add_filter(self, new_filter: StringFilter):
+    def add_filter(self, new_filter: StringFilter) -> None:
         """
         :param new_filter: The StringFilter to be added to the list to be applied
         """

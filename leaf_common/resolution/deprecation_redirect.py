@@ -41,7 +41,7 @@ class DeprecationRedirect:
     deprecation warnings from there.
     """
 
-    def __init__(self, module_name: str, old_class_to_new_class: Dict[str, str], next_version: str = None):
+    def __init__(self, module_name: str, old_class_to_new_class: Dict[str, str], next_version: str = None) -> None:
         """
         Constructor
 
@@ -58,7 +58,7 @@ class DeprecationRedirect:
         self.clean_keys()
         self.redirect_modules()
 
-    def clean_keys(self):
+    def clean_keys(self) -> None:
         """
         Remove the module name from the keys
         """
@@ -76,18 +76,19 @@ class DeprecationRedirect:
 
         self.old_class_to_new_class = new_dict
 
-    def redirect_modules(self):
+    def redirect_modules(self) -> None:
         """
         Redirect deprecated classes and their modules
         """
-        resolver = Resolver()
+        resolver: Resolver = Resolver()
         old_class: str = None
         for old_class in self.old_class_to_new_class.keys():
             use_class: str = old_class
             while "." in use_class:
                 old_module: str = self.get_module_from_fully_qualified(use_class)
                 resolve_to: str = f"{self.module_name}.{old_module}"
-                module_found = resolver.resolve_class_in_module(module_name=resolve_to, raise_if_not_found=False)
+                module_found: Any = resolver.resolve_class_in_module(
+                    module_name=resolve_to, raise_if_not_found=False)
                 if module_found:
                     # Don't need to replace something that already exists
                     break
@@ -133,9 +134,11 @@ class DeprecationRedirect:
         :return: The old class key with the module
         """
         ends_with: str = f".{old_class}"
+        # Return the first registered key whose class name part matches.
         for key in self.old_class_to_new_class.keys():
-            if key.endswith(ends_with):
-                return key
+            use_key: str = key
+            if use_key.endswith(ends_with):
+                return use_key
         return None
 
     @staticmethod
