@@ -17,10 +17,14 @@
 See class comment for details.
 """
 from typing import Any
+from typing import Callable
 from typing import Dict
 from typing import List
+from typing import Optional
 
+from asyncio import AbstractEventLoop
 from asyncio import Future
+from types import FrameType
 
 from leaf_common.asyncio.shared_loop_asyncio_executor import SharedLoopAsyncioExecutor
 
@@ -61,13 +65,14 @@ class SharedLoopAsyncioExecutorPool:
     def __init__(self, reuse_mode: bool = True, *,
                  idle_timeout_seconds: float = DEFAULT_IDLE_TIMEOUT_SECONDS,
                  gc_sweep_interval_seconds: float = DEFAULT_GC_SWEEP_INTERVAL_SECONDS,
-                 max_workers: int = None) -> None:
+                 max_workers: Optional[int] = None):
         # Accept native pool options for import-level compatibility. There is
         # deliberately no reuse, idle expiry, worker pool, or cleanup thread.
         self.reuse_mode: bool = False
         self.idle_timeout_seconds: float = idle_timeout_seconds
         self.gc_sweep_interval_seconds: float = gc_sweep_interval_seconds
-        self.max_workers: int = max_workers
+        # Optional: None is the real default, and is what reaches the executor.
+        self.max_workers: Optional[int] = max_workers
         self.pool_used: List[SharedLoopAsyncioExecutor] = []
         self.pool_available: List[SharedLoopAsyncioExecutor] = []
 
@@ -106,8 +111,9 @@ class SharedLoopAsyncioExecutorPool:
         if executor.has_pending_tasks():
             self.pool_retiring.append(executor)
 
+    # Optional: None is the documented "wait indefinitely" value.
     async def areturn_executor(self, executor: SharedLoopAsyncioExecutor,
-                               timeout: float = None) -> None:
+                               timeout: Optional[float] = None) -> None:
         """Retire an executor and await its cleanup. The complete path.
 
         The executor keeps whatever ownership it already had until cleanup
@@ -164,7 +170,8 @@ class SharedLoopAsyncioExecutorPool:
                                f"{len(self.pool_retiring)} retiring executor(s); "
                                f"use await pool.ashutdown()")
 
-    async def ashutdown(self, timeout: float = None) -> None:
+    # Optional: None is the documented "wait indefinitely" value.
+    async def ashutdown(self, timeout: Optional[float] = None) -> None:
         """Drain every retiring executor, then give up ownership of them.
 
         Executors still checked out are left alone, as in shutdown(). An
@@ -173,11 +180,11 @@ class SharedLoopAsyncioExecutorPool:
         :param timeout: Seconds to wait for each retiring executor's tasks, or
                     None to wait indefinitely
         """
-        # Drain each retiring executor in turn; still-checked-out ones are untouched.
+        # One pass per retiring executor; None until the loop binds one.
+        executor: Optional[SharedLoopAsyncioExecutor] = None
         for executor in list(self.pool_retiring):
-            use_executor: SharedLoopAsyncioExecutor = executor
-            await use_executor.ashutdown(cancel_futures=True, timeout=timeout)
-            self._release(use_executor)
+            await executor.ashutdown(cancel_futures=True, timeout=timeout)
+            self._release(executor)
 
     def get_threads_metrics(self) -> Dict[str, Dict[str, int]]:
         """Report pool occupancy, with zero worker threads throughout.
@@ -210,22 +217,26 @@ class SharedLoopAsyncioExecutorPool:
         """
         self._prune_retired()
         result: Dict[str, Any] = {}
-        # One dump entry per executor, whether it is in use or retiring.
+        # One entry per owned executor; None until the loop binds one.
+        executor: Optional[SharedLoopAsyncioExecutor] = None
         for executor in self.pool_used + self.pool_retiring:
-            use_executor: SharedLoopAsyncioExecutor = executor
             tasks: List[Dict[str, Any]] = []
             # These executors share one loop: all_tasks() would incorrectly
             # attribute other requests' tasks to every executor.
-            for task in use_executor.get_tracked_tasks():
-                use_task: Future = task
+            # None until the loop binds a task, and stays None when empty.
+            task: Optional[Future[Any]] = None
+            for task in executor.get_tracked_tasks():
                 tasks.append({
-                    "name": SharedLoopAsyncioExecutor.get_task_name(use_task),
-                    "coro": self._describe_coro(use_task),
-                    "done": use_task.done(),
-                    "cancelled": use_task.cancelled(),
-                    "stack": self._describe_stack(use_task),
+                    "name": SharedLoopAsyncioExecutor.get_task_name(task),
+                    "coro": self._describe_coro(task),
+                    "done": task.done(),
+                    "cancelled": task.cancelled(),
+                    "stack": self._describe_stack(task),
                 })
-            state: str = "responded" if executor.get_event_loop().is_running() else "not_running"
+            # get_event_loop() is Optional, and a dump must not raise: an
+            # executor with no loop yet has none running.
+            loop: Optional[AbstractEventLoop] = executor.get_event_loop()
+            state: str = "responded" if loop is not None and loop.is_running() else "not_running"
             result[str(id(executor))] = {
                 "loop_state": state,
                 "retiring": executor in self.pool_retiring,
@@ -234,7 +245,7 @@ class SharedLoopAsyncioExecutorPool:
         return result
 
     @staticmethod
-    def _describe_coro(task: Future) -> str:
+    def _describe_coro(task: Future[Any]) -> str:
         """Describe what a tracked task is running, whatever the factory made.
 
         get_coro() is an asyncio.Task method; a Future-compatible factory
@@ -246,7 +257,9 @@ class SharedLoopAsyncioExecutorPool:
         """
         # Only the lookup is guarded, so an AttributeError from inside
         # get_coro() is not mistaken for the method being absent.
-        get_coro: Any = None
+        # Task.get_coro() -> Coroutine or Generator. Optional: a plain
+        # Future does not have one.
+        get_coro: Optional[Callable[[], Any]] = None
         try:
             get_coro = task.get_coro
         except AttributeError:
@@ -260,7 +273,7 @@ class SharedLoopAsyncioExecutorPool:
             return repr(coro)
 
     @staticmethod
-    def _describe_stack(task: Future) -> List[Dict[str, Any]]:
+    def _describe_stack(task: Future[Any]) -> List[Dict[str, Any]]:
         """Render a tracked task's suspended stack, when it can provide one.
 
         get_stack() is an asyncio.Task method; a Future-compatible factory
@@ -269,7 +282,9 @@ class SharedLoopAsyncioExecutorPool:
         :param task: The tracked Future to describe
         :return: One dict per stack frame, or an empty list
         """
-        get_stack: Any = None
+        # Task.get_stack(*, limit=None) -> List[FrameType]. Optional: a
+        # plain Future does not have one.
+        get_stack: Optional[Callable[..., List[FrameType]]] = None
         try:
             get_stack = task.get_stack
         except AttributeError:
@@ -279,7 +294,7 @@ class SharedLoopAsyncioExecutorPool:
 
         frames: List[Dict[str, Any]] = []
         # One entry per suspended frame, outermost first, as get_stack() returns them.
-        frame: Any = None
+        frame: Optional[FrameType] = None
         for frame in get_stack():
             frames.append({"file": frame.f_code.co_filename,
                            "line": frame.f_lineno,
@@ -326,11 +341,11 @@ class SharedLoopAsyncioExecutorPool:
         Called from the public methods rather than on a timer, since this pool
         has no GC thread and the shared loop gives us no other tick.
         """
-        # Drop retiring executors that have nothing left to finish.
+        # One pass per retiring executor; None until the loop binds one.
+        executor: Optional[SharedLoopAsyncioExecutor] = None
         for executor in list(self.pool_retiring):
-            use_executor: SharedLoopAsyncioExecutor = executor
-            if not use_executor.has_pending_tasks():
-                self.pool_retiring.remove(use_executor)
+            if not executor.has_pending_tasks():
+                self.pool_retiring.remove(executor)
 
     @staticmethod
     def format_task_dump(dump: Dict[str, Any]) -> str:
@@ -338,21 +353,22 @@ class SharedLoopAsyncioExecutorPool:
         if not dump:
             return "(no used executors)"
         lines: List[str] = []
-        # One block per executor, then one line per task and per stack frame.
-        for key, entry in dump.items():
-            use_key: str = key
-            entry_dict: Dict[str, Any] = entry
-            tasks: List[Dict[str, Any]] = entry_dict.get("tasks", [])
-            lines.append(f"== executor {use_key}  loop_state={entry_dict.get('loop_state', 'unknown')}  "
+        # Keys rather than items(): a tuple unpack carries no annotation.
+        key: Optional[str] = None
+        for key in dump.keys():
+            entry: Dict[str, Any] = dump.get(key, {})
+            tasks: List[Dict[str, Any]] = entry.get("tasks", [])
+            lines.append(f"== executor {key}  loop_state={entry.get('loop_state', 'unknown')}  "
                          f"tasks={len(tasks)} ==")
-            if entry_dict.get("loop_state") == "probe_error":
-                lines.append(f"   probe_error: {entry_dict.get('error')}")
+            if entry.get("loop_state") == "probe_error":
+                lines.append(f"   probe_error: {entry.get('error')}")
+            # One line per task, then one per frame of its stack.
+            task: Optional[Dict[str, Any]] = None
             for task in tasks:
-                task_dict: Dict[str, Any] = task
-                lines.append(f"  - name={task_dict['name']!r}  coro={task_dict['coro']}  "
-                             f"done={task_dict['done']}  cancelled={task_dict['cancelled']}")
-                for frame in task_dict.get("stack", []):
-                    frame_dict: Dict[str, Any] = frame
-                    lines.append(f"      File \"{frame_dict['file']}\", "
-                                 f"line {frame_dict['line']}, in {frame_dict['func']}")
+                lines.append(f"  - name={task['name']!r}  coro={task['coro']}  "
+                             f"done={task['done']}  cancelled={task['cancelled']}")
+                frame: Optional[Dict[str, Any]] = None
+                for frame in task.get("stack", []):
+                    lines.append(f"      File \"{frame['file']}\", "
+                                 f"line {frame['line']}, in {frame['func']}")
         return "\n".join(lines)
