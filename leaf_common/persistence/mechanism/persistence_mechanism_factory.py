@@ -14,10 +14,8 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
-import logging
+from logging import getLogger
+from logging import Logger
 
 from leaf_common.persistence.mechanism.local_file_persistence_mechanism \
     import LocalFilePersistenceMechanism
@@ -99,7 +97,7 @@ class PersistenceMechanismFactory():
                 key_base=self.key_base)
         else:
             message: str = "Don't know persistence mechanism '%s' for type '%s'."
-            logger: logging.Logger = logging.getLogger(__name__)
+            logger: Logger = getLogger(__name__)
             logger.warning(message, str(use_persistence_mechanism),
                            str(self.object_type))
             persistence_mechanism_instance = None
@@ -122,7 +120,7 @@ class PersistenceMechanismFactory():
             # None found for argument, use fallback
             message: str = "Don't know persistence mechanism '%s' for type '%s'." + \
                         " Using fallback %s."
-            logger: logging.Logger = logging.getLogger(__name__)
+            logger: Logger = getLogger(__name__)
             logger.warning(message, str(persistence_mechanism),
                            str(self.object_type), str(self.fallback))
             use_persistence_mechanism = self.fallback

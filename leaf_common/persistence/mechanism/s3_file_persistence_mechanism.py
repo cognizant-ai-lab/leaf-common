@@ -14,20 +14,17 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
 from typing import Any
 from typing import IO
 
-import logging
+from logging import getLogger
+from logging import INFO
+from logging import Logger
 import os
 
 from leaf_common.logging.sensitive_logger import SensitiveLogger
-from leaf_common.persistence.mechanism.abstract_persistence_mechanism \
-    import AbstractPersistenceMechanism
-from leaf_common.serialization.interface.file_extension_provider \
-    import FileExtensionProvider
+from leaf_common.persistence.mechanism.abstract_persistence_mechanism import AbstractPersistenceMechanism
+from leaf_common.serialization.interface.file_extension_provider import FileExtensionProvider
 
 
 class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
@@ -43,10 +40,10 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
         super().__init__(folder, base_name, must_exist)
 
         # Quiet some rather chatty logging from dependencies
-        logging.getLogger('boto').setLevel(logging.INFO)
-        logging.getLogger('s3transfer').setLevel(logging.INFO)
-        logging.getLogger('botocore').setLevel(logging.INFO)
-        logging.getLogger('urllib3').setLevel(logging.INFO)
+        getLogger('boto').setLevel(INFO)
+        getLogger('s3transfer').setLevel(INFO)
+        getLogger('botocore').setLevel(INFO)
+        getLogger('urllib3').setLevel(INFO)
 
         # Lazily import so client code can adopt at their own discretion
         # pylint: disable=import-outside-toplevel,import-error,no-name-in-module
@@ -89,7 +86,7 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
         try:
             self.s3_client.download_fileobj(Fileobj=read_to_fileobj,
                                             Bucket=self.bucket_base, Key=key)
-            logger: logging.Logger = logging.getLogger(__name__)
+            logger: Logger = getLogger(__name__)
             logger.info("S3 file read %s %s succeeded",
                         str(self.bucket_base), str(key))
             return_fileobj = 1
@@ -98,7 +95,7 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
             read_to_fileobj.seek(0, os.SEEK_SET)
 
         except botocore.exceptions.ClientError as exception:
-            logger: logging.Logger = logging.getLogger(__name__)
+            logger: Logger = getLogger(__name__)
             if exception.response['Error']['Code'] == "404" \
                     and not self.must_exist():
 
