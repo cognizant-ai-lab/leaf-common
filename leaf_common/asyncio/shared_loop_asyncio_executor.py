@@ -145,6 +145,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         result: Any = self._context.run(init_function)
         if isawaitable(result):
             if iscoroutine(result):
+                # DEF - what type do we actually expect here?
                 result.close()
             raise TypeError("initialize() requires a synchronous initializer")
 
@@ -173,8 +174,9 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         if not callable(function):
             raise TypeError("submit() requires a callable or awaitable")
 
-        return self._schedule(self._invoke(function, *args, **kwargs),
-                              self.get_function_name(function, submitter_id), False)
+        future: Future = self._schedule(self._invoke(function, *args, **kwargs),
+                                        self.get_function_name(function, submitter_id), False)
+        return future
 
     async def _invoke(self, function: Callable, *args: Any, **kwargs: Any) -> Any:
         """Call a callable on the loop, awaiting its result when it is awaitable.
@@ -243,7 +245,9 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             coroutine = awaitable
         else:
             coroutine = self._consume(awaitable)
-        return self._schedule(coroutine, self.get_function_name(awaitable, submitter_id), raise_exception)
+
+        future: Future = self._schedule(coroutine, self.get_function_name(awaitable, submitter_id), raise_exception)
+        return future
 
     def _create_task_in_context(self, coroutine: Coroutine, name: str,
                                 context: Context) -> Future:
@@ -487,7 +491,12 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :param inherited: The chain in effect where the submission was made
         :param holder: The one-slot list that will receive the task
         """
-        SharedLoopAsyncioExecutor._OWNING_ROOT.set(inherited + ((self, holder),))
+        # DEF - Typing of just what _OWNING_ROOT holds is very confusing here. Needs to be clarified
+        #       If possible we should specify as List of Dicts w/ descriptive keys instead of involving
+        #       nebulous tuples.
+        new_tuple: Tuple = ((self, holder),)
+        to_set: Tuple = inherited + new_tuple
+        SharedLoopAsyncioExecutor._OWNING_ROOT.set(to_set)
 
     def _owns_current_execution(self, tasks: List[Future]) -> bool:
         """Report whether the caller is running inside this executor's own work.
