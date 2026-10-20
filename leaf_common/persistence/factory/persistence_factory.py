@@ -20,7 +20,8 @@ See class comment for details.
 
 from typing import Tuple
 
-import logging
+from logging import getLogger
+from logging import Logger
 import os
 
 from leaf_common.persistence.factory.json_gzip_persistence import JsonGzipPersistence
@@ -152,7 +153,7 @@ class PersistenceFactory():
             # Default
             message: str = "Don't know serialization format '%s' for type '%s'." +\
                         " Using fallback %s."
-            logger: logging.Logger = logging.getLogger(__name__)
+            logger: Logger = getLogger(__name__)
             logger.warning(message, str(use_serialization_format),
                            str(self.object_type), str(self.fallback))
             persistence = self.create_persistence(use_persist_dir,
@@ -179,7 +180,7 @@ class PersistenceFactory():
             # None found for argument, use fallback
             message: str = "Don't know serialization format '%s' for type '%s'." + \
                         " Using fallback %s."
-            logger: logging.Logger = logging.getLogger(__name__)
+            logger: Logger = getLogger(__name__)
             logger.warning(message, str(serialization_format),
                            str(self.object_type), str(self.fallback))
             use_serialization_format = self.fallback
