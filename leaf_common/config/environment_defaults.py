@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
 
 from typing import Any
 from typing import Dict
@@ -31,8 +28,8 @@ class EnvironmentDefaults():
     this code.
     """
 
-    @classmethod
-    def set_environment_defaults(cls, default_dict: Dict[str, Any]) -> Dict[str, str]:
+    @staticmethod
+    def set_environment_defaults(default_dict: Dict[str, Any]) -> Dict[str, str]:
         """
         :param default_dict:  For each key in this dictionary, if there is
             not a corresponding key in the environ dictionary, then the

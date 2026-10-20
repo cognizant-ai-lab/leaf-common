@@ -14,14 +14,12 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
 
 from typing import Any
 
 from logging import Logger
-from os import getenv
+
+from leaf_common.utils.environment_util import EnvironmentUtil
 
 
 class ConditionalLogger:
@@ -37,7 +35,7 @@ class ConditionalLogger:
         :param logger: The wrapped logger to redirect write() calls to.
         """
         self.logger: Logger = logger
-        self._should_log: bool = getenv(env_var, "true").lower() == "true"
+        self._should_log: bool = EnvironmentUtil.getenv(env_var, "true").lower() == "true"
 
     def should_log(self) -> bool:
         """
