@@ -156,8 +156,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         Thread-local variables cannot provide request isolation on a shared loop.
         """
         self._check_loop()
-        # object, not Any: the value is only inspected, never used or returned.
-        result: object = self._context.run(init_function)
+        result: Any = self._context.run(init_function)
         if isawaitable(result):
             if iscoroutine(result):
                 result.close()
@@ -352,30 +351,26 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         root_holder: List[Future[Any]] = []
         context: Context = self._context.copy()
         context.run(self._push_owning_root, SharedLoopAsyncioExecutor._OWNING_ROOT.get(), root_holder)
+        future: Future[Any] = None
         try:
             # Whatever the host's task factory produced; need not be a Task.
-            task: Future[Any] = self._create_task_in_context(coroutine, name, context)
+            future = self._create_task_in_context(coroutine, name, context)
         except BaseException:
             coroutine.close()
             raise
-        root_holder.append(task)
+        root_holder.append(future)
 
         # By this point the factory has already scheduled the work. If we
         # cannot own the object it handed back, cancel it rather than let it
         # run untracked and outside shutdown.
         try:
-            return self._track_task(task, raise_exception)
+            return self._track_task(future, raise_exception)
         except BaseException:
             # Only the lookup is guarded. Calling inside the try would also
-            # swallow an AttributeError raised by cancel() itself.
+            # swallow an error raised by cancel() itself.
             # Future.cancel(msg=None) -> bool. Optional: it may not be there.
-            cancel: Optional[Callable[..., bool]] = None
-            try:
-                cancel = task.cancel
-            except AttributeError:
-                cancel = None
-            if callable(cancel):
-                cancel()
+            if isinstance(future, Future):
+                future.cancel()
             raise
 
     def _track_task(self, task: Future[Any], raise_exception: bool = False) -> Future[Any]:
@@ -425,7 +420,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             })
 
     @staticmethod
-    def get_task_name(task: Future[Any]) -> str:
+    def get_task_name(future: Future[Any]) -> str:
         """Name a tracked task for reporting, whatever the factory produced.
 
         get_name() is an asyncio.Task method. A Future-compatible factory
@@ -435,14 +430,10 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :return: The task's name, or its repr when it has none
         """
         # Task.get_name() -> str. Optional: a plain Future does not have one.
-        get_name: Optional[Callable[[], str]] = None
-        try:
-            get_name = task.get_name
-        except AttributeError:
-            get_name = None
-        if callable(get_name):
-            return get_name()
-        return repr(task)
+        if isinstance(future, Task):
+            task: Task[Any] = future
+            return task.get_name()
+        return repr(future)
 
     def get_tracked_tasks(self) -> List[Future[Any]]:
         """Report the tasks this executor owns, finished ones included.
