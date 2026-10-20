@@ -38,6 +38,7 @@ from typing import List
 from typing import Optional
 from typing import Set
 from typing import Tuple
+from typing import Union
 
 from leaf_common.asyncio.task_executor import TaskExecutor
 from leaf_common.utils.map import Map
@@ -121,7 +122,9 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         # Optional: None is the "not probed yet" state the probe below tests for.
         self._loop_takes_context: Optional[bool] = None
 
-    def get_event_loop(self) -> AbstractEventLoop:
+    # Optional: the docstring's "or None" is the type, now that the
+    # TaskExecutor interface says so too.
+    def get_event_loop(self) -> Optional[AbstractEventLoop]:
         """Return the borrowed loop, or None before start()."""
         return self._loop
 
@@ -145,7 +148,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         if self._shutdown and not allow_shutdown:
             raise RuntimeError("Cannot schedule new tasks after shutdown")
 
-    def initialize(self, init_function: Callable[..., Any]) -> None:
+    # Callable[[], Any]: context.run() below passes no arguments.
+    def initialize(self, init_function: Callable[[], Any]) -> None:
         """Run a synchronous initializer in the request context; propagate errors.
 
         ContextVar changes apply to future submissions, not the calling task.
@@ -160,7 +164,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             raise TypeError("initialize() requires a synchronous initializer")
 
     @staticmethod
-    def get_function_name(function: Any, submitter_id: str) -> str:
+    def get_function_name(function: Union[Callable[..., Any], Awaitable[Any]],
+                          submitter_id: str) -> str:
         """Build the same submitter-prefixed task names as leaf-common."""
         # Optional: None until one of the two branches below names the function.
         name: Optional[str] = None
@@ -171,7 +176,9 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             name = type(function).__name__
         return f"{submitter_id}:{name}" if submitter_id else name
 
-    def submit(self, submitter_id: str, function: Any, /, *args: Any, **kwargs: Any) -> Future[Any]:
+    # The union is what submit() accepts: anything else raises below.
+    def submit(self, submitter_id: str, function: Union[Callable[..., Any], Awaitable[Any]], /,
+               *args: Any, **kwargs: Any) -> Future[Any]:
         """Schedule a callable or awaitable; return its task, including its result.
 
         Sync callables run inline when the task runs, never in a worker thread.

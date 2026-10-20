@@ -17,8 +17,11 @@
 """
 See class comment for details.
 """
+from typing import Any
 from typing import Awaitable
 from typing import Callable
+from typing import Optional
+from typing import Union
 
 from asyncio import AbstractEventLoop
 from asyncio import Future
@@ -30,29 +33,31 @@ class TaskExecutor:
     of dynamic collection of asynchronous tasks in an event loop.
     """
 
-    def get_event_loop(self) -> AbstractEventLoop:
+    def get_event_loop(self) -> Optional[AbstractEventLoop]:
         """
-        :return: The AbstractEventLoop associated with this executor instance
+        :return: The AbstractEventLoop associated with this executor instance,
+                    or None before start() has bound one.
         """
         return None
 
-    def start(self):
+    def start(self) -> None:
         """
         Starts the executor.
         Do this separately from constructor for more control.
         """
         raise NotImplementedError
 
-    def initialize(self, init_function: Callable):
+    def initialize(self, init_function: Callable[[], Any]) -> None:
         """
         Call initializing function on executor event loop
         and wait for it to finish.
         Used for setting up executor tasks run-time state before any tasks are submitted.
-        :param init_function: function to call.
+        :param init_function: The no-argument function to call.
         """
         raise NotImplementedError
 
-    def submit(self, submitter_id: str, function, /, *args, **kwargs) -> Future:
+    def submit(self, submitter_id: str, function: Union[Callable[..., Any], Awaitable[Any]], /,
+               *args: Any, **kwargs: Any) -> Future[Any]:
         """
         Submit a function to be run in the executor.
         This call returns a Future handle after the work has been scheduled.
@@ -61,7 +66,7 @@ class TaskExecutor:
         the concrete executor's contract for result and exception handling.
 
         :param submitter_id: A string id denoting who is doing the submitting.
-        :param function: The function handle to run
+        :param function: The callable to run, or an awaitable to schedule
         :param /: Positional or keyword arguments.
             See https://realpython.com/python-asterisk-and-slash-special-parameters/
         :param args: args for the function
@@ -74,7 +79,8 @@ class TaskExecutor:
         """
         raise NotImplementedError
 
-    def create_task(self, awaitable: Awaitable, submitter_id: str, raise_exception: bool = False) -> Future:
+    def create_task(self, awaitable: Awaitable[Any], submitter_id: str,
+                    raise_exception: bool = False) -> Future[Any]:
         """
         Creates a task for the event loop given an Awaitable
         :param awaitable: The Awaitable to create and schedule a task for
@@ -86,7 +92,7 @@ class TaskExecutor:
         """
         raise NotImplementedError
 
-    def shutdown(self, wait: bool = True, *, cancel_futures: bool = False):
+    def shutdown(self, wait: bool = True, *, cancel_futures: bool = False) -> None:
         """
         Shuts down the executor.
         :param wait: True if we should wait for the background thread to join up.
