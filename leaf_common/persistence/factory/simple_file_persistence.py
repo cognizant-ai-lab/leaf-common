@@ -87,7 +87,7 @@ class SimpleFilePersistence(Persistence):
 
         return obj
 
-    def get_file_extension(self) -> object:
+    def get_file_extension(self) -> str | list[str]:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".",

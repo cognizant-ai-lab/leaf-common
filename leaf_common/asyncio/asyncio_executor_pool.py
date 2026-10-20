@@ -458,13 +458,13 @@ class AsyncioExecutorPool:
             use_executor_key: str = executor_key
             entry_dict: Dict[str, Any] = entry
             loop_state: str = entry_dict.get("loop_state", "unknown")
-            tasks: List[Dict[str, Any]] = entry_dict.get("tasks", [])
+            task_dicts: List[Dict[str, Any]] = entry_dict.get("tasks", [])
             lines.append(f"== executor {use_executor_key}  loop_state={loop_state}  "
-                         f"tasks={len(tasks)} ==")
+                         f"tasks={len(task_dicts)} ==")
             if loop_state == "probe_error":
                 lines.append(f"   probe_error: {entry_dict.get('error')}")
-            for task in tasks:
-                task_dict: Dict[str, Any] = task
+            for one_task_dict in task_dicts:
+                task_dict: Dict[str, Any] = one_task_dict
                 task_name: str = task_dict.get("name")
                 task_coro: str = task_dict.get("coro")
                 task_done: str = task_dict.get("done")
