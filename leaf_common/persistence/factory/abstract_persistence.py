@@ -14,10 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
-
 from typing import Any
 from typing import IO
 
@@ -98,7 +94,7 @@ class AbstractPersistence(Persistence):
                                              file_reference=file_reference)
         return path
 
-    def restore(self, file_reference: str = None) -> object:
+    def restore(self, file_reference: str = None) -> Any:
         """
         :param file_reference: An optional file reference string to override
                 any file settings fixed at construct time. Default of None

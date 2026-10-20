@@ -89,7 +89,7 @@ class AbstractEasyPersistence(Persistence):
                                                                    use_file_extension=use_file_extension,
                                                                    full_ref=full_ref)
 
-    def persist(self, obj: Any, file_reference: str = None) -> object:
+    def persist(self, obj: Any, file_reference: str = None) -> Any:
         """
         Persists the object passed in.
 
@@ -101,7 +101,7 @@ class AbstractEasyPersistence(Persistence):
         """
         return self.persistence.persist(obj, file_reference)
 
-    def restore(self, file_reference: str = None) -> object:
+    def restore(self, file_reference: str = None) -> Any:
         """
         :param file_reference: An optional file reference string to override
                 any file settings fixed at construct time. Default of None

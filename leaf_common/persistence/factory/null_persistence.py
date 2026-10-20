@@ -14,14 +14,9 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
-
 from typing import Any
 
-from leaf_common.persistence.interface.persistence \
-    import Persistence
+from leaf_common.persistence.interface.persistence import Persistence
 
 
 class NullPersistence(Persistence):
@@ -37,7 +32,7 @@ class NullPersistence(Persistence):
         :param file_reference: Ignored
         """
 
-    def restore(self, file_reference: str = None) -> object:
+    def restore(self, file_reference: str = None) -> Any:
         """
         :param file_reference: Ignored
         :return: a restored instance of a previously persisted object

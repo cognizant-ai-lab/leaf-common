@@ -14,9 +14,7 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
+from typing import Any
 
 from leaf_common.persistence.interface.persistor import Persistor
 from leaf_common.persistence.interface.restorer import Restorer
@@ -29,7 +27,7 @@ class Persistence(Persistor, Restorer, FileExtensionProvider):
     How and where entities are persisted are left as implementation details.
     """
 
-    def persist(self, obj: object, file_reference: str = None) -> object:
+    def persist(self, obj: object, file_reference: str = None) -> Any:
         """
         Persists the object passed in.
 
@@ -41,7 +39,7 @@ class Persistence(Persistor, Restorer, FileExtensionProvider):
         """
         raise NotImplementedError
 
-    def restore(self, file_reference: str = None) -> object:
+    def restore(self, file_reference: str = None) -> Any:
         """
         :param file_reference: The file reference to use when restoring.
                 Default is None, implying the file reference is up to the

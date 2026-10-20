@@ -14,10 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
-
 from typing import Any
 from typing import IO
 
@@ -64,7 +60,7 @@ class SimpleFilePersistence(Persistence):
 
         return file_name
 
-    def restore(self, file_reference: str = None) -> object:
+    def restore(self, file_reference: str = None) -> Any:
         """
         :param file_reference: The file reference to use when restoring.
         :return: an object from some persisted store

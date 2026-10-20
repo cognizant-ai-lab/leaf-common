@@ -14,9 +14,7 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
+from typing import Any
 
 
 class Persistor():
@@ -25,7 +23,7 @@ class Persistor():
     to some storage like a file, a database or S3.
     """
 
-    def persist(self, obj: object, file_reference: str = None) -> object:
+    def persist(self, obj: object, file_reference: str = None) -> Any:
         """
         Persists the object passed in.
 
