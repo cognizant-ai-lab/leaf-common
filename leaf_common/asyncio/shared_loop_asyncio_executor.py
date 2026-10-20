@@ -173,7 +173,11 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         except AttributeError:
             # Callables such as functools.partial carry no __qualname__.
             name = type(function).__name__
-        return f"{submitter_id}:{name}" if submitter_id else name
+
+        func_name: str = name
+        if submitter_id:
+            func_name = f"{submitter_id}:{name}"
+        return func_name
 
     # The union is what submit() accepts: anything else raises below.
     def submit(self, submitter_id: str, function: Union[Callable[..., Any], Awaitable[Any]], /,
@@ -183,16 +187,20 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         Sync callables run inline when the task runs, never in a worker thread.
         Callable results that are awaitable are awaited as well.
         """
+        future: Future[Any] = None
         self._check_loop()
         if isawaitable(function):
             if args or kwargs:
                 raise TypeError("Arguments cannot be supplied with an awaitable")
-            return self.create_task(function, submitter_id)
+            future = self.create_task(function, submitter_id)
+            return future
+
         if not callable(function):
             raise TypeError("submit() requires a callable or awaitable")
 
-        return self._schedule(self._invoke(function, *args, **kwargs),
-                              self.get_function_name(function, submitter_id), False)
+        future = self._schedule(self._invoke(function, *args, **kwargs),
+                                self.get_function_name(function, submitter_id), False)
+        return future
 
     async def _invoke(self, function: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         """Call a callable on the loop, awaiting its result when it is awaitable.
@@ -262,7 +270,11 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             coroutine = awaitable
         else:
             coroutine = self._consume(awaitable)
-        return self._schedule(coroutine, self.get_function_name(awaitable, submitter_id), raise_exception)
+
+        future: Future[Any] = self._schedule(coroutine,
+                                             self.get_function_name(awaitable, submitter_id),
+                                             raise_exception)
+        return future
 
     def _create_task_in_context(self, coroutine: Coroutine[Any, Any, Any], name: str,
                                 context: Context) -> Future[Any]:
@@ -282,6 +294,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :param context: The context the task should run in
         :return: Whatever the loop's create_task() produced
         """
+        future: Future[Any] = None
         if self._loop_takes_context is None:
             self._loop_takes_context = self._takes_context(self._loop.create_task)
             # Optional: get_task_factory() returns None when none is installed.
@@ -290,13 +303,15 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
                 self._loop_takes_context = (
                     self._loop_takes_context and self._takes_context(task_factory))
         if self._loop_takes_context:
-            return self._loop.create_task(coroutine, name=name, context=context)
+            future = self._loop.create_task(coroutine, name=name, context=context)
+            return future
 
         # The loop cannot be told which context to use, so enter it here.
         # asyncio.Task snapshots copy_context() at construction when given no
         # context, and that snapshot is taken inside this run(), so the task
         # still receives this context, ownership marker included.
-        return context.run(self._loop.create_task, coroutine, name=name)
+        future = context.run(self._loop.create_task, coroutine, name=name)
+        return future
 
     @staticmethod
     def _takes_context(create_task: Callable[..., Any]) -> bool:
@@ -332,7 +347,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :param awaitable: The awaitable to await
         :return: Whatever the awaitable produces
         """
-        return await awaitable
+        result: Any = await awaitable
+        return result
 
     def _schedule(self, coroutine: Coroutine[Any, Any, Any], name: str,
                   raise_exception: bool) -> Future[Any]:
@@ -364,7 +380,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         # cannot own the object it handed back, cancel it rather than let it
         # run untracked and outside shutdown.
         try:
-            return self._track_task(future, raise_exception)
+            future = self._track_task(future, raise_exception)
         except BaseException:
             # Only the lookup is guarded. Calling inside the try would also
             # swallow an error raised by cancel() itself.
@@ -372,6 +388,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             if isinstance(future, Future):
                 future.cancel()
             raise
+        return future
 
     def _track_task(self, task: Future[Any], raise_exception: bool = False) -> Future[Any]:
         """Take ownership of a task on this loop (without changing its context).
@@ -430,10 +447,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :return: The task's name, or its repr when it has none
         """
         # Task.get_name() -> str. Optional: a plain Future does not have one.
+        name: str = None
         if isinstance(future, Task):
             task: Task[Any] = future
-            return task.get_name()
-        return repr(future)
+            name = task.get_name()
+        else:
+            name = repr(future)
+        return name
 
     def get_tracked_tasks(self) -> List[Future[Any]]:
         """Report the tasks this executor owns, finished ones included.
