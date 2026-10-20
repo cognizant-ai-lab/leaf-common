@@ -328,29 +328,25 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         root_holder: List[Future] = []
         context: Context = self._context.copy()
         context.run(self._push_owning_root, SharedLoopAsyncioExecutor._OWNING_ROOT.get(), root_holder)
-        task: Future = None
+        future: Future = None
         try:
-            task = self._create_task_in_context(coroutine, name, context)
+            future = self._create_task_in_context(coroutine, name, context)
         except BaseException:
             coroutine.close()
             raise
-        root_holder.append(task)
+        root_holder.append(future)
 
         # By this point the factory has already scheduled the work. If we
         # cannot own the object it handed back, cancel it rather than let it
         # run untracked and outside shutdown.
         try:
-            return self._track_task(task, raise_exception)
+            return self._track_task(future, raise_exception)
         except BaseException:
             # Only the lookup is guarded. Calling inside the try would also
             # swallow an AttributeError raised by cancel() itself.
-            cancel: Any = None
-            try:
-                cancel = task.cancel
-            except AttributeError:
-                cancel = None
-            if callable(cancel):
-                cancel()
+            if isinstance(future, Task):
+                task: Task = future
+                task.cancel()
             raise
 
     def _track_task(self, task: Future, raise_exception: bool = False) -> Future:
@@ -398,7 +394,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             })
 
     @staticmethod
-    def get_task_name(task: Future) -> str:
+    def get_task_name(future: Future) -> str:
         """Name a tracked task for reporting, whatever the factory produced.
 
         get_name() is an asyncio.Task method. A Future-compatible factory
@@ -407,14 +403,10 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         :param task: The tracked Future to name
         :return: The task's name, or its repr when it has none
         """
-        get_name: Any = None
-        try:
-            get_name = task.get_name
-        except AttributeError:
-            get_name = None
-        if callable(get_name):
-            return get_name()
-        return repr(task)
+        if isinstance(future, Task):
+            task: Task = future
+            return task.get_name()
+        return repr(future)
 
     def get_tracked_tasks(self) -> List[Future]:
         """Report the tasks this executor owns, finished ones included.
