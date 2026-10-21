@@ -27,7 +27,7 @@ class TimeoutReachedException(Exception):
     """
 
     # Note: We use Any to break a tangle. We always expect a Timeout object.
-    def __init__(self, timeout: Any):
+    def __init__(self, timeout: Any) -> None:
         """
         Constructor.
         Store timeout information to pass it

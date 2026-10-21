@@ -36,7 +36,7 @@ class Resolver():
     where the module might be found in one of many packages.
     """
 
-    def __init__(self, packages: List[str] = None):
+    def __init__(self, packages: List[str] = None) -> None:
         """
         :param packages: The list of packages to search
         """
@@ -121,8 +121,10 @@ class Resolver():
                                              install_if_missing=install_if_missing,
                                              surface_import_errors=surface_import_errors)
 
+        # Try each configured package as a prefix until the module imports.
         for package in self.packages:
-            fully_qualified_module: str = f"{package}.{use_module_name}"
+            use_package: str = package
+            fully_qualified_module: str = f"{use_package}.{use_module_name}"
             found_module: Any = self.try_to_import_module(fully_qualified_module, messages,
                                                           install_if_missing=install_if_missing,
                                                           surface_import_errors=surface_import_errors)
@@ -131,7 +133,7 @@ class Resolver():
                 return found_module
 
             # check main package
-            check_main_package: Any = self.try_to_import_module(package, messages,
+            check_main_package: Any = self.try_to_import_module(use_package, messages,
                                                                 install_if_missing=install_if_missing,
                                                                 surface_import_errors=surface_import_errors)
             if check_main_package is not None:

@@ -18,6 +18,10 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import IO
+from typing import List
+
 import os
 
 from leaf_common.serialization.interface.serialization_format \
@@ -30,10 +34,10 @@ class ChainedSerializationFormat(SerializationFormat):
     serialization and deserialization through multiple stages.
     """
 
-    def __init__(self):
-        self.forward_chain = []
+    def __init__(self) -> None:
+        self.forward_chain: List[SerializationFormat] = []
 
-    def add_serialization_format(self, serialization_format):
+    def add_serialization_format(self, serialization_format: SerializationFormat) -> None:
         """
         :param serialization_format: The SerializationFormat to be
                 added to the chain
@@ -44,7 +48,7 @@ class ChainedSerializationFormat(SerializationFormat):
 
         self.forward_chain.append(serialization_format)
 
-    def from_object(self, obj):
+    def from_object(self, obj: Any) -> IO:
         """
         :param obj: The object to serialize
         :return: an open file-like object for streaming the serialized
@@ -52,16 +56,18 @@ class ChainedSerializationFormat(SerializationFormat):
                 of the data (ala seek to the beginning).
         """
 
-        fileobj = None
+        fileobj: IO = None
 
         if len(self.forward_chain) > 0:
 
-            last_buffer = obj
+            last_buffer: Any = obj
 
+            # Feed each stage's output into the next one, front to back.
             for serialization_format in self.forward_chain:
+                use_format: SerializationFormat = serialization_format
 
                 # Convert the most recent buffer to a fileobj
-                fileobj = serialization_format.from_object(last_buffer)
+                fileobj = use_format.from_object(last_buffer)
 
                 # If the previous buffer was a file-like object, close it.
                 if hasattr(last_buffer, 'close'):
@@ -72,7 +78,7 @@ class ChainedSerializationFormat(SerializationFormat):
         fileobj.seek(0, os.SEEK_SET)
         return fileobj
 
-    def to_object(self, fileobj):
+    def to_object(self, fileobj: IO) -> Any:
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open
@@ -85,16 +91,18 @@ class ChainedSerializationFormat(SerializationFormat):
         :return: the deserialized object
         """
 
-        obj = None
+        obj: Any = None
 
         if len(self.forward_chain) > 0:
 
-            last_buffer = fileobj
+            last_buffer: Any = fileobj
 
+            # Unwind the chain back to front, each stage consuming the last result.
             for serialization_format in reversed(self.forward_chain):
+                use_format: SerializationFormat = serialization_format
 
                 # Convert the most recent buffer to a fileobj
-                obj = serialization_format.to_object(last_buffer)
+                obj = use_format.to_object(last_buffer)
 
                 # If the previous buffer was a file-like object, close it.
                 if last_buffer is not None and \
@@ -106,16 +114,18 @@ class ChainedSerializationFormat(SerializationFormat):
 
         return obj
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the
                 serialization format, including the ".".
         """
 
-        extension = ""
+        extension: str = ""
 
         if len(self.forward_chain) > 0:
+            # Concatenate every stage's extension, front to back.
             for serialization_format in self.forward_chain:
-                extension += serialization_format.get_file_extension()
+                use_format: SerializationFormat = serialization_format
+                extension += use_format.get_file_extension()
 
         return extension

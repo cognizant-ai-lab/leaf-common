@@ -20,12 +20,20 @@ See class comment for details.
 
 from leaf_common.persistence.factory.abstract_persistence \
     import AbstractPersistence
+from leaf_common.persistence.interface.persistence_mechanism \
+    import PersistenceMechanism
 from leaf_common.serialization.format.chained_serialization_format \
     import ChainedSerializationFormat
 from leaf_common.serialization.format.buffered_gzip_serialization_format \
     import BufferedGzipSerializationFormat
 from leaf_common.serialization.format.json_serialization_format \
     import JsonSerializationFormat
+from leaf_common.serialization.interface.serialization_format \
+    import SerializationFormat
+from leaf_common.serialization.interface.dictionary_converter \
+    import DictionaryConverter
+from leaf_common.serialization.interface.reference_pruner \
+    import ReferencePruner
 
 
 class JsonGzipPersistence(AbstractPersistence):
@@ -35,8 +43,9 @@ class JsonGzipPersistence(AbstractPersistence):
     """
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
-    def __init__(self, persistence_mechanism, use_file_extension=None,
-                 reference_pruner=None, dictionary_converter=None, pretty=True):
+    def __init__(self, persistence_mechanism: PersistenceMechanism, use_file_extension: str = None,
+                 reference_pruner: ReferencePruner = None,
+                 dictionary_converter: DictionaryConverter = None, pretty: bool = True) -> None:
         """
         Constructor
 
@@ -58,7 +67,7 @@ class JsonGzipPersistence(AbstractPersistence):
 
         super().__init__(persistence_mechanism,
                          use_file_extension=use_file_extension)
-        chained = ChainedSerializationFormat()
+        chained: ChainedSerializationFormat = ChainedSerializationFormat()
         chained.add_serialization_format(JsonSerializationFormat(
             reference_pruner=reference_pruner,
             dictionary_converter=dictionary_converter,
@@ -66,12 +75,12 @@ class JsonGzipPersistence(AbstractPersistence):
         chained.add_serialization_format(BufferedGzipSerializationFormat(
             persistence_mechanism.folder,
             persistence_mechanism.base_name))
-        self._serialization = chained
+        self._serialization: SerializationFormat = chained
 
-    def get_serialization_format(self):
+    def get_serialization_format(self) -> SerializationFormat:
         return self._serialization
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".",

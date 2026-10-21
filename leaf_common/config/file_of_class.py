@@ -26,7 +26,7 @@ class FileOfClass:
             FileOfClass(__file__, path_to_basis="../reacharound").
     """
 
-    def __init__(self, source_file: str, path_to_basis: str = "."):
+    def __init__(self, source_file: str, path_to_basis: str = ".") -> None:
         """
         Constructor
 

@@ -14,9 +14,7 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
+from typing import Any
 
 
 class Restorer():
@@ -25,7 +23,7 @@ class Restorer():
     from some storage like a file, a database or S3.
     """
 
-    def restore(self, file_reference: str = None):
+    def restore(self, file_reference: str = None) -> Any:
         """
         :param file_reference: The file reference to use when restoring.
                 Default is None, implying the file reference is up to the

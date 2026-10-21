@@ -14,8 +14,11 @@
 #
 # END COPYRIGHT
 
+from typing import Any
+from typing import Type
 
-def interface(cls):
+
+def interface(cls: Type[Any]) -> Type[Any]:
     """
     Purely annotational class decorator that indicates a class is an interface.
     """

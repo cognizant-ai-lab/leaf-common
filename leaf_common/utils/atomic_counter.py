@@ -25,14 +25,14 @@ class AtomicCounter:
     A class for thread-safe increment/decrement of a counter shared among threads.
     """
 
-    def __init__(self, value: int = 0):
+    def __init__(self, value: int = 0) -> None:
         """
         Constructor
 
         :param value: The initial value of the counter. Default is 0.
         """
-        self._value = int(value)
-        self._lock = threading.Lock()
+        self._value: int = int(value)
+        self._lock: threading.Lock = threading.Lock()
 
     def increment(self, step: int = 1) -> int:
         """

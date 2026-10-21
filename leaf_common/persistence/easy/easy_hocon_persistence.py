@@ -22,6 +22,8 @@ from leaf_common.persistence.easy.abstract_easy_persistence \
     import AbstractEasyPersistence
 from leaf_common.serialization.format.serialization_formats \
     import SerializationFormats
+from leaf_common.serialization.interface.dictionary_converter \
+    import DictionaryConverter
 
 
 class EasyHoconPersistence(AbstractEasyPersistence):
@@ -33,9 +35,9 @@ class EasyHoconPersistence(AbstractEasyPersistence):
     """
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
-    def __init__(self, base_name=None, folder=".", must_exist=False,
-                 object_type="dict", dictionary_converter=None,
-                 use_file_extension=None, full_ref=None):
+    def __init__(self, base_name: str = None, folder: str = ".", must_exist: bool = False,
+                 object_type: str = "dict", dictionary_converter: DictionaryConverter = None,
+                 use_file_extension: str = None, full_ref: str = None) -> None:
         """
         Constructor.
 

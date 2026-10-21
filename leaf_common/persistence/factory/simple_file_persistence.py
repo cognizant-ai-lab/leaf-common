@@ -14,9 +14,8 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
+from typing import Any
+from typing import IO
 
 import io
 import os
@@ -32,14 +31,14 @@ class SimpleFilePersistence(Persistence):
     saves/restores an object to a file using a SerializationFormat object.
     """
 
-    def __init__(self, serialization_format: SerializationFormat):
+    def __init__(self, serialization_format: SerializationFormat) -> None:
         """
         Constructor.
 
         :param serialization_format: A means of serializing an object by way of a
                           SerializationFormat implementation
         """
-        self.serialization_format = serialization_format
+        self.serialization_format: SerializationFormat = serialization_format
 
     def persist(self, obj: object, file_reference: str = None) -> str:
         """
@@ -48,27 +47,31 @@ class SimpleFilePersistence(Persistence):
         :param obj: an object to persist
         :param file_reference: The file reference to use when persisting.
         """
-        file_name = self.affix_file_extension(file_reference)
+        file_name: str = self.affix_file_extension(file_reference)
 
+        buffer_fileobj: IO
         with self.serialization_format.from_object(obj) as buffer_fileobj:
-            writestyle = 'wb'
+            writestyle: str = 'wb'
             if isinstance(buffer_fileobj, io.StringIO):
                 writestyle = 'w'
+            dest_fileobj: IO
             with open(file_name, writestyle) as dest_fileobj:
                 shutil.copyfileobj(buffer_fileobj, dest_fileobj)
 
         return file_name
 
-    def restore(self, file_reference: str = None) -> object:
+    def restore(self, file_reference: str = None) -> Any:
         """
         :param file_reference: The file reference to use when restoring.
         :return: an object from some persisted store
         """
-        file_name = self.affix_file_extension(file_reference)
+        file_name: str = self.affix_file_extension(file_reference)
 
-        obj = None
+        obj: Any = None
+        buffer_fileobj: io.BytesIO
         with io.BytesIO() as buffer_fileobj:
 
+            source_fileobj: IO
             with open(file_name, 'rb') as source_fileobj:
                 shutil.copyfileobj(source_fileobj, buffer_fileobj)
 
@@ -80,7 +83,7 @@ class SimpleFilePersistence(Persistence):
 
         return obj
 
-    def get_file_extension(self) -> object:
+    def get_file_extension(self) -> str | list[str]:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".",
@@ -100,10 +103,10 @@ class SimpleFilePersistence(Persistence):
             raise ValueError("file_reference cannot be None")
 
         # Figure out the FileExtensionProvider to use
-        extension = self.serialization_format.get_file_extension()
+        extension: str = self.serialization_format.get_file_extension()
 
         # Add the file extension if necessary
-        use_ref = file_reference
+        use_ref: str = file_reference
         if not file_reference.endswith(extension):
             use_ref = file_reference + extension
 

@@ -18,6 +18,7 @@
 See class comment for details.
 """
 
+from typing import List
 from typing import Tuple
 
 
@@ -32,14 +33,14 @@ class BytesDecoder:
     meaningless if the input was not actually text or used an unexpected encoding.
     """
 
-    COMMON_ENCODINGS = [
+    COMMON_ENCODINGS: List[str] = [
         "utf-8",
         "cp1252",
         "latin-1"
     ]
 
     @staticmethod
-    def decode_bytes(bytes_data, source_name: str = "") -> Tuple[str, str]:
+    def decode_bytes(bytes_data: bytes, source_name: str = "") -> Tuple[str, str]:
         """
         Decodes the given bytes data to a string by sequentially trying the encodings listed
         in :attr:`COMMON_ENCODINGS` and returning as soon as one succeeds.
@@ -53,9 +54,11 @@ class BytesDecoder:
         :param source_name: Optional name of the source of the bytes data, used for logging purposes.
         :return: The tuple of decoded string and the encoding used for decoding.
         """
+        # Try each candidate encoding in order, returning on the first that works.
         for encoding in BytesDecoder.COMMON_ENCODINGS:
+            use_encoding: str = encoding
             try:
-                return bytes_data.decode(encoding), encoding
+                return bytes_data.decode(use_encoding), use_encoding
             except UnicodeDecodeError:
                 continue
 

@@ -14,15 +14,17 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
-import logging
+from typing import Any
+from typing import IO
+
+from logging import getLogger
+from logging import INFO
+from logging import Logger
 import os
 
 from leaf_common.logging.sensitive_logger import SensitiveLogger
-from leaf_common.persistence.mechanism.abstract_persistence_mechanism \
-    import AbstractPersistenceMechanism
+from leaf_common.persistence.mechanism.abstract_persistence_mechanism import AbstractPersistenceMechanism
+from leaf_common.serialization.interface.file_extension_provider import FileExtensionProvider
 
 
 class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
@@ -32,27 +34,27 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
     """
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
-    def __init__(self, folder, base_name, must_exist=True,
-                 bucket_base="", key_base=""):
+    def __init__(self, folder: str, base_name: str, must_exist: bool = True,
+                 bucket_base: str = "", key_base: str = "") -> None:
 
         super().__init__(folder, base_name, must_exist)
 
         # Quiet some rather chatty logging from dependencies
-        logging.getLogger('boto').setLevel(logging.INFO)
-        logging.getLogger('s3transfer').setLevel(logging.INFO)
-        logging.getLogger('botocore').setLevel(logging.INFO)
-        logging.getLogger('urllib3').setLevel(logging.INFO)
+        getLogger('boto').setLevel(INFO)
+        getLogger('s3transfer').setLevel(INFO)
+        getLogger('botocore').setLevel(INFO)
+        getLogger('urllib3').setLevel(INFO)
 
         # Lazily import so client code can adopt at their own discretion
         # pylint: disable=import-outside-toplevel,import-error,no-name-in-module
         import boto3
-        self.s3_client = boto3.client('s3')
-        self.bucket_base = bucket_base
-        self.key_base = key_base
+        self.s3_client: Any = boto3.client('s3')
+        self.bucket_base: str = bucket_base
+        self.key_base: str = key_base
 
-    def open_source_for_read(self, read_to_fileobj,
-                             file_extension_provider=None,
-                             file_reference: str = None):
+    def open_source_for_read(self, read_to_fileobj: IO,
+                             file_extension_provider: FileExtensionProvider = None,
+                             file_reference: str = None) -> Any:
         """
         :param read_to_fileobj: A fileobj into which we will put all data
                             read in from the persisted instance.
@@ -78,13 +80,13 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
         # pylint: disable=import-outside-toplevel,import-error,no-name-in-module
         import botocore
 
-        key = self.get_key_name(file_extension_provider, file_reference)
+        key: str = self.get_key_name(file_extension_provider, file_reference)
 
-        return_fileobj = None
+        return_fileobj: Any = None
         try:
             self.s3_client.download_fileobj(Fileobj=read_to_fileobj,
                                             Bucket=self.bucket_base, Key=key)
-            logger = logging.getLogger(__name__)
+            logger: Logger = getLogger(__name__)
             logger.info("S3 file read %s %s succeeded",
                         str(self.bucket_base), str(key))
             return_fileobj = 1
@@ -93,7 +95,7 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
             read_to_fileobj.seek(0, os.SEEK_SET)
 
         except botocore.exceptions.ClientError as exception:
-            logger = logging.getLogger(__name__)
+            logger: Logger = getLogger(__name__)
             if exception.response['Error']['Code'] == "404" \
                     and not self.must_exist():
 
@@ -104,7 +106,7 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
                 return_fileobj = None
             else:
                 # Something else has gone wrong
-                sensitive_logger = SensitiveLogger(logger)
+                sensitive_logger: SensitiveLogger = SensitiveLogger(logger)
                 sensitive_logger.error("S3 file read %s %s some other error happened %s",
                                        str(self.bucket_base),
                                        str(key),
@@ -113,9 +115,9 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
 
         return return_fileobj
 
-    def open_dest_for_write(self, send_from_fileobj,
-                            file_extension_provider=None,
-                            file_reference: str = None):
+    def open_dest_for_write(self, send_from_fileobj: IO,
+                            file_extension_provider: FileExtensionProvider = None,
+                            file_reference: str = None) -> IO:
         """
         :param send_from_fileobj: A fileobj from which we will get all data
                             written out to the persisted instance.
@@ -130,9 +132,9 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
                 has been filled with data by this call.
         """
 
-        retval = None
+        retval: Any = None
 
-        key = self.get_key_name(file_extension_provider, file_reference)
+        key: str = self.get_key_name(file_extension_provider, file_reference)
 
         self.s3_client.upload_fileobj(Fileobj=send_from_fileobj,
                                       Bucket=self.bucket_base, Key=key)
@@ -142,7 +144,7 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
 
         return retval
 
-    def get_key_name(self, file_extension_provider, file_reference: str = None):
+    def get_key_name(self, file_extension_provider: FileExtensionProvider, file_reference: str = None) -> str:
         """
         :param file_extension_provider:
                 An implementation of the FileExtensionProvider interface
@@ -163,21 +165,21 @@ class S3FilePersistenceMechanism(AbstractPersistenceMechanism):
         if file_reference is not None:
             raise ValueError("Using file_reference with S3FilePersistenceMechanism is not yet supported")
 
-        key_file = self.base_name
+        key_file: str = self.base_name
         if file_extension_provider is not None:
-            file_extension = file_extension_provider.get_file_extension()
+            file_extension: str = file_extension_provider.get_file_extension()
             key_file = key_file + file_extension
 
         # Use only the last piece of the path passed in at construct time
-        key_experiment = os.path.basename(self.folder)
+        key_experiment: str = os.path.basename(self.folder)
         if len(key_experiment) == 0:
 
             # Got an empty experiment name. It just means folder
             # ended with /. Go up one for the directory. If we do not,
             # there can be collisions.
-            dirname = os.path.dirname(self.folder)
+            dirname: str = os.path.dirname(self.folder)
             key_experiment = os.path.basename(dirname)
 
-        key_name = os.path.join(self.key_base, key_experiment, key_file)
+        key_name: str = os.path.join(self.key_base, key_experiment, key_file)
 
         return key_name

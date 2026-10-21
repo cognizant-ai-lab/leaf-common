@@ -18,6 +18,10 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import Dict
+from typing import List
+
 from logging import getLogger
 from logging import Logger
 
@@ -44,7 +48,7 @@ class CanonicalMultiConfigParser(Parser):
     where the ordering of what is parsed matters.
     """
 
-    def __init__(self, name_key: str = "name"):
+    def __init__(self, name_key: str = "name") -> None:
         """
         Constructor.
 
@@ -54,7 +58,7 @@ class CanonicalMultiConfigParser(Parser):
         """
         self.name_key: str = name_key
 
-    def parse(self, input_obj):
+    def parse(self, input_obj: Any) -> List[Dict[str, Any]]:
         """
         :param input_obj: the string (or other object) to parse
 
@@ -66,12 +70,12 @@ class CanonicalMultiConfigParser(Parser):
 
         # Parse the value to be in a cannonical form of an array of
         # configuration dictionaries
-        config_list = []
-        new_config_list = self.parse_one_value(None, input_obj, config_list)
+        config_list: List[Dict[str, Any]] = []
+        new_config_list: List[Dict[str, Any]] = self.parse_one_value(None, input_obj, config_list)
 
         return new_config_list
 
-    def parse_one_value(self, key, value, config_list):
+    def parse_one_value(self, key: str, value: Any, config_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         Parses a single config value and adds the entry
         to the config_list.
@@ -91,7 +95,7 @@ class CanonicalMultiConfigParser(Parser):
             # Assume this is the name of a config
             # to be used with its default configuration.
             # Add a key for the string with a None value to indicate this.
-            config_dict = {
+            config_dict: Dict[str, Any] = {
                 self.name_key: value
             }
             config_list.append(config_dict)
@@ -100,13 +104,15 @@ class CanonicalMultiConfigParser(Parser):
             # The value is a list
             # Parse each component of the list as if it were
             # its own value to recurse on.
+            # Recurse on each element, threading the working config_list through.
             for sub_value in value:
-                config_list = self.parse_one_value(key, sub_value, config_list)
+                use_sub_value: Any = sub_value
+                config_list = self.parse_one_value(key, use_sub_value, config_list)
 
         elif isinstance(value, dict):
 
             # The value is a dictionary.
-            use_key = key
+            use_key: str = key
             if use_key is None:
                 # Look to see if the name of the config is embedded
                 # within the config dictionary for it
@@ -115,15 +121,17 @@ class CanonicalMultiConfigParser(Parser):
             if use_key is None:
                 # Assume the dictionary is a key-value pair
                 # of config name -> config for that config
+                # Each key names a config and its value is that config's contents.
                 for sub_key in value.keys():
-                    sub_value = value.get(sub_key)
+                    use_sub_key: str = sub_key
+                    sub_value: Any = value.get(use_sub_key)
                     # Recurse.
-                    config_list = self.parse_one_value(sub_key, sub_value,
+                    config_list = self.parse_one_value(use_sub_key, sub_value,
                                                        config_list)
             else:
                 # The dictionary is the config for the given key.
                 # Add an entry to the config_list for this pair.
-                config_dict = {
+                config_dict: Dict[str, Any] = {
                     self.name_key: use_key
                 }
                 config_dict.update(value)

@@ -18,6 +18,9 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import IO
+
 import gzip
 import os
 
@@ -34,7 +37,7 @@ class GzipSerializationFormat(SerializationFormat):
     to_object() is decompression.
     """
 
-    def __init__(self, folder, base_name):
+    def __init__(self, folder: str, base_name: str) -> None:
         """
         Constructor
 
@@ -45,21 +48,21 @@ class GzipSerializationFormat(SerializationFormat):
         :param base_name: base file name for persistence
         """
 
-        self.folder = folder
-        self.base_name = base_name
+        self.folder: str = folder
+        self.base_name: str = base_name
 
-    def from_object(self, obj):
+    def from_object(self, obj: Any) -> IO:
         """
         :param obj: The object to serialize
         :return: an open file-like object for streaming the serialized
                 bytes.  Any file cursors should be set to the beginning
                 of the data (ala seek to the beginning).
         """
-        fileobj = self._open_gzfileobj(obj, 'wb')
+        fileobj: IO = self._open_gzfileobj(obj, 'wb')
         fileobj.seek(0, os.SEEK_SET)
         return fileobj
 
-    def to_object(self, fileobj):
+    def to_object(self, fileobj: IO) -> Any:
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open
@@ -71,14 +74,14 @@ class GzipSerializationFormat(SerializationFormat):
                 fileobj is left to the caller.
         :return: the deserialized object
         """
-        obj = None
+        obj: Any = None
 
         if fileobj is not None:
             obj = self._open_gzfileobj(fileobj, 'rb')
 
         return obj
 
-    def _open_gzfileobj(self, fileobj, mode):
+    def _open_gzfileobj(self, fileobj: IO, mode: str) -> gzip.GzipFile:
         """
         :param fileobj: a fileobj receiving data from gzip
         :param mode: string representing how gzip should be confugured
@@ -90,21 +93,21 @@ class GzipSerializationFormat(SerializationFormat):
         """
         # Even if not writing to a file, gzip uses the path as a header
         # element.
-        filename = self.get_path()
+        filename: str = self.get_path()
 
-        gzfileobj = gzip.GzipFile(filename=str(filename), mode=mode,
-                                  fileobj=fileobj)
+        gzfileobj: gzip.GzipFile = gzip.GzipFile(filename=str(filename), mode=mode,
+                                                 fileobj=fileobj)
 
         return gzfileobj
 
-    def get_path(self):
+    def get_path(self) -> str:
         """
         :return: the full path of the entity to store
         """
-        path = os.path.join(self.folder, self.base_name)
+        path: str = os.path.join(self.folder, self.base_name)
         return path
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".".
