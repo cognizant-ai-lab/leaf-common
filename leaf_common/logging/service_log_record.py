@@ -16,23 +16,25 @@
 # END COPYRIGHT
 
 from typing import Any
+from typing import Callable
 from typing import Dict
 
 from copy import copy
 from logging import getLogRecordFactory
+from logging import LogRecord
 from logging import setLogRecordFactory
 from threading import current_thread
 from threading import Thread
 
 
 # Set up some global variables to allow cascading of LogRecord factories
-_SERVICE_OLD_FACTORY = None
-_DEFAULT_EXTRA_LOGGING_FIELDS_DICT = {}
+_SERVICE_OLD_FACTORY: Callable = None
+_DEFAULT_EXTRA_LOGGING_FIELDS_DICT: Dict[str, Any] = {}
 
-_SERVICE_LOGGING_FIELDS_KEY = "service_logging_fields_dict"
+_SERVICE_LOGGING_FIELDS_KEY: str = "service_logging_fields_dict"
 
 
-def _service_log_record_factory(*args, **kwargs):
+def _service_log_record_factory(*args: Any, **kwargs: Any) -> LogRecord:
     """
     Expected entry point for standard Python logging system to be
     used with the ServiceLogRecord class below.
@@ -47,19 +49,19 @@ def _service_log_record_factory(*args, **kwargs):
     """
 
     # Use the class variable to get a handle on the old LogRecord factory
-    log_record = _SERVICE_OLD_FACTORY(*args, **kwargs)
+    log_record: LogRecord = _SERVICE_OLD_FACTORY(*args, **kwargs)
 
     # Get the current threads attributes as a dictionary
     my_current_thread: Thread = current_thread()
-    thread_dict = my_current_thread.__dict__
+    thread_dict: Dict[str, Any] = my_current_thread.__dict__
 
     # Find the logging fields dictionary from the current thread
-    logging_fields_dict = _DEFAULT_EXTRA_LOGGING_FIELDS_DICT
+    logging_fields_dict: Dict[str, Any] = _DEFAULT_EXTRA_LOGGING_FIELDS_DICT
     if _SERVICE_LOGGING_FIELDS_KEY in thread_dict:
         logging_fields_dict = thread_dict[_SERVICE_LOGGING_FIELDS_KEY]
 
     # Get the current LogRecord as a dictionary
-    log_record_dict = log_record.__dict__
+    log_record_dict: Dict[str, Any] = log_record.__dict__
 
     # Update the record dict with the key/value pairs set up
     # in the logging fields dict
@@ -83,7 +85,7 @@ class ServiceLogRecord():
     level.  They can be anything the client code wants.
     """
 
-    def __init__(self, logging_fields_dict: Dict[str, Any] = None):
+    def __init__(self, logging_fields_dict: Dict[str, Any] = None) -> None:
         """
         Constructor.
 
@@ -110,7 +112,7 @@ class ServiceLogRecord():
         thread_dict[_SERVICE_LOGGING_FIELDS_KEY] = self.thread_local_dict
 
     @classmethod
-    def set_up_record_factory(cls, default_extra_logging_fields=None):
+    def set_up_record_factory(cls, default_extra_logging_fields: Dict[str, Any] = None) -> None:
         """
         Called early on in the lifetime of a service to redirect the standard
         Python LogRecord creation to our _record_factory() call at the top
@@ -135,16 +137,16 @@ class ServiceLogRecord():
         setLogRecordFactory(_service_log_record_factory)
 
     @classmethod
-    def get_default_extra_logging_fields(cls):
+    def get_default_extra_logging_fields(cls) -> Dict[str, Any]:
         """
         :return: The dictionary previously passed into set_up_record_factory()
         """
         # pylint: disable=global-statement,global-variable-not-assigned
         global _DEFAULT_EXTRA_LOGGING_FIELDS_DICT       # noqa: F824
-        default_extra_logging_fields = copy(_DEFAULT_EXTRA_LOGGING_FIELDS_DICT)
+        default_extra_logging_fields: Dict[str, Any] = copy(_DEFAULT_EXTRA_LOGGING_FIELDS_DICT)
         return default_extra_logging_fields
 
-    def set_logging_fields_dict(self, logging_fields_dict):
+    def set_logging_fields_dict(self, logging_fields_dict: Dict[str, Any]) -> None:
         """
         Called once when a service request is initiated.
 

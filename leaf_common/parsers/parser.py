@@ -18,6 +18,8 @@
 See class comment for details.
 """
 
+from typing import Any
+
 
 class Parser():
     """
@@ -25,7 +27,7 @@ class Parser():
     object into some other construct
     """
 
-    def parse(self, input_obj):
+    def parse(self, input_obj: Any) -> Any:
         """
         :param input_obj: the string (or other object) to parse
 

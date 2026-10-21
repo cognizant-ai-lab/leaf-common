@@ -24,6 +24,8 @@ from typing import Optional
 
 from asyncio import AbstractEventLoop
 from asyncio import Future
+from asyncio import Task
+
 from types import FrameType
 
 from leaf_common.asyncio.shared_loop_asyncio_executor import SharedLoopAsyncioExecutor
@@ -197,9 +199,21 @@ class SharedLoopAsyncioExecutorPool:
         """
         self._prune_retired()
         return {
-            "used": {"executors": len(self.pool_used), "work_threads": 0, "threads_running": 0},
-            "available": {"executors": 0, "work_threads": 0, "threads_running": 0},
-            "retiring": {"executors": len(self.pool_retiring), "work_threads": 0, "threads_running": 0},
+            "used": {
+                "executors": len(self.pool_used),
+                "work_threads": 0,
+                "threads_running": 0
+            },
+            "available": {
+                "executors": 0,
+                "work_threads": 0,
+                "threads_running": 0
+            },
+            "retiring": {
+                "executors": len(self.pool_retiring),
+                "work_threads": 0,
+                "threads_running": 0
+            },
         }
 
     # per_loop_timeout_s is accepted for signature parity; there is no
@@ -273,8 +287,8 @@ class SharedLoopAsyncioExecutorPool:
             return repr(coro)
 
     @staticmethod
-    def _describe_stack(task: Future[Any]) -> List[Dict[str, Any]]:
-        """Render a tracked task's suspended stack, when it can provide one.
+    def _describe_stack(future: Future[Any]) -> List[Dict[str, Any]]:
+        """Render a tracked Future's suspended stack, when it can provide one.
 
         get_stack() is an asyncio.Task method; a Future-compatible factory
         result need not have it, in which case there is no stack to show.
@@ -284,21 +298,22 @@ class SharedLoopAsyncioExecutorPool:
         """
         # Task.get_stack(*, limit=None) -> List[FrameType]. Optional: a
         # plain Future does not have one.
-        get_stack: Optional[Callable[..., List[FrameType]]] = None
-        try:
-            get_stack = task.get_stack
-        except AttributeError:
-            get_stack = None
-        if not callable(get_stack):
+        task_frames: List[FrameType] = None
+        if isinstance(future, Task):
+            task: Task[Any] = future
+            task_frames = task.get_stack()
+
+        if task_frames is None:
             return []
 
         frames: List[Dict[str, Any]] = []
         # One entry per suspended frame, outermost first, as get_stack() returns them.
         frame: Optional[FrameType] = None
-        for frame in get_stack():
-            frames.append({"file": frame.f_code.co_filename,
-                           "line": frame.f_lineno,
-                           "func": frame.f_code.co_name})
+        for frame in task_frames:
+            one_frame: FrameType = frame
+            frames.append({"file": one_frame.f_code.co_filename,
+                           "line": one_frame.f_lineno,
+                           "func": one_frame.f_code.co_name})
         return frames
 
     def _check_owned(self, executor: SharedLoopAsyncioExecutor) -> None:
@@ -371,4 +386,5 @@ class SharedLoopAsyncioExecutorPool:
                 for frame in task.get("stack", []):
                     lines.append(f"      File \"{frame['file']}\", "
                                  f"line {frame['line']}, in {frame['func']}")
-        return "\n".join(lines)
+        joined: str = "\n".join(lines)
+        return joined

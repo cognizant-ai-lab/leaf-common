@@ -33,8 +33,8 @@ class EasyTxtPersistence(AbstractEasyPersistence):
     """
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
-    def __init__(self, base_name=None, folder=".", must_exist=False,
-                 object_type="string", use_file_extension=None):
+    def __init__(self, base_name: str = None, folder: str = ".", must_exist: bool = False,
+                 object_type: str = "string", use_file_extension: str = None) -> None:
         """
         Constructor.
 

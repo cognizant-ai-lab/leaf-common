@@ -38,7 +38,7 @@ class StreamToLogger(StringIO):
     https://stackoverflow.com/questions/11124093/redirect-python-print-output-to-logger/11124247
     """
 
-    def __init__(self, logger: Logger, log_level: int = INFO):
+    def __init__(self, logger: Logger, log_level: int = INFO) -> None:
         """
         Constructor.
 
@@ -56,7 +56,7 @@ class StreamToLogger(StringIO):
         self.last_logged: List[str] = []
         self.last_num_lines_logged: List[int] = []
 
-    def write(self, in_string: str):
+    def write(self, in_string: str) -> int:
         """
         Write the string s to the stream and return the number of characters
         written.  The "stream" in this case is really any set of logging
@@ -106,7 +106,7 @@ class StreamToLogger(StringIO):
         # If multiline, write each line separately with its own log message
         line: str = None
         for line in lines:
-            line_to_write = line.rstrip()
+            line_to_write: str = line.rstrip()
             self.logger.log(self.log_level, line_to_write)
 
         # Pop our current information off the stack(s)
@@ -118,7 +118,7 @@ class StreamToLogger(StringIO):
         return num_chars
 
     @classmethod
-    def subvert(cls, logger: Logger = None, reroute_stdout: bool = True, reroute_stderr: bool = True):
+    def subvert(cls, logger: Logger = None, reroute_stdout: bool = True, reroute_stderr: bool = True) -> None:
         """
         Subverts stdout and stderr to separate instances of the python logger
         for this class.
@@ -138,11 +138,11 @@ class StreamToLogger(StringIO):
             use_logger = getLogger(cls.__name__)
 
         # Deal with stdout
-        info_stream_logger = StreamToLogger(use_logger, INFO)
+        info_stream_logger: StreamToLogger = StreamToLogger(use_logger, INFO)
         if reroute_stdout:
             sys.stdout = info_stream_logger
 
         # Deal with stderr
-        error_stream_logger = StreamToLogger(use_logger, ERROR)
+        error_stream_logger: StreamToLogger = StreamToLogger(use_logger, ERROR)
         if reroute_stderr:
             sys.stderr = error_stream_logger

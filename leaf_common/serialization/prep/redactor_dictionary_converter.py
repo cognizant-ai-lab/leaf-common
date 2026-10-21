@@ -30,7 +30,7 @@ class RedactorDictionaryConverter(DictionaryConverter):
 
     def __init__(self,
                  redacted_value: str = "<redacted>",
-                 unsafe_key_fragments: List[str] = None):
+                 unsafe_key_fragments: List[str] = None) -> None:
         """
         Constructor
 
@@ -55,7 +55,7 @@ class RedactorDictionaryConverter(DictionaryConverter):
                 'user'
             ]
 
-    def to_dict(self, obj: object) -> Dict[str, object]:
+    def to_dict(self, obj: Any) -> Dict[str, Any]:
         """
         :param obj: The object to be converted into a dictionary
                 This is expected to be a dictionary itself
@@ -70,10 +70,10 @@ class RedactorDictionaryConverter(DictionaryConverter):
                 not isinstance(obj, dict):
             return None
 
-        obj_dict: Dict[str, object] = self.redact_dict(obj)
+        obj_dict: Dict[str, Any] = self.redact_dict(obj)
         return obj_dict
 
-    def from_dict(self, obj_dict: Dict[str, object]) -> object:
+    def from_dict(self, obj_dict: Dict[str, Any]) -> Any:
         """
         :param obj_dict: The data-only dictionary to be converted into an object
         :return: An object instance created from the given dictionary.
@@ -83,7 +83,7 @@ class RedactorDictionaryConverter(DictionaryConverter):
         """
         return obj_dict
 
-    def redact_dict(self, unsafe_dict: Dict[str, object]) -> Dict[str, object]:
+    def redact_dict(self, unsafe_dict: Dict[str, Any]) -> Dict[str, Any]:
         """
         Does the secret filtering operation for a single layer of
         dictionary keys.  Will recurse if dictionary or list values found.
@@ -92,16 +92,18 @@ class RedactorDictionaryConverter(DictionaryConverter):
         :return: The redacted dictionary
         """
 
-        safe_dict = {}
+        safe_dict: Dict[str, Any] = {}
 
         # Loop through all the keys
         for key, value in unsafe_dict.items():
-            safe_value = self.redact_value(key, value)
-            safe_dict[key] = safe_value
+            use_key: str = key
+            use_value: Any = value
+            safe_value: Any = self.redact_value(use_key, use_value)
+            safe_dict[use_key] = safe_value
 
         return safe_dict
 
-    def redact_list(self, unsafe_list: List[object]) -> List[object]:
+    def redact_list(self, unsafe_list: List[Any]) -> List[Any]:
         """
         Does the secret filtering operation for a list.
         No immediate components are redacted, but this method recurses
@@ -111,16 +113,18 @@ class RedactorDictionaryConverter(DictionaryConverter):
         :return: The redacted list
         """
 
-        key = None
-        safe_list = []
+        key: str = None
+        safe_list: List[Any] = []
+        # Redact each component in turn; a None key means no scalar redaction.
         for component in unsafe_list:
+            use_component: Any = component
 
-            redacted_component = self.redact_value(key, component)
+            redacted_component: Any = self.redact_value(key, use_component)
             safe_list.append(redacted_component)
 
         return safe_list
 
-    def redact_scalar(self, key: str, unsafe_value: object) -> object:
+    def redact_scalar(self, key: str, unsafe_value: Any) -> Any:
         """
         Might redact a value to the "redacted_value" passed in the constructor
         based on contents of the given key.
@@ -132,22 +136,23 @@ class RedactorDictionaryConverter(DictionaryConverter):
         :return: The safe value, redacted or not, depending on the key
         """
 
-        safe_value = unsafe_value
+        safe_value: Any = unsafe_value
 
         # Only redact keys that are not None
         if key is not None:
-            lower_key = key.lower()
+            lower_key: str = key.lower()
 
             # If the key name contains something sensitive,
             # redact it for output.
             for unsafe_key_fragment in self.unsafe_key_fragments:
-                if lower_key.find(unsafe_key_fragment) >= 0:
+                use_fragment: str = unsafe_key_fragment
+                if lower_key.find(use_fragment) >= 0:
                     safe_value = self.redacted_value
                     break
 
         return safe_value
 
-    def redact_value(self, key: str, unsafe_value: object) -> object:
+    def redact_value(self, key: str, unsafe_value: Any) -> Any:
         """
         Might redact a value to the "redacted_value" passed in the constructor
         based on contents of the given key.

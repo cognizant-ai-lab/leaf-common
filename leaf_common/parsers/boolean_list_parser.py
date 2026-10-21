@@ -29,7 +29,7 @@ class BooleanListParser(ListParser):
     from a string.
     """
 
-    def __init__(self, delimiter_regex=None):
+    def __init__(self, delimiter_regex: str = None) -> None:
         """
         Constructor
 

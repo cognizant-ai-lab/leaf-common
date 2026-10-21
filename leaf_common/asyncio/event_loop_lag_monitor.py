@@ -44,7 +44,7 @@ class EventLoopLagMonitor:
     def __init__(self, sample_interval_seconds: float = 0.1,
                  report_every_n_samples: int = 50,
                  break_between_reports_seconds: float = 0.0,
-                 logger=None):
+                 logger: Logger = None) -> None:
         """
         :param sample_interval_seconds: Time between samples. Smaller = finer
                                   resolution but more CPU. 0.05-0.1s is typical.
@@ -71,11 +71,11 @@ class EventLoopLagMonitor:
         """
         Sampling loop. Cancel the surrounding task to stop.
         """
-        expected = monotonic() + self.interval
+        expected: float = monotonic() + self.interval
         while True:
             await async_sleep(self.interval)
-            now = monotonic()
-            lag = max(0.0, now - expected)
+            now: float = monotonic()
+            lag: float = max(0.0, now - expected)
             self._samples.append(lag)
 
             if len(self._samples) >= self.batch_size:

@@ -34,13 +34,13 @@ class ConfigFilterChain(ConfigFilter):
     the output of one filter is fed to the next as input.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Constructor.
         """
         self._filters: List[ConfigFilter] = []
 
-    def register(self, one_filter: ConfigFilter):
+    def register(self, one_filter: ConfigFilter) -> None:
         """
         Registers a single filter with this filter chain instance.
         The order that these calls are made matters.

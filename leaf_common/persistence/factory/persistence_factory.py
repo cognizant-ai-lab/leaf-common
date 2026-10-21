@@ -18,7 +18,10 @@
 See class comment for details.
 """
 
-import logging
+from typing import Tuple
+
+from logging import getLogger
+from logging import Logger
 import os
 
 from leaf_common.persistence.factory.json_gzip_persistence import JsonGzipPersistence
@@ -28,6 +31,10 @@ from leaf_common.persistence.factory.raw_bytes_persistence import RawBytesPersis
 from leaf_common.persistence.factory.reference_helper import ReferenceHelper
 from leaf_common.persistence.factory.text_persistence import TextPersistence
 from leaf_common.persistence.factory.null_persistence import NullPersistence
+from leaf_common.persistence.interface.persistence import Persistence
+from leaf_common.persistence.interface.persistence_mechanism import PersistenceMechanism
+from leaf_common.serialization.interface.dictionary_converter import DictionaryConverter
+from leaf_common.serialization.interface.reference_pruner import ReferencePruner
 from leaf_common.persistence.factory.yaml_persistence import YamlPersistence
 from leaf_common.persistence.mechanism.persistence_mechanism_factory import PersistenceMechanismFactory
 from leaf_common.serialization.format.serialization_formats import SerializationFormats
@@ -46,8 +53,9 @@ class PersistenceFactory():
     """
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
-    def __init__(self, bucket_base="", key_base="", object_type="object",
-                 reference_pruner=None, dictionary_converter=None):
+    def __init__(self, bucket_base: str = "", key_base: str = "", object_type: str = "object",
+                 reference_pruner: ReferencePruner = None,
+                 dictionary_converter: DictionaryConverter = None) -> None:
         """
         Constructor.
 
@@ -62,22 +70,22 @@ class PersistenceFactory():
                 dictionary.
         """
 
-        self.persistence_factory = PersistenceMechanismFactory(
+        self.persistence_factory: PersistenceMechanismFactory = PersistenceMechanismFactory(
             bucket_base=bucket_base,
             key_base=key_base,
             object_type=object_type)
-        self.object_type = object_type
-        self.reference_pruner = reference_pruner
-        self.dictionary_converter = dictionary_converter
-        self.fallback = SerializationFormats.JSON
+        self.object_type: str = object_type
+        self.reference_pruner: ReferencePruner = reference_pruner
+        self.dictionary_converter: DictionaryConverter = dictionary_converter
+        self.fallback: str = SerializationFormats.JSON
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
-    def create_persistence(self, persist_dir, persist_file,
-                           serialization_format=None,
-                           persistence_mechanism=None,
-                           must_exist=True,
-                           use_file_extension=None,
-                           full_ref=None):
+    def create_persistence(self, persist_dir: str, persist_file: str,
+                           serialization_format: str = None,
+                           persistence_mechanism: str = None,
+                           must_exist: bool = True,
+                           use_file_extension: str = None,
+                           full_ref: str = None) -> Persistence:
         """
         :param persist_dir: Directory/Folder of where the persisted
                     file should reside.
@@ -98,21 +106,21 @@ class PersistenceFactory():
         :return: a new Persistence implementation given all the specifications
         """
 
-        use_serialization_format = self._resolve_serialization_format(
+        use_serialization_format: str = self._resolve_serialization_format(
             serialization_format)
 
         use_persist_dir, use_persist_file, use_file_extension = \
             self._rearrange_components(persist_dir, persist_file,
                                        use_file_extension, full_ref)
 
-        persistence_mechanism_instance = \
+        persistence_mechanism_instance: PersistenceMechanism = \
             self.persistence_factory.create_persistence_mechanism(
                 use_persist_dir,
                 use_persist_file,
                 persistence_mechanism=persistence_mechanism,
                 must_exist=must_exist)
 
-        persistence = None
+        persistence: Persistence = None
         if persistence_mechanism_instance is None:
             persistence = NullPersistence()
         elif use_serialization_format == SerializationFormats.HOCON:
@@ -143,9 +151,9 @@ class PersistenceFactory():
                                           use_file_extension=use_file_extension)
         else:
             # Default
-            message = "Don't know serialization format '%s' for type '%s'." +\
+            message: str = "Don't know serialization format '%s' for type '%s'." +\
                         " Using fallback %s."
-            logger = logging.getLogger(__name__)
+            logger: Logger = getLogger(__name__)
             logger.warning(message, str(use_serialization_format),
                            str(self.object_type), str(self.fallback))
             persistence = self.create_persistence(use_persist_dir,
@@ -157,7 +165,7 @@ class PersistenceFactory():
 
         return persistence
 
-    def _resolve_serialization_format(self, serialization_format):
+    def _resolve_serialization_format(self, serialization_format: str) -> str:
         """
         :param serialization_format: a string description of the
                     serialization format desired.
@@ -167,19 +175,19 @@ class PersistenceFactory():
         """
 
         # Find the SerializationFormat type to use
-        use_serialization_format = self._find_serialization_format(serialization_format)
+        use_serialization_format: str = self._find_serialization_format(serialization_format)
         if use_serialization_format is None:
             # None found for argument, use fallback
-            message = "Don't know serialization format '%s' for type '%s'." + \
+            message: str = "Don't know serialization format '%s' for type '%s'." + \
                         " Using fallback %s."
-            logger = logging.getLogger(__name__)
+            logger: Logger = getLogger(__name__)
             logger.warning(message, str(serialization_format),
                            str(self.object_type), str(self.fallback))
             use_serialization_format = self.fallback
 
         return use_serialization_format
 
-    def _find_serialization_format(self, serialization_format):
+    def _find_serialization_format(self, serialization_format: str) -> str:
         """
         :param serialization_format: The string name of the
                 serialization_format mechanism to use.
@@ -189,16 +197,18 @@ class PersistenceFactory():
         """
 
         # Figure out the SerializationFormat specified in the fallback
-        found_serialization_format = None
+        found_serialization_format: str = None
         if serialization_format is not None:
+            # Match the argument against each known format, ignoring case.
             for serialization in SerializationFormats.SERIALIZATION_FORMATS:
-                if serialization_format.lower() == serialization.lower():
-                    found_serialization_format = serialization
+                use_serialization: str = serialization
+                if serialization_format.lower() == use_serialization.lower():
+                    found_serialization_format = use_serialization
 
         return found_serialization_format
 
-    def _rearrange_components(self, persist_dir, persist_file,
-                              file_extension, full_ref):
+    def _rearrange_components(self, persist_dir: str, persist_file: str,
+                              file_extension: str, full_ref: str) -> Tuple[str, str, str]:
         """
         Potentially rearrange the components of the persistence path
         in case one has pieces of the other.
@@ -212,13 +222,13 @@ class PersistenceFactory():
         :param full_ref: A full file reference to be broken apart into
                 consituent pieces for purposes of persistence.
         """
-        use_persist_dir = persist_dir
-        use_persist_file = persist_file
+        use_persist_dir: str = persist_dir
+        use_persist_file: str = persist_file
 
         # See if there are any directory components in persist_file
         if persist_file is not None:
-            split_tuple = os.path.split(persist_file)
-            head = split_tuple[0]
+            split_tuple: Tuple[str, str] = os.path.split(persist_file)
+            head: str = split_tuple[0]
             if head is not None:
                 use_persist_dir = os.path.join(persist_dir, head)
 

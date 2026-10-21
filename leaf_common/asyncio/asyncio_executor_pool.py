@@ -38,6 +38,7 @@ from threading import Lock
 from threading import Thread
 from threading import current_thread
 from time import monotonic
+from types import FrameType
 
 from leaf_common.asyncio.asyncio_executor import AsyncioExecutor
 from leaf_common.logging.sensitive_logger import SensitiveLogger
@@ -85,7 +86,7 @@ class AsyncioExecutorPool:
     def __init__(self, reuse_mode: bool = True, *,
                  idle_timeout_seconds: float = DEFAULT_IDLE_TIMEOUT_SECONDS,
                  gc_sweep_interval_seconds: float = DEFAULT_GC_SWEEP_INTERVAL_SECONDS,
-                 max_workers: int = None):
+                 max_workers: int = None) -> None:
         """
         Constructor.
         :param reuse_mode: True, if requested executor instances
@@ -126,7 +127,7 @@ class AsyncioExecutorPool:
         # currently in pool_available; pruned on get_executor() and on sweep.
         self._returned_at: Dict[int, float] = {}
 
-        self.lock = Lock()
+        self.lock: Lock = Lock()
         self.logger: Logger = getLogger(self.__class__.__name__)
 
         # Active GC: a daemon thread runs _gc_loop, sweeping on its own
@@ -158,7 +159,7 @@ class AsyncioExecutorPool:
         if self.reuse_mode:
             with self.lock:
                 if len(self.pool_available) > 0:
-                    result = self.pool_available.pop(0)
+                    result: AsyncioExecutor = self.pool_available.pop(0)
                     self._returned_at.pop(id(result), None)
                     self.logger.debug("Reusing AsyncioExecutor %s", id(result))
                     self.pool_used.append(result)
@@ -172,7 +173,7 @@ class AsyncioExecutorPool:
             self.pool_used.append(result)
         return result
 
-    def return_executor(self, executor: AsyncioExecutor):
+    def return_executor(self, executor: AsyncioExecutor) -> None:
         """
         Return AsyncioExecutor instance back to the pool of available instances.
         Does not sweep; the GC thread handles stale collection on its own
@@ -230,13 +231,14 @@ class AsyncioExecutorPool:
             try:
                 self._sweep_once()
             except Exception as exc:  # pylint: disable=broad-exception-caught
-                sensitive_logger = SensitiveLogger(self.logger)
+                sensitive_logger: SensitiveLogger = SensitiveLogger(self.logger)
                 sensitive_logger.warning("GC: sweep raised %s; continuing", exc, exc_info=True)
             # Sleep until the next sweep tick or until shutdown is signaled.
             self._gc_stop_event.wait(timeout=self.gc_sweep_interval_seconds)
 
     def _collect_executors(self, executors: Sequence[AsyncioExecutor]) -> None:
-        sensitive_logger = SensitiveLogger(self.logger)
+        sensitive_logger: SensitiveLogger = SensitiveLogger(self.logger)
+        # Shut each idle executor down, logging any failure without aborting the sweep.
         for executor in executors:
             use_executor: AsyncioExecutor = executor
             executor_id: int = id(use_executor)
@@ -330,7 +332,7 @@ class AsyncioExecutorPool:
             threads, running = use_executor.get_threads_metrics()
             available_threads += threads
             available_running += running
-        result_dict = {
+        result_dict: Dict[str, Any] = {
             "used": {
                 "executors": len(used_copy),
                 "work_threads": used_threads,
@@ -391,7 +393,7 @@ class AsyncioExecutorPool:
             future: Future = run_coroutine_threadsafe(
                 self._collect_tasks_on_current_loop(), loop)
             try:
-                tasks = future.result(timeout=per_loop_timeout_s)
+                tasks: List[Dict[str, Any]] = future.result(timeout=per_loop_timeout_s)
                 result[executor_key] = {"loop_state": "responded", "tasks": tasks}
             except ConcurrentFuturesTimeoutError:
                 future.cancel()
@@ -413,22 +415,26 @@ class AsyncioExecutorPool:
         """
         me: Optional[Task] = current_task()
         tasks_info: List[Dict[str, Any]] = []
+        # Record one entry per task on this loop, skipping the probe task itself.
         for task in all_tasks():
-            if me is not None and task is me:
+            use_task: Task = task
+            if me is not None and use_task is me:
                 continue
-            coro = task.get_coro()
+            coro: Any = use_task.get_coro()
             stack_frames: List[Dict[str, Any]] = []
-            for frame in task.get_stack():
+            # Flatten the task's stack into plain dicts so the result stays serializable.
+            for frame in use_task.get_stack():
+                use_frame: FrameType = frame
                 stack_frames.append({
-                    "file": frame.f_code.co_filename,
-                    "line": frame.f_lineno,
-                    "func": frame.f_code.co_name,
+                    "file": use_frame.f_code.co_filename,
+                    "line": use_frame.f_lineno,
+                    "func": use_frame.f_code.co_name,
                 })
             tasks_info.append({
-                "name": task.get_name(),
+                "name": use_task.get_name(),
                 "coro": getattr(coro, "__qualname__", repr(coro)),
-                "done": task.done(),
-                "cancelled": task.cancelled(),
+                "done": use_task.done(),
+                "cancelled": use_task.cancelled(),
                 "stack": stack_frames,
             })
         return tasks_info
@@ -447,15 +453,18 @@ class AsyncioExecutorPool:
         if not dump:
             return "(no used executors)"
         lines: List[str] = []
+        # One block of output per executor, then one line per task it is running.
         for executor_key, entry in dump.items():
-            loop_state: str = entry.get("loop_state", "unknown")
-            tasks: List[Dict[str, Any]] = entry.get("tasks", [])
-            lines.append(f"== executor {executor_key}  loop_state={loop_state}  "
-                         f"tasks={len(tasks)} ==")
+            use_executor_key: str = executor_key
+            entry_dict: Dict[str, Any] = entry
+            loop_state: str = entry_dict.get("loop_state", "unknown")
+            task_dicts: List[Dict[str, Any]] = entry_dict.get("tasks", [])
+            lines.append(f"== executor {use_executor_key}  loop_state={loop_state}  "
+                         f"tasks={len(task_dicts)} ==")
             if loop_state == "probe_error":
-                lines.append(f"   probe_error: {entry.get('error')}")
-            for task in tasks:
-                task_dict: Dict[str, Any] = task
+                lines.append(f"   probe_error: {entry_dict.get('error')}")
+            for one_task_dict in task_dicts:
+                task_dict: Dict[str, Any] = one_task_dict
                 task_name: str = task_dict.get("name")
                 task_coro: str = task_dict.get("coro")
                 task_done: str = task_dict.get("done")

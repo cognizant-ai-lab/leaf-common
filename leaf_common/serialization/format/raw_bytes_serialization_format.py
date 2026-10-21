@@ -18,6 +18,9 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import IO
+
 import io
 import os
 
@@ -34,7 +37,7 @@ class RawBytesSerializationFormat(SerializationFormat):
     We expect this to be called largely with image data.
     """
 
-    def from_object(self, obj):
+    def from_object(self, obj: Any) -> IO:
         """
         :param obj: The object to serialize
         :return: an open file-like object for streaming the serialized
@@ -43,9 +46,9 @@ class RawBytesSerializationFormat(SerializationFormat):
         """
 
         # Make a file-like object out of the input object's bytes
-        fileobj = obj
+        fileobj: IO = obj
         if not isinstance(obj, io.BytesIO):
-            my_bytes = obj
+            my_bytes: bytes = obj
             if not isinstance(obj, bytes) and \
                not isinstance(obj, bytearray):
                 if isinstance(obj, str):
@@ -59,7 +62,7 @@ class RawBytesSerializationFormat(SerializationFormat):
 
         return fileobj
 
-    def to_object(self, fileobj):
+    def to_object(self, fileobj: IO) -> Any:
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open
@@ -76,7 +79,7 @@ class RawBytesSerializationFormat(SerializationFormat):
         #     but not urgent given that we care mostly about writing image data
         raise NotImplementedError
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         There are no standard extensions for raw bytes, so
         we leave it to the caller to supply the extension.

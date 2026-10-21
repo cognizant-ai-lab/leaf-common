@@ -19,6 +19,7 @@ See class comment for details.
 """
 
 from typing import Any
+from typing import List
 
 import re
 
@@ -45,7 +46,7 @@ class ListParser(Parser):
 
     DEFAULT_DELIMITER: str = "[, ]"
 
-    def __init__(self, delimiter_regex: str = None, type_parser: Parser = None):
+    def __init__(self, delimiter_regex: str = None, type_parser: Parser = None) -> None:
         """
         Constructor.
 
@@ -66,7 +67,7 @@ class ListParser(Parser):
         if self._type_parser is None:
             self._type_parser = StringParser()
 
-    def parse(self, input_obj):
+    def parse(self, input_obj: Any) -> List[Any]:
         """
         Fulfills the Parser interface
 
@@ -75,7 +76,7 @@ class ListParser(Parser):
         """
         return self.parse_list(input_obj)
 
-    def parse_list(self, input_obj):        # noqa: C901
+    def parse_list(self, input_obj: Any) -> List[Any]:        # noqa: C901
         """
         :param input_obj: a String representing a
                 delimiter_regex-separated list of values
@@ -86,14 +87,14 @@ class ListParser(Parser):
             parsed.
         """
 
-        value_list = []
+        value_list: List[Any] = []
 
         # A None string on input is OK.
         # We just return an empty set then.
         if input_obj is None:
             return value_list
 
-        split_list = None
+        split_list: List[Any] = None
 
         # If the object coming in is already a list, just use it.
         if isinstance(input_obj, list):
@@ -101,7 +102,7 @@ class ListParser(Parser):
 
         if isinstance(input_obj, str):
             # Split the input string into components that we parse one by one.
-            trimmed_list = input_obj.strip()
+            trimmed_list: str = input_obj.strip()
             split_list = re.split(self._delimiter_regex, trimmed_list)
 
         if split_list is not None and \
@@ -130,7 +131,7 @@ class ListParser(Parser):
                     continue
 
                 # Defer to implementation for parsing
-                one_value = self._type_parser.parse(use_element)
+                one_value: Any = self._type_parser.parse(use_element)
 
                 # Skip over values that did not parse
                 if one_value is None:

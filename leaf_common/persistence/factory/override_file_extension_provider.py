@@ -28,14 +28,14 @@ class OverrideFileExtensionProvider(FileExtensionProvider):
     that gives a custom file extension
     """
 
-    def __init__(self, file_extension):
+    def __init__(self, file_extension: str) -> None:
         """
         :param file_extension: Use the provided string instead of the
                 standard file extension for the format.
         """
-        self.file_extension = file_extension
+        self.file_extension: str = file_extension
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".".

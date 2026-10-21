@@ -18,6 +18,9 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import IO
+
 import io
 import gzip
 import os
@@ -35,7 +38,7 @@ class BufferedGzipSerializationFormat(GzipSerializationFormat):
     to_object() is decompression.
     """
 
-    def from_object(self, obj):
+    def from_object(self, obj: Any) -> IO:
         """
         :param obj: The object to serialize
         :return: an open file-like object for streaming the serialized
@@ -43,13 +46,13 @@ class BufferedGzipSerializationFormat(GzipSerializationFormat):
                 of the data (ala seek to the beginning).
         """
 
-        my_byte_array = bytearray(obj.read())
-        compressed_bytes = gzip.compress(my_byte_array)
-        fileobj = io.BytesIO(compressed_bytes)
+        my_byte_array: bytearray = bytearray(obj.read())
+        compressed_bytes: bytes = gzip.compress(my_byte_array)
+        fileobj: io.BytesIO = io.BytesIO(compressed_bytes)
         fileobj.seek(0, os.SEEK_SET)
         return fileobj
 
-    def to_object(self, fileobj):
+    def to_object(self, fileobj: IO) -> Any:
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open
@@ -65,9 +68,9 @@ class BufferedGzipSerializationFormat(GzipSerializationFormat):
         if fileobj is None:
             return None
 
-        my_byte_array = bytearray(fileobj.read())
-        decompressed_bytes = gzip.decompress(my_byte_array)
-        new_fileobj = io.BytesIO(decompressed_bytes)
+        my_byte_array: bytearray = bytearray(fileobj.read())
+        decompressed_bytes: bytes = gzip.decompress(my_byte_array)
+        new_fileobj: io.BytesIO = io.BytesIO(decompressed_bytes)
         new_fileobj.seek(0, os.SEEK_SET)
 
         return new_fileobj

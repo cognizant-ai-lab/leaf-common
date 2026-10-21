@@ -29,7 +29,7 @@ class DictionaryExtractor():
     Policy class that pairs a specific dictionary instance with a FieldExtractor.
     """
 
-    def __init__(self, dictionary: Dict[str, Any], delimiter: str = "."):
+    def __init__(self, dictionary: Dict[str, Any], delimiter: str = ".") -> None:
         """
         Constructor
 
@@ -38,7 +38,7 @@ class DictionaryExtractor():
         """
         self.my_dict: Dict[str, Any] = dictionary
         self.delimiter: str = delimiter
-        self.extractor = FieldExtractor()
+        self.extractor: FieldExtractor = FieldExtractor()
 
     def get(self, field_name: str, default_value: Any = None) -> Any:
         """

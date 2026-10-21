@@ -18,6 +18,10 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import Dict
+from typing import IO
+
 from json import dumps
 from json import loads
 
@@ -38,7 +42,7 @@ class HoconSerializationFormat(JsonSerializationFormat):
     """
 
     def __init__(self, reference_pruner: ReferencePruner = None, dictionary_converter: DictionaryConverter = None,
-                 pretty: bool = True, sanitize_keys: bool = False):
+                 pretty: bool = True, sanitize_keys: bool = False) -> None:
         """
         Constructor.
 
@@ -64,7 +68,7 @@ class HoconSerializationFormat(JsonSerializationFormat):
                          pretty=pretty)
         self.sanitize_keys: bool = sanitize_keys
 
-    def to_object(self, fileobj, basedir=None):
+    def to_object(self, fileobj: IO, basedir: str = None) -> Any:
         """
         :param fileobj: The file-like object to deserialize.
                 It is expected that the file-like object be open and be
@@ -81,9 +85,9 @@ class HoconSerializationFormat(JsonSerializationFormat):
         :return: the deserialized object
         """
 
-        pruned_dict = None
+        pruned_dict: Dict[str, Any] = None
         if fileobj is not None:
-            hocon_bytes = fileobj.getvalue()
+            hocon_bytes: bytes = fileobj.getvalue()
             hocon_string, _ = BytesDecoder.decode_bytes(hocon_bytes)
 
             # Load the HOCON into a dictionary
@@ -96,7 +100,7 @@ class HoconSerializationFormat(JsonSerializationFormat):
                 # a root-level HOCON array parses to a ConfigList, so wrap
                 # the parse result in a ConfigTree first to sanitize any
                 # ConfigTrees nested within it.
-                wrapper = ConfigTree()
+                wrapper: ConfigTree = ConfigTree()
                 wrapper.put("root", pruned_dict)
                 pruned_dict = wrapper.as_plain_ordered_dict()["root"]
 
@@ -108,10 +112,10 @@ class HoconSerializationFormat(JsonSerializationFormat):
             if pruned_dict is not None:
                 pruned_dict = loads(dumps(pruned_dict))
 
-        obj = self.conversion_policy.convert_to_object(pruned_dict)
+        obj: Any = self.conversion_policy.convert_to_object(pruned_dict)
         return obj
 
-    def get_file_extension(self):
+    def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".".

@@ -18,9 +18,13 @@
 See class comment for details.
 """
 
+from typing import Any
+from typing import IO
+
 from os.path import join
 
 from leaf_common.persistence.interface.persistence_mechanism import PersistenceMechanism
+from leaf_common.serialization.interface.file_extension_provider import FileExtensionProvider
 
 
 class AbstractPersistenceMechanism(PersistenceMechanism):
@@ -32,7 +36,7 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
         open_dest_for_write(send_from_fileobj)
     """
 
-    def __init__(self, folder: str, base_name: str, must_exist: bool = True):
+    def __init__(self, folder: str, base_name: str, must_exist: bool = True) -> None:
         """
         Constructor
 
@@ -49,30 +53,30 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
         self.base_name: str = base_name
         self._must_exist: bool = must_exist
 
-    def open_source_for_read(self, read_to_fileobj,
-                             file_extension_provider=None,
-                             file_reference: str = None):
+    def open_source_for_read(self, read_to_fileobj: IO,
+                             file_extension_provider: FileExtensionProvider = None,
+                             file_reference: str = None) -> Any:
         """
         See PersistenceMechanism.open_source_for_read() for details.
         """
         raise NotImplementedError
 
-    def open_dest_for_write(self, send_from_fileobj,
-                            file_extension_provider=None,
-                            file_reference: str = None):
+    def open_dest_for_write(self, send_from_fileobj: IO,
+                            file_extension_provider: FileExtensionProvider = None,
+                            file_reference: str = None) -> IO:
         """
         See PersistenceMechanism.open_source_for_read() for details.
         """
         raise NotImplementedError
 
-    def must_exist(self):
+    def must_exist(self) -> bool:
         """
         :return: False if its OK for a file not to exist.
                  True if a file must exist.
         """
         return self._must_exist
 
-    def get_path(self, file_extension_provider=None, file_reference: str = None):
+    def get_path(self, file_extension_provider: FileExtensionProvider = None, file_reference: str = None) -> str:
         """
         :param file_extension_provider:
                 An implementation of the FileExtensionProvider interface
@@ -84,21 +88,21 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
         :return: the full path of the entity to store
         """
         # First determine the path from any fixed settings
-        fixed_settings_path = self.folder
+        fixed_settings_path: str = self.folder
         if self.base_name is not None:
             fixed_settings_path = join(self.folder, self.base_name)
 
-        file_extension = ""
+        file_extension: str = ""
         if file_extension_provider is not None:
             file_extension = file_extension_provider.get_file_extension()
 
-        path = fixed_settings_path + file_extension
+        path: str = fixed_settings_path + file_extension
 
         # Examine the optional file reference to see which fixed pieces
         # we need to adopt
         if file_reference is not None:
 
-            file_reference_path = file_reference
+            file_reference_path: str = file_reference
             if not file_reference.startswith("/"):
                 # Not an Absolute path. Use our folder
                 file_reference_path = join(self.folder, file_reference)

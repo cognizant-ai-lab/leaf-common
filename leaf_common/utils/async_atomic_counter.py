@@ -24,14 +24,14 @@ class AsyncAtomicCounter:
     """
     Class implements atomic incrementing counter for async execution environment.
     """
-    def __init__(self, start: int = 0):
+    def __init__(self, start: int = 0) -> None:
         """
         Constructor
 
         :param value: The initial value of the counter. Default is 0.
         """
-        self._value = start
-        self._lock = asyncio.Lock()
+        self._value: int = start
+        self._lock: asyncio.Lock = asyncio.Lock()
 
     async def increment(self, step: int = 1) -> int:
         """

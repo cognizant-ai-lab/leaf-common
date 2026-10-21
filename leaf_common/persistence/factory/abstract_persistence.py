@@ -14,9 +14,8 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
+from typing import Any
+from typing import IO
 
 import io
 import os
@@ -26,6 +25,12 @@ from leaf_common.persistence.interface.persistence \
     import Persistence
 from leaf_common.persistence.factory.override_file_extension_provider \
     import OverrideFileExtensionProvider
+from leaf_common.persistence.interface.persistence_mechanism \
+    import PersistenceMechanism
+from leaf_common.serialization.interface.file_extension_provider \
+    import FileExtensionProvider
+from leaf_common.serialization.interface.serialization_format \
+    import SerializationFormat
 
 
 class AbstractPersistence(Persistence):
@@ -37,7 +42,7 @@ class AbstractPersistence(Persistence):
         get_serialization_format()
     """
 
-    def __init__(self, persistence_mechanism, use_file_extension=None):
+    def __init__(self, persistence_mechanism: PersistenceMechanism, use_file_extension: str = None) -> None:
         """
         Constructor
 
@@ -50,17 +55,17 @@ class AbstractPersistence(Persistence):
         """
 
         super().__init__()
-        self._mechanism = persistence_mechanism
-        self.use_file_extension = use_file_extension
+        self._mechanism: PersistenceMechanism = persistence_mechanism
+        self.use_file_extension: str = use_file_extension
 
-    def get_serialization_format(self):
+    def get_serialization_format(self) -> SerializationFormat:
         """
         :return: The SerializationFormat instance to be used in persist()
                  and restore()
         """
         raise NotImplementedError
 
-    def persist(self, obj, file_reference: str = None):
+    def persist(self, obj: Any, file_reference: str = None) -> str:
         """
         Persists the object passed in.
 
@@ -71,25 +76,25 @@ class AbstractPersistence(Persistence):
                 settings.
         """
 
-        serialization = self.get_serialization_format()
-        file_extension_provider = self.get_file_extension_provider()
+        serialization: SerializationFormat = self.get_serialization_format()
+        file_extension_provider: FileExtensionProvider = self.get_file_extension_provider()
 
-        buffer_fileobj = serialization.from_object(obj)
+        buffer_fileobj: IO = serialization.from_object(obj)
         with buffer_fileobj:
 
             # Write contents from buffer.
-            dest_fileobj = self._mechanism.open_dest_for_write(buffer_fileobj,
-                                                               file_extension_provider,
-                                                               file_reference)
+            dest_fileobj: IO = self._mechanism.open_dest_for_write(buffer_fileobj,
+                                                                   file_extension_provider,
+                                                                   file_reference)
             if dest_fileobj is not None:
                 with dest_fileobj:
                     shutil.copyfileobj(buffer_fileobj, dest_fileobj)
 
-        path = self._mechanism.get_path(file_extension_provider=file_extension_provider,
-                                        file_reference=file_reference)
+        path: str = self._mechanism.get_path(file_extension_provider=file_extension_provider,
+                                             file_reference=file_reference)
         return path
 
-    def restore(self, file_reference: str = None):
+    def restore(self, file_reference: str = None) -> Any:
         """
         :param file_reference: An optional file reference string to override
                 any file settings fixed at construct time. Default of None
@@ -98,16 +103,17 @@ class AbstractPersistence(Persistence):
         :return: an object from some persisted store
         """
 
-        previous_state = None
-        serialization = self.get_serialization_format()
-        file_extension_provider = self.get_file_extension_provider()
+        previous_state: Any = None
+        serialization: SerializationFormat = self.get_serialization_format()
+        file_extension_provider: FileExtensionProvider = self.get_file_extension_provider()
 
+        buffer_fileobj: io.BytesIO
         with io.BytesIO() as buffer_fileobj:
             # Read data into buffer.
-            source_fileobj = self._mechanism.open_source_for_read(buffer_fileobj,
-                                                                  file_extension_provider,
-                                                                  file_reference)
-            dest_obj = None
+            source_fileobj: Any = self._mechanism.open_source_for_read(buffer_fileobj,
+                                                                       file_extension_provider,
+                                                                       file_reference)
+            dest_obj: IO = None
             if source_fileobj is not None:
 
                 # Check to see if the source_fileobj is a file-like object
@@ -130,7 +136,7 @@ class AbstractPersistence(Persistence):
 
         return previous_state
 
-    def get_file_reference(self, file_reference: str = None):
+    def get_file_reference(self, file_reference: str = None) -> str:
         """
         :param file_reference: An optional file reference string to override
                 any file settings fixed at construct time. Default of None
@@ -139,17 +145,17 @@ class AbstractPersistence(Persistence):
         :return: A string reference to the file that would be accessed
                 by this instance.
         """
-        file_extension_provider = self.get_file_extension_provider()
+        file_extension_provider: FileExtensionProvider = self.get_file_extension_provider()
         file_reference = self._mechanism.get_path(file_extension_provider,
                                                   file_reference)
         return file_reference
 
-    def get_file_extension_provider(self):
+    def get_file_extension_provider(self) -> FileExtensionProvider:
         """
         :return: The appropriate FileExtensionProvider for the context
         """
 
-        file_extension_provider = None
+        file_extension_provider: FileExtensionProvider = None
         if self.use_file_extension is not None:
             file_extension_provider = OverrideFileExtensionProvider(
                 self.use_file_extension)
