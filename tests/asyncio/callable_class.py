@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-Callable class for testing get_function_name with class instances.
-"""
 
 
 class CallableClass:

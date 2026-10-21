@@ -14,14 +14,11 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-Synchronous helper functions for AsyncioExecutor unit tests.
-"""
 
 
 class SyncTestHelpers:
     """
-    Container class for synchronous test helper functions.
+    Container class for synchronous helper functions for AsyncioExecutor unit tests.
     """
 
     @staticmethod

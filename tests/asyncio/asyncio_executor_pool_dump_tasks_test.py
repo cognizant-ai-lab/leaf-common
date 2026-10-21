@@ -14,27 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-Unit tests for AsyncioExecutorPool.dump_tasks_in_used_executors() and
-its companion formatter format_task_dump().
-
-The dump probes every executor in pool_used by scheduling a one-shot
-coroutine on that executor's event loop via run_coroutine_threadsafe.
-The returned dict is keyed by str(id(executor)) with per-loop status and
-(when responsive) the list of tasks with their suspended stacks.
-
-These tests exercise the main paths with REAL AsyncioExecutor instances
-(so scheduling on the executor loops actually goes through
-run_coroutine_threadsafe end to end), and verify:
-  - empty pool -> empty dict;
-  - a live executor with a sleeping task -> loop_state="responded" plus
-    the task in the result with correct name and coroutine identity;
-  - multiple used executors -> one entry per executor;
-  - a wedged loop -> loop_state="unresponsive_timeout" instead of
-    blocking the caller indefinitely;
-  - format_task_dump() covers the empty, responded, and unresponsive
-    branches without needing a live probe.
-"""
 import asyncio
 import time
 from typing import List
@@ -49,6 +28,22 @@ class AsyncioExecutorPoolDumpTasksTest(TestCase):
     """
     Verifies the on-demand asyncio-task dump: shape of the result dict,
     handling of unresponsive loops, and the formatter's output.
+
+    The dump probes every executor in pool_used. It schedules a one-shot
+    coroutine on the event loop of that executor with run_coroutine_threadsafe.
+    The result dict has one key of str(id(executor)) for each executor, with
+    the status of that loop and, if the loop replies, the list of tasks with
+    their suspended stacks.
+
+    These tests use REAL AsyncioExecutor instances, so the schedule operation
+    on the executor loops goes through run_coroutine_threadsafe end to end.
+    They verify:
+      - empty pool -> empty dict;
+      - a live executor with a sleeping task -> loop_state="responded" plus
+        the task in the result with correct name and coroutine identity;
+      - multiple used executors -> one entry per executor;
+      - a wedged loop -> loop_state="unresponsive_timeout", instead of a block
+        of the caller for an indefinite time.
     """
 
     def setUp(self):
@@ -220,7 +215,8 @@ class AsyncioExecutorPoolFormatTaskDumpTest(TestCase):
     """
     Direct tests for format_task_dump. It's a pure function of the dict
     returned by dump_tasks_in_used_executors, so we test it with
-    hand-crafted inputs -- no live executors needed.
+    hand-crafted inputs -- no live executors needed. These tests cover the
+    empty, responded, and unresponsive branches without a live probe.
     """
 
     def test_empty_dump_reports_no_executors(self):

@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
 
 
 from leaf_common.parsers.boolean_parser import BooleanParser

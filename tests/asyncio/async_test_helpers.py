@@ -14,16 +14,13 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-Asynchronous helper functions for AsyncioExecutor unit tests.
-"""
 
 import asyncio
 
 
 class AsyncTestHelpers:
     """
-    Container class for asynchronous test helper functions.
+    Container class for asynchronous helper functions for AsyncioExecutor unit tests.
     """
 
     @staticmethod

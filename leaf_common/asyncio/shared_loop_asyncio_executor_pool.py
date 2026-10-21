@@ -13,9 +13,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
 from typing import Any
 from typing import Callable
 from typing import Dict

@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details
-"""
 
 from asyncio import create_task
 from asyncio import sleep as async_sleep
