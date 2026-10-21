@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comments
-"""
 from collections.abc import Sequence
 from typing import Any
 from typing import Dict

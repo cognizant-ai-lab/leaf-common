@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details
-"""
 
 from leaf_common.persistence.easy.abstract_easy_persistence \
     import AbstractEasyPersistence

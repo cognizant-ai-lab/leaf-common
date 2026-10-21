@@ -14,20 +14,16 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-Unit tests for ConfigUtil.get_bool().
-
-LLM policies and other config-driven sites delegate boolean-key reads
-to ConfigUtil.get_bool(), so it has to accept the common boolean-like
-forms surfaced by HOCON / JSON / env configs and fall back safely on
-unrecognized input.
-"""
 
 from leaf_common.config.config_util import ConfigUtil
 
 
 class TestConfigUtilGetBool:
     """
+    LLM policies and other config-driven sites delegate boolean-key reads to
+    ConfigUtil.get_bool(). Thus it must accept the usual boolean-like forms that
+    HOCON / JSON / env configs supply, and fall back safely on unknown input.
+
     Verifies ConfigUtil.get_bool() across:
       - absence (returns default)
       - native bool (returned as-is)

@@ -14,12 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-Unit tests for EventLoopFactory's platform-selection behavior.
-
-These tests patch sys.platform so the Windows branch can be exercised on a
-non-Windows test runner without requiring a Windows-only CI job.
-"""
 
 import asyncio
 import sys
@@ -33,7 +27,9 @@ from leaf_common.asyncio.event_loop_factory import EventLoopFactory
 class EventLoopFactoryTest(TestCase):
     """
     Tests for EventLoopFactory.loop_factory() and EventLoopFactory.new_event_loop()
-    under various emulated sys.platform values.
+    under various emulated sys.platform values. These tests patch sys.platform,
+    so a non-Windows test runner can exercise the Windows branch. A Windows-only
+    CI job is not necessary.
     """
 
     def test_loop_factory_returns_selector_loop_class_on_windows(self):

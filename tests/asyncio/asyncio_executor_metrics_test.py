@@ -14,14 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-Unit tests for AsyncioExecutor.get_threads_metrics().
-
-The method delegates to the executor's internal AsyncioThreadPoolExecutor
-when one is present, or returns (0, 0) otherwise. The behavior of the
-threadpool itself is covered in asyncio_threadpool_executor_metrics_test;
-this module isolates AsyncioExecutor's delegation logic.
-"""
 import threading
 
 from unittest import TestCase
@@ -35,6 +27,8 @@ class AsyncioExecutorMetricsTest(TestCase):
     Verifies that AsyncioExecutor.get_threads_metrics() returns the same
     (threads, running) tuple as the underlying AsyncioThreadPoolExecutor,
     and that the fallback path returns (0, 0) when no threadpool is set.
+    These tests isolate the delegation logic only. The behavior of the
+    threadpool itself is covered in asyncio_threadpool_executor_metrics_test.
     """
 
     def setUp(self):

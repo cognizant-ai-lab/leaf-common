@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details.
-"""
 import asyncio
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import patch

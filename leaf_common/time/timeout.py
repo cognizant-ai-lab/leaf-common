@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details
-"""
 
 # Needed for Timeout self-typing in has_time() below
 from __future__ import annotations      # noqa: F407

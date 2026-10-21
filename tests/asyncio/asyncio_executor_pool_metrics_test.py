@@ -14,16 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-Unit tests for AsyncioExecutorPool.get_threads_metrics().
-
-The pool aggregates per-executor (threads, running) tuples into a nested
-dict with "used" and "available" sections. Each section reports the
-number of executors plus the totals of their underlying thread counts.
-These tests cover the empty pool, the used/available partitioning across
-acquire/return state transitions in both reuse and non-reuse modes, and
-the aggregation arithmetic.
-"""
 from typing import Tuple
 
 from unittest import TestCase
@@ -37,6 +27,13 @@ class AsyncioExecutorPoolMetricsTest(TestCase):
     Verifies that get_threads_metrics() correctly partitions executors
     between the "used" and "available" buckets and sums their per-executor
     thread counts.
+
+    The pool aggregates the per-executor (threads, running) tuples into a
+    nested dict with a "used" section and an "available" section. Each section
+    gives the number of executors plus the totals of their thread counts.
+    These tests cover the empty pool, the used/available partition across the
+    acquire/return state changes in both reuse and non-reuse modes, and the
+    aggregation arithmetic.
     """
 
     @staticmethod

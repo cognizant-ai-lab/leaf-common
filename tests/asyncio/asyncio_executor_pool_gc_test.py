@@ -14,17 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-Unit tests for AsyncioExecutorPool's active idle-executor garbage
-collection.
-
-The GC runs on a dedicated daemon thread which periodically calls
-_sweep_once(): identify executors in pool_available whose idle period
-exceeds idle_timeout_seconds, remove them, and shut them down. Most
-tests drive _sweep_once() directly with a synthetic `now` to verify
-behavior deterministically without waiting on real time; one end-to-end
-test exercises the periodic thread with a tight sweep interval.
-"""
 import threading
 import time
 
@@ -40,6 +29,13 @@ class AsyncioExecutorPoolGcTest(TestCase):
     stale vs fresh executors, the periodic GC thread runs sweeps on its
     own schedule, and the lifecycle (start / shutdown / exception safety)
     is robust.
+
+    The GC runs on a dedicated daemon thread which periodically calls
+    _sweep_once(). That method finds the executors in pool_available whose
+    idle period is more than idle_timeout_seconds, removes them, and shuts
+    them down. Most tests call _sweep_once() directly with a synthetic `now`,
+    to verify the behavior deterministically without a wait on real time. One
+    end-to-end test exercises the periodic thread with a short sweep interval.
     """
 
     def tearDown(self):

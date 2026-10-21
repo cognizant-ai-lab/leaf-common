@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-Unit tests for AsyncioExecutor task item handling when executor is started.
-"""
 
 import threading
 import time
@@ -32,7 +29,7 @@ from tests.asyncio.sync_test_helpers import SyncTestHelpers
 
 class AsyncioExecutorTest(TestCase):  # pylint: disable=too-many-public-methods
     """
-    Tests for AsyncioExecutor task item functionality.
+    Tests for AsyncioExecutor task item handling when the executor is started.
     """
 
     def setUp(self):

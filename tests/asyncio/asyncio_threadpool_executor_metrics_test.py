@@ -14,14 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-Unit tests for AsyncioThreadPoolExecutor.get_threads_metrics().
-
-The class wraps every submitted callable to count running tasks, so the
-returned (num_threads, num_running) tuple should accurately reflect both
-the lazy ThreadPoolExecutor worker-thread count and the count of
-callables currently executing in those workers.
-"""
 import threading
 
 from unittest import TestCase
@@ -35,6 +27,11 @@ class AsyncioThreadPoolExecutorMetricsTest(TestCase):
     Verifies that get_threads_metrics() returns an accurate (threads, running)
     tuple in each lifecycle state: empty, mid-task, post-task, and under
     multi-task concurrency.
+
+    AsyncioThreadPoolExecutor wraps every submitted callable to count the
+    running tasks. Thus the tuple must show both the lazy ThreadPoolExecutor
+    worker-thread count and the count of the callables that run in those
+    workers at that moment.
     """
 
     @staticmethod

@@ -14,9 +14,6 @@
 # limitations under the License.
 #
 # END COPYRIGHT
-"""
-See class comment for details
-"""
 
 from importlib import invalidate_caches
 from os import makedirs
