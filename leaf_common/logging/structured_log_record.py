@@ -34,7 +34,7 @@ from leaf_common.logging.message_types import METRICS
 
 
 # Set up a global variable to allow cascading of LogRecord factories
-_STRUCTURED_OLD_FACTORY: Callable[LogRecord] = None
+_STRUCTURED_OLD_FACTORY: Callable[Any, LogRecord] = None
 
 
 def _structured_log_record_factory(*args: Any, **kwargs: Any) -> LogRecord:

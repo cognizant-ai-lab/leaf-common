@@ -28,7 +28,7 @@ from threading import Thread
 
 
 # Set up some global variables to allow cascading of LogRecord factories
-_SERVICE_OLD_FACTORY: Callable[LogRecord] = None
+_SERVICE_OLD_FACTORY: Callable[Any, LogRecord] = None
 _DEFAULT_EXTRA_LOGGING_FIELDS_DICT: Dict[str, Any] = {}
 
 _SERVICE_LOGGING_FIELDS_KEY: str = "service_logging_fields_dict"
