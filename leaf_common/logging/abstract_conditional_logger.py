@@ -17,31 +17,31 @@
 
 from typing import Any
 
+from abc import abstractmethod
+
 from logging import Logger
 
-from leaf_common.utils.environment_util import EnvironmentUtil
 
-
-class ConditionalLogger:
+class AbstractConditionalLogger:
     """
-    Wraps a logger to mask logged information conditionally based on an environment variable setting.
-    Uses the same general Logger interface as the whole world already uses.
+    Wraps a logger to mask logged information conditionally based on
+    the result of an abstract should_log() method.
     """
 
-    def __init__(self, logger: Logger, env_var: str) -> None:
+    def __init__(self, logger: Logger) -> None:
         """
         Constructor.
 
         :param logger: The wrapped logger to redirect write() calls to.
         """
         self.logger: Logger = logger
-        self._should_log: bool = EnvironmentUtil.getenv(env_var, "true").lower() == "true"
 
-    def should_log(self) -> bool:
+    @abstractmethod
+    def should_log(self, message: str) -> bool:
         """
         :return: True if this logger should log
         """
-        return self._should_log
+        raise NotImplementedError
 
     def debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """
@@ -52,7 +52,7 @@ class ConditionalLogger:
 
         logger.debug("Houston, we have a %s", "thorny problem", exc_info=True)
         """
-        if not self.should_log():
+        if not self.should_log(msg):
             return
         self.logger.debug(msg, *args, **kwargs)
 
@@ -65,7 +65,7 @@ class ConditionalLogger:
 
         logger.info("Houston, we have a %s", "notable problem", exc_info=True)
         """
-        if not self.should_log():
+        if not self.should_log(msg):
             return
         self.logger.info(msg, *args, **kwargs)
 
@@ -78,7 +78,7 @@ class ConditionalLogger:
 
         logger.warning("Houston, we have a %s", "bit of a problem", exc_info=True)
         """
-        if not self.should_log():
+        if not self.should_log(msg):
             return
         self.logger.warning(msg, *args, **kwargs)
 
@@ -91,7 +91,7 @@ class ConditionalLogger:
 
         logger.error("Houston, we have a %s", "major problem", exc_info=True)
         """
-        if not self.should_log():
+        if not self.should_log(msg):
             return
         self.logger.error(msg, *args, **kwargs)
 
@@ -99,7 +99,7 @@ class ConditionalLogger:
         """
         Convenience method for logging an ERROR with exception information.
         """
-        if not self.should_log():
+        if not self.should_log(msg):
             return
         self.logger.exception(msg, *args, exc_info=exc_info, **kwargs)
 
@@ -112,7 +112,7 @@ class ConditionalLogger:
 
         logger.critical("Houston, we have a %s", "major disaster", exc_info=True)
         """
-        if not self.should_log():
+        if not self.should_log(msg):
             return
         self.logger.critical(msg, *args, **kwargs)
 
@@ -120,7 +120,7 @@ class ConditionalLogger:
         """
         Don't use this method, use critical() instead.
         """
-        if not self.should_log():
+        if not self.should_log(msg):
             return
         self.logger.fatal(msg, *args, **kwargs)
 
@@ -133,6 +133,6 @@ class ConditionalLogger:
 
         logger.log(level, "We have a %s", "mysterious problem", exc_info=True)
         """
-        if not self.should_log():
+        if not self.should_log(msg):
             return
         self.logger.log(level, msg, *args, **kwargs)
