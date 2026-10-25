@@ -21,7 +21,7 @@ from typing import Dict
 from logging import Logger
 from threading import Lock
 
-# Global record of the msg signatures that a LogOnce instance has logged.
+# Global record of the message signatures that a LogOnce instance has logged.
 # All LogOnce instances share this dictionary.
 SEEN_LOGGING_SIGNATURES: Dict[str, bool] = {}
 
@@ -31,10 +31,10 @@ SEEN_LOGGING_SIGNATURES_LOCK: Lock = Lock()
 
 class LogOnce:
     """
-    Wraps a logger so that each msg signature is logged one time only.
+    Wraps a logger so that each message signature is logged one time only.
     Uses the same general Logger interface as the whole world already uses.
 
-    The msg signature is the first string argument (the format string) given to a logging call,
+    The message signature is the first string argument (the format string) given to a logging call,
     before any % args are applied. The first call with a given signature goes to the wrapped logger.
     All later calls with the same signature are dropped, for all LogOnce instances in the process.
     """
@@ -47,18 +47,18 @@ class LogOnce:
         """
         self.logger: Logger = logger
 
-    def should_log(self, msg: str) -> bool:
+    def should_log(self, message: str) -> bool:
         """
-        Records the msg signature as seen.
+        Records the message signature as seen.
 
-        :param msg: The msg signature to check
-        :return: True if this is the first time the msg signature is seen.
-                False if the msg signature was seen before.
+        :param message: The message signature to check
+        :return: True if this is the first time the message signature is seen.
+                False if the message signature was seen before.
         """
         with SEEN_LOGGING_SIGNATURES_LOCK:
-            if SEEN_LOGGING_SIGNATURES.get(msg, False):
+            if SEEN_LOGGING_SIGNATURES.get(message, False):
                 return False
-            SEEN_LOGGING_SIGNATURES[msg] = True
+            SEEN_LOGGING_SIGNATURES[message] = True
             return True
 
     def debug(self, msg: str, *args: Any, **kwargs: Any) -> None:
