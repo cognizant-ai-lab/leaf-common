@@ -22,13 +22,6 @@ from typing_extensions import override
 
 from leaf_common.logging.abstract_conditional_logger import AbstractConditionalLogger
 
-# Global record of the message signatures that a LogOnce instance has logged.
-# All LogOnce instances share this dictionary.
-SEEN_LOGGING_SIGNATURES: Dict[str, bool] = {}
-
-# Makes the check-and-set on SEEN_LOGGING_SIGNATURES atomic across threads.
-SEEN_LOGGING_SIGNATURES_LOCK: Lock = Lock()
-
 
 class LogOnce(AbstractConditionalLogger):
     """
@@ -40,6 +33,13 @@ class LogOnce(AbstractConditionalLogger):
     All later calls with the same signature are dropped, for all LogOnce instances in the process.
     """
 
+    # Global class-variable record of the message signatures that a LogOnce instance has logged.
+    # All LogOnce instances share this dictionary.
+    SEEN_LOGGING_SIGNATURES: Dict[str, bool] = {}
+
+    # Makes the check-and-set on SEEN_LOGGING_SIGNATURES atomic across threads.
+    SEEN_LOGGING_SIGNATURES_LOCK: Lock = Lock()
+
     @override
     def should_log(self, message: str) -> bool:
         """
@@ -50,11 +50,11 @@ class LogOnce(AbstractConditionalLogger):
                 False if the message signature was seen before.
         """
         should_log: bool = True
-        with SEEN_LOGGING_SIGNATURES_LOCK:
-            have_seen_message: bool = SEEN_LOGGING_SIGNATURES.get(message, False)
+        with self.SEEN_LOGGING_SIGNATURES_LOCK:
+            have_seen_message: bool = self.SEEN_LOGGING_SIGNATURES.get(message, False)
             if have_seen_message:
                 should_log = False
             else:
-                SEEN_LOGGING_SIGNATURES[message] = True
+                self.SEEN_LOGGING_SIGNATURES[message] = True
 
         return should_log

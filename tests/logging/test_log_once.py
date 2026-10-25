@@ -21,7 +21,6 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from leaf_common.logging import log_once
 from leaf_common.logging.log_once import LogOnce
 
 
@@ -34,7 +33,7 @@ class TestLogOnce(TestCase):
         """
         Gives each test an empty global record of seen msg signatures.
         """
-        patcher = patch.dict(log_once.SEEN_LOGGING_SIGNATURES, clear=True)
+        patcher = patch.dict(LogOnce.SEEN_LOGGING_SIGNATURES, clear=True)
         patcher.start()
         self.addCleanup(patcher.stop)
 
