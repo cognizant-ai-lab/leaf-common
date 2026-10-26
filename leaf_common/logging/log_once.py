@@ -50,11 +50,17 @@ class LogOnce(AbstractConditionalLogger):
                 False if the message signature was seen before.
         """
         should_log: bool = True
-        with LogOnce.SEEN_LOGGING_SIGNATURES_LOCK:
-            have_seen_message: bool = LogOnce.SEEN_LOGGING_SIGNATURES.get(message, False)
-            if have_seen_message:
-                should_log = False
-            else:
-                LogOnce.SEEN_LOGGING_SIGNATURES[message] = True
+
+        # Don't hold the lock if we don't need to.
+        have_seen_message: bool = LogOnce.SEEN_LOGGING_SIGNATURES.get(message, False)
+        if have_seen_message:
+            should_log = False
+        else:
+            with LogOnce.SEEN_LOGGING_SIGNATURES_LOCK:
+                have_seen_message: bool = LogOnce.SEEN_LOGGING_SIGNATURES.get(message, False)
+                if have_seen_message:
+                    should_log = False
+                else:
+                    LogOnce.SEEN_LOGGING_SIGNATURES[message] = True
 
         return should_log
