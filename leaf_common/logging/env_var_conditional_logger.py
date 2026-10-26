@@ -38,8 +38,10 @@ class EnvVarConditionalLogger(AbstractConditionalLogger):
         self._should_log: bool = EnvironmentUtil.getenv(env_var, "true").lower() == "true"
 
     @override
-    def should_log(self, message: str) -> bool:
+    def should_log(self, message: str, log_level: int) -> bool:
         """
+        :param message: The message to log
+        :param log_level: The log level of the message
         :return: True if this logger should log
         """
         return self._should_log

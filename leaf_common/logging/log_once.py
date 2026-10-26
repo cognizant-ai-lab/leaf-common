@@ -41,11 +41,12 @@ class LogOnce(AbstractConditionalLogger):
     SEEN_LOGGING_SIGNATURES_LOCK: Lock = Lock()
 
     @override
-    def should_log(self, message: str) -> bool:
+    def should_log(self, message: str, log_level: int) -> bool:
         """
         Records the message signature as seen.
 
         :param message: The message signature to check
+        :param log_level: The log level of the message
         :return: True if this is the first time the message signature is seen.
                 False if the message signature was seen before.
         """

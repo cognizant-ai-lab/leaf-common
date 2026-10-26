@@ -19,7 +19,12 @@ from typing import Any
 
 from abc import abstractmethod
 
+from logging import CRITICAL
+from logging import DEBUG
+from logging import ERROR
+from logging import INFO
 from logging import Logger
+from logging import WARNING
 
 
 class AbstractConditionalLogger:
@@ -37,8 +42,10 @@ class AbstractConditionalLogger:
         self.logger: Logger = logger
 
     @abstractmethod
-    def should_log(self, message: str) -> bool:
+    def should_log(self, message: str, log_level: int) -> bool:
         """
+        :param message: The message to log
+        :param log_level: The log level of the message
         :return: True if this logger should log
         """
         raise NotImplementedError
@@ -52,7 +59,7 @@ class AbstractConditionalLogger:
 
         logger.debug("Houston, we have a %s", "thorny problem", exc_info=True)
         """
-        if not self.should_log(msg):
+        if not self.should_log(msg, DEBUG):
             return
         self.logger.debug(msg, *args, **kwargs)
 
@@ -65,7 +72,7 @@ class AbstractConditionalLogger:
 
         logger.info("Houston, we have a %s", "notable problem", exc_info=True)
         """
-        if not self.should_log(msg):
+        if not self.should_log(msg, INFO):
             return
         self.logger.info(msg, *args, **kwargs)
 
@@ -78,7 +85,7 @@ class AbstractConditionalLogger:
 
         logger.warning("Houston, we have a %s", "bit of a problem", exc_info=True)
         """
-        if not self.should_log(msg):
+        if not self.should_log(msg, WARNING):
             return
         self.logger.warning(msg, *args, **kwargs)
 
@@ -91,7 +98,7 @@ class AbstractConditionalLogger:
 
         logger.error("Houston, we have a %s", "major problem", exc_info=True)
         """
-        if not self.should_log(msg):
+        if not self.should_log(msg, ERROR):
             return
         self.logger.error(msg, *args, **kwargs)
 
@@ -99,7 +106,7 @@ class AbstractConditionalLogger:
         """
         Convenience method for logging an ERROR with exception information.
         """
-        if not self.should_log(msg):
+        if not self.should_log(msg, ERROR):
             return
         self.logger.exception(msg, *args, exc_info=exc_info, **kwargs)
 
@@ -112,7 +119,7 @@ class AbstractConditionalLogger:
 
         logger.critical("Houston, we have a %s", "major disaster", exc_info=True)
         """
-        if not self.should_log(msg):
+        if not self.should_log(msg, CRITICAL):
             return
         self.logger.critical(msg, *args, **kwargs)
 
@@ -120,7 +127,7 @@ class AbstractConditionalLogger:
         """
         Don't use this method, use critical() instead.
         """
-        if not self.should_log(msg):
+        if not self.should_log(msg, CRITICAL):
             return
         self.logger.fatal(msg, *args, **kwargs)
 
@@ -133,6 +140,6 @@ class AbstractConditionalLogger:
 
         logger.log(level, "We have a %s", "mysterious problem", exc_info=True)
         """
-        if not self.should_log(msg):
+        if not self.should_log(msg, level):
             return
         self.logger.log(level, msg, *args, **kwargs)
