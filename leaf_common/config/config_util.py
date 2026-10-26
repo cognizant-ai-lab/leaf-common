@@ -28,7 +28,7 @@ class ConfigUtil:
 
     @staticmethod
     # pylint: disable=too-many-return-statements
-    def get_bool(config: Dict[str, Any], key: str, default: bool = False) -> bool:
+    def get_bool(config: Dict[str, Any], key: str, default_value: bool = False) -> bool:
         """
         Read a boolean-valued config entry, accepting common boolean-like
         forms found in configs sourced from HOCON, JSON, or environment
@@ -44,18 +44,18 @@ class ConfigUtil:
 
         When the key is absent OR the value is present but not in one of
         the recognized forms (e.g. None, list, dict, an unrecognized
-        string), the supplied `default` is returned. This makes the helper
+        string), the supplied default_value is returned. This makes the helper
         safe to call against partially-specified configs without having to
         pre-validate them.
 
         :param config: The config dict to read from.
         :param key: The key whose value should be interpreted as a bool.
-        :param default: The value to return when the key is missing or its
+        :param default_value: The value to return when the key is missing or its
                         value is not a recognized boolean-like form.
-        :return: The boolean interpretation of config[key], or default.
+        :return: The boolean interpretation of config[key], or default_value.
         """
         if key not in config:
-            return default
+            return default_value
 
         value: Any = config[key]
         if isinstance(value, bool):
@@ -69,9 +69,9 @@ class ConfigUtil:
                 return True
             if lowered in ("false", "no"):
                 return False
-            return default
+            return default_value
 
         if isinstance(value, int):
             return value != 0
 
-        return default
+        return default_value
