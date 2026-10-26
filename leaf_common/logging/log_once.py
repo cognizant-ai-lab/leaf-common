@@ -17,6 +17,7 @@
 
 from typing import Dict
 
+from logging import NOTSET
 from threading import Lock
 from typing_extensions import override
 
@@ -33,9 +34,10 @@ class LogOnce(AbstractConditionalLogger):
     All later calls with the same signature are dropped, for all LogOnce instances in the process.
     """
 
-    # Global class-variable record of the message signatures that a LogOnce instance has logged.
+    # Global class-variable record of the message signatures that a LogOnce instance has logged
+    # and at what log level (the integer).
     # All LogOnce instances share this dictionary.
-    SEEN_LOGGING_SIGNATURES: Dict[str, bool] = {}
+    SEEN_LOGGING_SIGNATURES: Dict[str, int] = {}
 
     # Makes the check-and-set on SEEN_LOGGING_SIGNATURES atomic across threads.
     SEEN_LOGGING_SIGNATURES_LOCK: Lock = Lock()
@@ -53,15 +55,16 @@ class LogOnce(AbstractConditionalLogger):
         should_log: bool = True
 
         # Don't hold the lock if we don't need to.
-        have_seen_message: bool = LogOnce.SEEN_LOGGING_SIGNATURES.get(message, False)
-        if have_seen_message:
+        last_log_level: int = LogOnce.SEEN_LOGGING_SIGNATURES.get(message, NOTSET)
+        if last_log_level >= log_level:
             should_log = False
         else:
             with LogOnce.SEEN_LOGGING_SIGNATURES_LOCK:
-                have_seen_message = LogOnce.SEEN_LOGGING_SIGNATURES.get(message, False)
-                if have_seen_message:
+                # Check again, now that we have the lock to avoid a race in a non-trivial decision
+                last_log_level = LogOnce.SEEN_LOGGING_SIGNATURES.get(message, NOTSET)
+                if last_log_level >= log_level:
                     should_log = False
                 else:
-                    LogOnce.SEEN_LOGGING_SIGNATURES[message] = True
+                    LogOnce.SEEN_LOGGING_SIGNATURES[message] = log_level
 
         return should_log
