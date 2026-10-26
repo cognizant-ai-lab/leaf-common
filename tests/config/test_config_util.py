@@ -40,7 +40,7 @@ class TestConfigUtilGetBool:
 
     def test_absent_key_returns_default_true_when_supplied(self):
         """When the key is missing, the explicit default is returned."""
-        assert ConfigUtil.get_bool({}, "streaming", default=True) is True
+        assert ConfigUtil.get_bool({}, "streaming", default_value=True) is True
 
     def test_unrelated_key_does_not_affect_lookup(self):
         """Only the requested key is consulted; siblings are ignored."""
@@ -73,7 +73,7 @@ class TestConfigUtilGetBool:
     def test_unrecognized_string_returns_default(self):
         """Strings that aren't yes/no/true/false fall back to default."""
         assert ConfigUtil.get_bool({"k": "maybe"}, "k") is False
-        assert ConfigUtil.get_bool({"k": "maybe"}, "k", default=True) is True
+        assert ConfigUtil.get_bool({"k": "maybe"}, "k", default_value=True) is True
         assert ConfigUtil.get_bool({"k": ""}, "k") is False
 
     # ---- Integer forms --------------------------------------------------------
@@ -93,7 +93,7 @@ class TestConfigUtilGetBool:
     def test_none_value_returns_default(self):
         """A literal None (e.g. HOCON `null`) falls back to default."""
         assert ConfigUtil.get_bool({"k": None}, "k") is False
-        assert ConfigUtil.get_bool({"k": None}, "k", default=True) is True
+        assert ConfigUtil.get_bool({"k": None}, "k", default_value=True) is True
 
     def test_list_value_returns_default(self):
         """Lists are not recognized; fall back to default."""
