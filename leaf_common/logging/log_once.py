@@ -49,9 +49,16 @@ class LogOnce(AbstractConditionalLogger):
 
         :param message: The message signature to check
         :param log_level: The log level of the message
-        :return: True if this is the first time the message signature is seen.
-                False if the message signature was seen before.
+        :return: True if this is the first time the message signature is seen
+                and the wrapped logger is enabled for the log level.
+                False if the message signature was seen before
+                or the wrapped logger is not enabled for the log level.
         """
+        # Do not record a message that the wrapped logger will not emit.
+        # This lets the message go through later, when the logger is enabled for its level.
+        if not self.logger.isEnabledFor(log_level):
+            return False
+
         should_log: bool = True
 
         # Don't hold the lock if we don't need to.

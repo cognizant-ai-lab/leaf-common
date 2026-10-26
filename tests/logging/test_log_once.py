@@ -85,3 +85,19 @@ class TestLogOnce(TestCase):
         logger: Logger = MagicMock()
         LogOnce(logger).exception("Failed %s", "op")
         logger.exception.assert_called_once_with("Failed %s", "op", exc_info=True)
+
+    def test_disabled_level_is_not_recorded(self) -> None:
+        """
+        A message at a level the wrapped logger does not emit is not recorded,
+        so it goes through later when the logger is enabled for that level.
+        """
+        logger: Logger = MagicMock()
+        logger.isEnabledFor.return_value = False
+        once = LogOnce(logger)
+        once.debug("Loaded %s", "abc")
+        logger.debug.assert_not_called()
+        self.assertNotIn("Loaded %s", LogOnce.SEEN_LOGGING_SIGNATURES)
+
+        logger.isEnabledFor.return_value = True
+        once.debug("Loaded %s", "xyz")
+        logger.debug.assert_called_once_with("Loaded %s", "xyz")
