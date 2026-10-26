@@ -57,7 +57,7 @@ class LogOnce(AbstractConditionalLogger):
             should_log = False
         else:
             with LogOnce.SEEN_LOGGING_SIGNATURES_LOCK:
-                have_seen_message: bool = LogOnce.SEEN_LOGGING_SIGNATURES.get(message, False)
+                have_seen_message = LogOnce.SEEN_LOGGING_SIGNATURES.get(message, False)
                 if have_seen_message:
                     should_log = False
                 else:
