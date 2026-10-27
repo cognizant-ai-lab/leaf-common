@@ -31,3 +31,6 @@ objsize>=0.8.0
 
 # For deprecated decorator use
 Deprecated>=1.2.13
+
+# For @override
+typing_extensions>=4.16.0

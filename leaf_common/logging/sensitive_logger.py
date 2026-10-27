@@ -17,10 +17,10 @@
 
 from logging import Logger
 
-from leaf_common.logging.conditional_logger import ConditionalLogger
+from leaf_common.logging.env_var_conditional_logger import EnvVarConditionalLogger
 
 
-class SensitiveLogger(ConditionalLogger):
+class SensitiveLogger(EnvVarConditionalLogger):
     """
     Wraps a logger to mask sensitive information.
     Uses the same general Logger interface as the whole world already uses.
