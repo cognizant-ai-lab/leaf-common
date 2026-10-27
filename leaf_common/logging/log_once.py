@@ -31,7 +31,8 @@ class LogOnce(AbstractConditionalLogger):
 
     The message signature is the first string argument (the format string) given to a logging call,
     before any % args are applied. The first call with a given signature goes to the wrapped logger.
-    All later calls with the same signature are dropped, for all LogOnce instances in the process.
+    Any later calls with the same signature are dropped for all LogOnce instances in the process,
+    as long as the message itself was already logged at or above the incoming log level.
     """
 
     # Global class-variable record of the message signatures that a LogOnce instance has logged
