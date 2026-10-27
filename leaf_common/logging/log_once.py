@@ -44,7 +44,7 @@ class LogOnce(AbstractConditionalLogger):
     SEEN_LOGGING_SIGNATURES_LOCK: Lock = Lock()
 
     @override
-    def should_log(self, message: str, log_level: int) -> bool:
+    def should_log(self, message: str = None, log_level: int = None) -> bool:
         """
         Records the message signature as seen.
 
@@ -55,6 +55,9 @@ class LogOnce(AbstractConditionalLogger):
                 False if the message signature was seen before
                 or the wrapped logger is not enabled for the log level.
         """
+        if message is None or log_level is None:
+            return False
+
         # Do not record a message that the wrapped logger will not emit.
         # This lets the message go through later, when the logger is enabled for its level.
         if not self.logger.isEnabledFor(log_level):
