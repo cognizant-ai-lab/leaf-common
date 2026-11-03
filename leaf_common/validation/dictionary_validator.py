@@ -18,7 +18,10 @@ from typing import Any
 from typing import Dict
 from typing import List
 
+from leaf_common.utils.interface import interface
 
+
+@interface
 class DictionaryValidator:
     """
     An interface for validating dictionaries of various meanings.

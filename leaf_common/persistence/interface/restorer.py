@@ -16,7 +16,10 @@
 # END COPYRIGHT
 from typing import Any
 
+from leaf_common.utils.interface import interface
 
+
+@interface
 class Restorer():
     """
     This interface provides a way to retrieve an object

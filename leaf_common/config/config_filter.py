@@ -18,7 +18,10 @@
 from typing import Any
 from typing import Dict
 
+from leaf_common.utils.interface import interface
 
+
+@interface
 class ConfigFilter():
     """
     Interface for modifying a config dictionary.

@@ -18,7 +18,10 @@
 from typing import Any
 from typing import IO
 
+from leaf_common.utils.interface import interface
 
+
+@interface
 class Deserializer():
     """
     An interface which takes a byte stream and deserializes from its format

@@ -17,7 +17,10 @@
 
 from typing import Any
 
+from leaf_common.utils.interface import interface
 
+
+@interface
 class Parser():
     """
     Interface for classes that take an object as input and turn that

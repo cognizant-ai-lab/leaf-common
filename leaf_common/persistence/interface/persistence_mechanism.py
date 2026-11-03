@@ -18,10 +18,11 @@
 from typing import Any
 from typing import IO
 
-from leaf_common.serialization.interface.file_extension_provider \
-    import FileExtensionProvider
+from leaf_common.serialization.interface.file_extension_provider import FileExtensionProvider
+from leaf_common.utils.interface import interface
 
 
+@interface
 class PersistenceMechanism():
     """
     Interface for a particular mechanism of persistence.

@@ -17,7 +17,10 @@
 from typing import Any
 from typing import Dict
 
+from leaf_common.utils.interface import interface
 
+
+@interface
 class DictionaryConverter():
     """
     Interface for converting objects back and forth to dictionaries.
