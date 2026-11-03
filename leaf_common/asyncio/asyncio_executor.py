@@ -39,6 +39,7 @@ from asyncio import Task
 from asyncio import all_tasks
 from asyncio import eager_task_factory
 from asyncio import gather
+from asyncio import get_running_loop
 from asyncio import run_coroutine_threadsafe
 from asyncio import set_event_loop
 from asyncio import to_thread
@@ -516,3 +517,17 @@ class AsyncioExecutor(TaskExecutor):
         if wait:
             self._thread.join()
         self._thread = None
+
+    def is_running_in_owned_loop(self) -> bool:
+        """
+        :return: True if we are running in the executor's event loop.
+        """
+        running_loop: AbstractEventLoop = None
+        try:
+            running_loop = get_running_loop()
+        except RuntimeError:
+            # No event loop is running on the current thread
+            return False
+
+        in_executor: bool = running_loop is self.get_event_loop()
+        return in_executor
