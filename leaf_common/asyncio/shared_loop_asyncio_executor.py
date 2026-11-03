@@ -105,10 +105,15 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
     _OWNING_ROOT: ClassVar[ContextVar[Tuple[Tuple["SharedLoopAsyncioExecutor", List[Future[Any]]], ...]]] = \
         ContextVar("shared_loop_owning_root", default=())
 
-    # max_workers is accepted so callers need not branch on executor type.
     # pylint: disable=unused-argument
-    # Optional: None is the real default, since no worker count is ever used.
     def __init__(self, max_workers: Optional[int] = None):
+        """
+        Constructor.
+
+        :param max_workers: Ignored.
+                            max_workers is accepted so callers need not branch on executor type.
+                            None is the real default, since no worker count is ever used.
+        """
         # Accepted for constructor compatibility; no worker threads are created.
         super().__init__()
         # Optional: both stay None until start() binds this executor to a loop.
@@ -125,11 +130,17 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
     # Optional: the docstring's "or None" is the type, now that the
     # TaskExecutor interface says so too.
     def get_event_loop(self) -> Optional[AbstractEventLoop]:
-        """Return the borrowed loop, or None before start()."""
+        """
+        Return the borrowed loop, or None before start().
+
+        :return: The borrowed loop, or None before start()
+        """
         return self._loop
 
     def start(self) -> None:
-        """Bind to the running loop and capture this request's ContextVars."""
+        """
+        Bind to the running loop and capture this request's ContextVars.
+        """
         if self._shutdown:
             raise RuntimeError("Cannot restart an executor after shutdown")
         # The loop this executor borrows for the rest of its life.
@@ -141,6 +152,11 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
             raise RuntimeError("Executor must be used on its original event loop")
 
     def _check_loop(self, *, allow_shutdown: bool = False) -> None:
+        """
+        Verify the executor is started and called from its own loop.
+
+        :param allow_shutdown: True to permit the check after shutdown
+        """
         if self._loop is None:
             raise RuntimeError("Call start() from async code before using the executor")
         if get_running_loop() is not self._loop:
@@ -150,10 +166,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
     # Callable[[], Any]: context.run() below passes no arguments.
     def initialize(self, init_function: Callable[[], Any]) -> None:
-        """Run a synchronous initializer in the request context; propagate errors.
+        """
+        Run a synchronous initializer in the request context; propagate errors.
 
         ContextVar changes apply to future submissions, not the calling task.
         Thread-local variables cannot provide request isolation on a shared loop.
+
+        :param init_function: A synchronous no-argument initializer
         """
         self._check_loop()
         result: Any = self._context.run(init_function)
@@ -165,7 +184,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
     @staticmethod
     def get_function_name(function: Union[Callable[..., Any], Awaitable[Any]],
                           submitter_id: str) -> str:
-        """Build the same submitter-prefixed task names as leaf-common."""
+        """
+        Build the same submitter-prefixed task names as leaf-common.
+
+        :param function: The callable or awaitable to name
+        :param submitter_id: Prefix for the name; omitted when empty
+        :return: The task name
+        """
         # Optional: None until one of the two branches below names the function.
         name: Optional[str] = None
         try:
@@ -182,10 +207,17 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
     # The union is what submit() accepts: anything else raises below.
     def submit(self, submitter_id: str, function: Union[Callable[..., Any], Awaitable[Any]], /,
                *args: Any, **kwargs: Any) -> Future[Any]:
-        """Schedule a callable or awaitable; return its task, including its result.
+        """
+        Schedule a callable or awaitable; return its task, including its result.
 
         Sync callables run inline when the task runs, never in a worker thread.
         Callable results that are awaitable are awaited as well.
+
+        :param submitter_id: Prefix for the task name
+        :param function: The callable or awaitable to run
+        :param args: args for the callable
+        :param kwargs: keyword args for the callable
+        :return: The owned Future for the submitted work
         """
         future: Future[Any] = None
         self._check_loop()
@@ -203,7 +235,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         return future
 
     async def _invoke(self, function: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
-        """Call a callable on the loop, awaiting its result when it is awaitable.
+        """
+        Call a callable on the loop, awaiting its result when it is awaitable.
 
         :param function: The callable to invoke
         :param args: args for the callable
@@ -228,7 +261,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
     def create_task(self, awaitable: Awaitable[Any], submitter_id: str,
                     raise_exception: bool = False) -> Future[Any]:
-        """Schedule an awaitable; optionally report failures to the loop handler.
+        """
+        Schedule an awaitable; optionally report failures to the loop handler.
 
         Accepts a coroutine, or any awaitable that runs inside the task this
         schedules. Work already being driven elsewhere is rejected: an existing
@@ -239,6 +273,11 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
         Awaiting the returned task always propagates its exception, regardless of
         raise_exception. The flag controls reporting of background failures only.
+
+        :param awaitable: The awaitable to schedule
+        :param submitter_id: Prefix for the task name
+        :param raise_exception: True to report background failures to the loop
+        :return: The owned Future for the scheduled work
         """
         self._check_loop()
         if not isawaitable(awaitable):
@@ -278,7 +317,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
     def _create_task_in_context(self, coroutine: Coroutine[Any, Any, Any], name: str,
                                 context: Context) -> Future[Any]:
-        """Schedule a coroutine so it runs in the given context.
+        """
+        Schedule a coroutine so it runs in the given context.
 
         CPython's AbstractEventLoop.create_task takes context=, but this class
         borrows the host's loop, and a hand-written loop need not implement the
@@ -315,7 +355,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
     @staticmethod
     def _takes_context(create_task: Callable[..., Any]) -> bool:
-        """Report whether a loop's create_task() accepts a context keyword.
+        """
+        Report whether a loop's create_task() accepts a context keyword.
 
         :param create_task: The bound create_task of the loop in use
         :return: True if context= can be passed. A loop whose signature cannot
@@ -343,7 +384,9 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
     @staticmethod
     async def _consume(awaitable: Awaitable[Any]) -> Any:
-        """Wrap a non-coroutine awaitable so it can be handed to create_task().
+        """
+        Wrap a non-coroutine awaitable so it can be handed to create_task().
+
         :param awaitable: The awaitable to await
         :return: Whatever the awaitable produces
         """
@@ -352,7 +395,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
     def _schedule(self, coroutine: Coroutine[Any, Any, Any], name: str,
                   raise_exception: bool) -> Future[Any]:
-        """Create a task on the host loop and take ownership of it.
+        """
+        Create a task on the host loop and take ownership of it.
 
         :param coroutine: The coroutine to schedule
         :param name: The task name to request
@@ -391,7 +435,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         return future
 
     def _track_task(self, task: Future[Any], raise_exception: bool = False) -> Future[Any]:
-        """Take ownership of a task on this loop (without changing its context).
+        """
+        Take ownership of a task on this loop (without changing its context).
 
         Internal: not part of the TaskExecutor interface, and deliberately not
         public. Ownership is only ever taken of work this executor scheduled
@@ -419,7 +464,11 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         return task
 
     def submission_done(self, task: Future[Any]) -> None:
-        """Release references and retrieve errors, including unawaited failures."""
+        """
+        Release references and retrieve errors, including unawaited failures.
+
+        :param task: The owned Future that just finished
+        """
         report: bool = self._tasks.get(task, False)
         del self._tasks[task]
 
@@ -438,12 +487,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
     @staticmethod
     def get_task_name(future: Future[Any]) -> str:
-        """Name a tracked task for reporting, whatever the factory produced.
+        """
+        Name a tracked task for reporting, whatever the factory produced.
 
         get_name() is an asyncio.Task method. A Future-compatible factory
         result need not have it, so fall back to repr().
 
-        :param task: The tracked Future to name
+        :param future: The tracked Future to name
         :return: The task's name, or its repr when it has none
         """
         # Task.get_name() -> str. Optional: a plain Future does not have one.
@@ -456,7 +506,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         return name
 
     def get_tracked_tasks(self) -> List[Future[Any]]:
-        """Report the tasks this executor owns, finished ones included.
+        """
+        Report the tasks this executor owns, finished ones included.
 
         Ownership bookkeeping is internal, so callers needing to see it, such
         as a pool rendering a task dump, ask here rather than reading the
@@ -467,7 +518,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         return list(self._tasks)
 
     def is_shutdown(self) -> bool:
-        """Report whether this executor has stopped accepting new work.
+        """
+        Report whether this executor has stopped accepting new work.
 
         ashutdown() and shutdown() set this before they do anything that can
         fail or be interrupted, so an owner that sees it set knows the executor
@@ -478,7 +530,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         return self._shutdown
 
     def has_pending_tasks(self) -> bool:
-        """Report whether any owned task is still running.
+        """
+        Report whether any owned task is still running.
 
         Unlike _pending(), this never raises when called from inside an owned
         task, because it is a question a caller may ask from anywhere.
@@ -493,7 +546,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         return False
 
     def _pending(self) -> List[Future[Any]]:
-        """Report unfinished owned tasks, refusing to run inside one of them.
+        """
+        Report unfinished owned tasks, refusing to run inside one of them.
 
         Cleanup that would wait on the execution performing it is rejected.
         The test is whether a still-pending owned task is an ancestor of the
@@ -526,7 +580,8 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
     def _push_owning_root(self, inherited: Tuple[Tuple["SharedLoopAsyncioExecutor", List[Future[Any]]], ...],
                           holder: List[Future[Any]]) -> None:
-        """Append this executor's ownership entry to the submitter's chain.
+        """
+        Append this executor's ownership entry to the submitter's chain.
 
         Must run inside the context being prepared, so the write lands there.
         The chain is passed in rather than read here because each task runs in
@@ -562,6 +617,12 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
     @staticmethod
     async def _drain(tasks: List[Future[Any]], timeout: Optional[float]) -> None:
+        """
+        Wait for tasks to finish, raising TimeoutError if any remain.
+
+        :param tasks: The tasks to wait on
+        :param timeout: Seconds to wait, or None to wait indefinitely
+        """
         if tasks:
             # A tuple unpack carries no annotation, so name the pair and index it.
             waited: Tuple[Set[Future[Any]], Set[Future[Any]]] = await wait_on_tasks(tasks, timeout=timeout)
@@ -570,10 +631,13 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
                 raise TimeoutError(f"{len(pending)} executor task(s) did not finish")
 
     async def cancel_current_tasks(self, timeout: float = 5.0) -> None:
-        """Cancel and await a snapshot of owned tasks; keep the executor reusable.
+        """
+        Cancel and await a snapshot of owned tasks; keep the executor reusable.
 
         Tasks that ignore cancellation remain tracked if the timeout expires.
         New tasks submitted during cancellation are outside this snapshot.
+
+        :param timeout: Seconds to wait for cancelled tasks to finish
         """
         self._check_loop(allow_shutdown=True)
         # The unfinished tasks this call will cancel and then wait on.
@@ -587,10 +651,15 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
 
     # Optional: None is the default, meaning wait without a deadline.
     async def ashutdown(self, *, cancel_futures: bool = True, timeout: Optional[float] = None) -> None:
-        """Reject submissions and await owned tasks without stopping the host loop.
+        """
+        Reject submissions and await owned tasks without stopping the host loop.
 
         By default cancel outstanding work. With cancel_futures=False, let it
         finish. A timeout does not drop ownership of unfinished tasks.
+
+        :param cancel_futures: True to cancel outstanding work first
+        :param timeout: Seconds to wait for owned tasks, or None to wait
+                    indefinitely
         """
         self._check_loop(allow_shutdown=True)
         # The unfinished tasks this call will wait on, cancelled or not.
@@ -605,7 +674,12 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         await self._drain(tasks, timeout)
 
     def shutdown(self, wait: bool = True, *, cancel_futures: bool = False) -> None:
-        """Nonblocking shutdown; use ashutdown() when pending work must be awaited."""
+        """
+        Nonblocking shutdown; use ashutdown() when pending work must be awaited.
+
+        :param wait: True to raise if owned tasks are still pending
+        :param cancel_futures: True to cancel outstanding work
+        """
         self._check_loop(allow_shutdown=True)
         # The unfinished tasks that make a blocking shutdown impossible.
         tasks: List[Future[Any]] = self._pending()
@@ -620,5 +694,23 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
                 use_task.cancel()
 
     def get_threads_metrics(self) -> Tuple[int, int]:
-        """This executor creates no threads."""
+        """
+        This executor creates no threads.
+
+        :return: A (0, 0) tuple, since there are no threads to count
+        """
         return 0, 0
+
+    def is_running_in_owned_loop(self) -> bool:
+        """
+        :return: True if we are running in the executor's event loop.
+        """
+        running_loop: AbstractEventLoop = None
+        try:
+            running_loop = get_running_loop()
+        except RuntimeError:
+            # No event loop is running on the current thread
+            return False
+
+        in_executor: bool = running_loop is self.get_event_loop()
+        return in_executor

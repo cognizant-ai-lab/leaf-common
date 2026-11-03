@@ -65,6 +65,14 @@ class SharedLoopAsyncioExecutorPool:
                  idle_timeout_seconds: float = DEFAULT_IDLE_TIMEOUT_SECONDS,
                  gc_sweep_interval_seconds: float = DEFAULT_GC_SWEEP_INTERVAL_SECONDS,
                  max_workers: Optional[int] = None):
+        """
+        Constructor.
+
+        :param reuse_mode: Ignored; this pool never reuses an executor
+        :param idle_timeout_seconds: Stored for compatibility; unused
+        :param gc_sweep_interval_seconds: Stored for compatibility; unused
+        :param max_workers: Passed to each new executor, which ignores it
+        """
         # Accept native pool options for import-level compatibility. There is
         # deliberately no reuse, idle expiry, worker pool, or cleanup thread.
         self.reuse_mode: bool = False
@@ -81,7 +89,8 @@ class SharedLoopAsyncioExecutorPool:
         self.pool_retiring: List[SharedLoopAsyncioExecutor] = []
 
     def get_executor(self) -> SharedLoopAsyncioExecutor:
-        """Return a fresh, started executor bound to the currently running loop.
+        """
+        Return a fresh, started executor bound to the currently running loop.
 
         :return: A new SharedLoopAsyncioExecutor, already started
         """
@@ -92,7 +101,8 @@ class SharedLoopAsyncioExecutorPool:
         return executor
 
     def return_executor(self, executor: SharedLoopAsyncioExecutor) -> None:
-        """Request cancellation and retire an executor without blocking.
+        """
+        Request cancellation and retire an executor without blocking.
 
         Ownership is KEPT until the executor's tasks actually end, so a task
         that catches CancelledError stays visible in metrics and task dumps.
@@ -113,7 +123,8 @@ class SharedLoopAsyncioExecutorPool:
     # Optional: None is the documented "wait indefinitely" value.
     async def areturn_executor(self, executor: SharedLoopAsyncioExecutor,
                                timeout: Optional[float] = None) -> None:
-        """Retire an executor and await its cleanup. The complete path.
+        """
+        Retire an executor and await its cleanup. The complete path.
 
         The executor keeps whatever ownership it already had until cleanup
         resolves one way or the other, and only then moves:
@@ -152,7 +163,8 @@ class SharedLoopAsyncioExecutorPool:
                 self._retire(executor)
 
     def shutdown(self, wait: bool = True) -> None:
-        """Shut the pool down. There is no GC thread to stop.
+        """
+        Shut the pool down. There is no GC thread to stop.
 
         Like leaf-common's pool.shutdown(), this does not close executors that
         are still checked out; return those individually.
@@ -171,7 +183,8 @@ class SharedLoopAsyncioExecutorPool:
 
     # Optional: None is the documented "wait indefinitely" value.
     async def ashutdown(self, timeout: Optional[float] = None) -> None:
-        """Drain every retiring executor, then give up ownership of them.
+        """
+        Drain every retiring executor, then give up ownership of them.
 
         Executors still checked out are left alone, as in shutdown(). An
         executor whose tasks outlast the timeout stays retiring.
@@ -186,7 +199,8 @@ class SharedLoopAsyncioExecutorPool:
             self._release(executor)
 
     def get_threads_metrics(self) -> Dict[str, Dict[str, int]]:
-        """Report pool occupancy, with zero worker threads throughout.
+        """
+        Report pool occupancy, with zero worker threads throughout.
 
         The native "used" and "available" buckets are joined by "retiring", so
         an executor that was returned while still running is counted rather
@@ -217,7 +231,8 @@ class SharedLoopAsyncioExecutorPool:
     # cross-thread probe here that could time out.
     # pylint: disable=unused-argument
     def dump_tasks_in_used_executors(self, per_loop_timeout_s: float = 2.0) -> Dict[str, Any]:
-        """Snapshot owned tasks directly; no cross-thread probe or timeout needed.
+        """
+        Snapshot owned tasks directly; no cross-thread probe or timeout needed.
 
         Covers retiring executors as well as used ones, each marked with
         "retiring", since a returned-but-still-running executor is exactly what
@@ -257,7 +272,8 @@ class SharedLoopAsyncioExecutorPool:
 
     @staticmethod
     def _describe_coro(task: Future[Any]) -> str:
-        """Describe what a tracked task is running, whatever the factory made.
+        """
+        Describe what a tracked task is running, whatever the factory made.
 
         get_coro() is an asyncio.Task method; a Future-compatible factory
         result need not have it. See the SharedLoopAsyncioExecutor class
@@ -285,12 +301,13 @@ class SharedLoopAsyncioExecutorPool:
 
     @staticmethod
     def _describe_stack(future: Future[Any]) -> List[Dict[str, Any]]:
-        """Render a tracked Future's suspended stack, when it can provide one.
+        """
+        Render a tracked Future's suspended stack, when it can provide one.
 
         get_stack() is an asyncio.Task method; a Future-compatible factory
         result need not have it, in which case there is no stack to show.
 
-        :param task: The tracked Future to describe
+        :param future: The tracked Future to describe
         :return: One dict per stack frame, or an empty list
         """
         # Task.get_stack(*, limit=None) -> List[FrameType]. Optional: a
@@ -314,7 +331,8 @@ class SharedLoopAsyncioExecutorPool:
         return frames
 
     def _check_owned(self, executor: SharedLoopAsyncioExecutor) -> None:
-        """Verify this pool handed the executor out and has not taken it back.
+        """
+        Verify this pool handed the executor out and has not taken it back.
 
         :param executor: The executor to check
         """
@@ -322,7 +340,8 @@ class SharedLoopAsyncioExecutorPool:
             raise ValueError(f"Returned executor {id(executor)} is not in the pool of used executors")
 
     def _retire(self, executor: SharedLoopAsyncioExecutor) -> None:
-        """Move a checked-out executor to the retiring list.
+        """
+        Move a checked-out executor to the retiring list.
 
         Idempotent, so a retry of areturn_executor() on an already retiring
         executor leaves it where it is.
@@ -335,7 +354,8 @@ class SharedLoopAsyncioExecutorPool:
             self.pool_retiring.append(executor)
 
     def _release(self, executor: SharedLoopAsyncioExecutor) -> None:
-        """Give up ownership of an executor whose cleanup is finished.
+        """
+        Give up ownership of an executor whose cleanup is finished.
 
         Covers both lists, since a drained executor may never have been
         retired at all.
@@ -348,7 +368,8 @@ class SharedLoopAsyncioExecutorPool:
             self.pool_retiring.remove(executor)
 
     def _prune_retired(self) -> None:
-        """Forget every retiring executor whose tasks have all finished.
+        """
+        Forget every retiring executor whose tasks have all finished.
 
         Called from the public methods rather than on a timer, since this pool
         has no GC thread and the shared loop gives us no other tick.
@@ -361,7 +382,12 @@ class SharedLoopAsyncioExecutorPool:
 
     @staticmethod
     def format_task_dump(dump: Dict[str, Any]) -> str:
-        """Render a task snapshot without importing the threaded implementation."""
+        """
+        Render a task snapshot without importing the threaded implementation.
+
+        :param dump: A snapshot from dump_tasks_in_used_executors()
+        :return: A human-readable multi-line rendering of the snapshot
+        """
         if not dump:
             return "(no used executors)"
         lines: List[str] = []

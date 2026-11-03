@@ -23,7 +23,10 @@ from typing import Union
 from asyncio import AbstractEventLoop
 from asyncio import Future
 
+from leaf_common.utils.interface import interface
 
+
+@interface
 class TaskExecutor:
     """
     Interface contract for a class managing execution
@@ -35,7 +38,7 @@ class TaskExecutor:
         :return: The AbstractEventLoop associated with this executor instance,
                     or None before start() has bound one.
         """
-        return None
+        raise NotImplementedError
 
     def start(self) -> None:
         """
@@ -95,5 +98,11 @@ class TaskExecutor:
         :param wait: True if we should wait for the background thread to join up.
                      False otherwise.  Default is True.
         :param cancel_futures: Ignored? Default is False.
+        """
+        raise NotImplementedError
+
+    def is_running_in_owned_loop(self) -> bool:
+        """
+        :return: True if we are running in the executor's event loop.
         """
         raise NotImplementedError

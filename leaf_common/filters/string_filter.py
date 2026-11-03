@@ -15,8 +15,11 @@
 #
 # END COPYRIGHT
 
+from leaf_common.utils.interface import interface
+
 
 # pylint: disable=too-few-public-methods
+@interface
 class StringFilter:
     """
     Interface whose filter() method takes one string and returns another string

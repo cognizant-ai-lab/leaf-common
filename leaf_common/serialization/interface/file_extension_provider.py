@@ -15,7 +15,10 @@
 #
 # END COPYRIGHT
 
+from leaf_common.utils.interface import interface
 
+
+@interface
 class FileExtensionProvider():
     """
     Interface whose implementations give a file extension.

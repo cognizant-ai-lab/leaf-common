@@ -19,8 +19,10 @@ from typing import Any
 from leaf_common.persistence.interface.persistor import Persistor
 from leaf_common.persistence.interface.restorer import Restorer
 from leaf_common.serialization.interface.file_extension_provider import FileExtensionProvider
+from leaf_common.utils.interface import interface
 
 
+@interface
 class Persistence(Persistor, Restorer, FileExtensionProvider):
     """
     Interface which allows multiple mechanisms of persistence for an object.

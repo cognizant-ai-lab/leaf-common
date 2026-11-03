@@ -20,10 +20,11 @@ from typing import IO
 
 from leaf_common.serialization.interface.deserializer import Deserializer
 from leaf_common.serialization.interface.serializer import Serializer
-from leaf_common.serialization.interface.file_extension_provider \
-    import FileExtensionProvider
+from leaf_common.serialization.interface.file_extension_provider import FileExtensionProvider
+from leaf_common.utils.interface import interface
 
 
+@interface
 class SerializationFormat(Serializer, Deserializer, FileExtensionProvider):
     """
     An interface which combines implementation aspects of a Serializer

@@ -17,7 +17,10 @@
 
 from typing import Any
 
+from leaf_common.utils.interface import interface
 
+
+@interface
 class ReferencePruner():
     """
     An interface whose implementations know how to prune/graft repeat

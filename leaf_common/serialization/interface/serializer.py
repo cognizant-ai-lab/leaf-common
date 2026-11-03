@@ -18,7 +18,10 @@
 from typing import Any
 from typing import IO
 
+from leaf_common.utils.interface import interface
 
+
+@interface
 class Serializer():
     """
     An interface which takes an object and serializes it into a particular
