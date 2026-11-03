@@ -65,6 +65,14 @@ class SharedLoopAsyncioExecutorPool:
                  idle_timeout_seconds: float = DEFAULT_IDLE_TIMEOUT_SECONDS,
                  gc_sweep_interval_seconds: float = DEFAULT_GC_SWEEP_INTERVAL_SECONDS,
                  max_workers: Optional[int] = None):
+        """
+        Constructor.
+
+        :param reuse_mode: Ignored; this pool never reuses an executor
+        :param idle_timeout_seconds: Stored for compatibility; unused
+        :param gc_sweep_interval_seconds: Stored for compatibility; unused
+        :param max_workers: Passed to each new executor, which ignores it
+        """
         # Accept native pool options for import-level compatibility. There is
         # deliberately no reuse, idle expiry, worker pool, or cleanup thread.
         self.reuse_mode: bool = False
@@ -299,7 +307,7 @@ class SharedLoopAsyncioExecutorPool:
         get_stack() is an asyncio.Task method; a Future-compatible factory
         result need not have it, in which case there is no stack to show.
 
-        :param task: The tracked Future to describe
+        :param future: The tracked Future to describe
         :return: One dict per stack frame, or an empty list
         """
         # Task.get_stack(*, limit=None) -> List[FrameType]. Optional: a
@@ -376,6 +384,9 @@ class SharedLoopAsyncioExecutorPool:
     def format_task_dump(dump: Dict[str, Any]) -> str:
         """
         Render a task snapshot without importing the threaded implementation.
+
+        :param dump: A snapshot from dump_tasks_in_used_executors()
+        :return: A human-readable multi-line rendering of the snapshot
         """
         if not dump:
             return "(no used executors)"
