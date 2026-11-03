@@ -101,7 +101,7 @@ class TaskExecutor:
         """
         raise NotImplementedError
 
-    def is_running_in_owned_loop() -> bool:
+    def is_running_in_owned_loop(self) -> bool:
         """
         :return: True if we are running in the executor's event loop.
         """
