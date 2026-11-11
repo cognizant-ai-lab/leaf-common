@@ -27,20 +27,11 @@ class ConfigUtil:
     """
 
     @staticmethod
-    # pylint: disable=too-many-return-statements
     def get_bool(config: Dict[str, Any], key: str, default: bool = False) -> bool:
         """
         Read a boolean-valued config entry, accepting common boolean-like
         forms found in configs sourced from HOCON, JSON, or environment
-        variables.
-
-        Recognized inputs:
-          - bool: returned as-is.
-          - str: case-insensitive match against "true"/"yes" -> True;
-                 case-insensitive match against "false"/"no" -> False.
-          - int: 0 -> False, any other int -> True. (Note: bool is checked
-                 first; Python's True/False would otherwise match the int
-                 branch since bool is a subclass of int.)
+        variables. See is_true() for the recognized forms.
 
         When the key is absent OR the value is present but not in one of
         the recognized forms (e.g. None, list, dict, an unrecognized
@@ -58,6 +49,27 @@ class ConfigUtil:
             return default
 
         value: Any = config[key]
+        value_boolean: bool = ConfigUtil.is_true(value, default)
+        return value_boolean
+
+    @staticmethod
+    # pylint: disable=too-many-return-statements
+    def is_true(value: Any, default: bool = False) -> bool:
+        """
+        Interpret a boolean-like value.
+
+        Recognized inputs:
+          - bool: returned as-is.
+          - str: case-insensitive match against "true"/"yes"/"on"/"1"/"enable"/"enabled" -> True;
+                 case-insensitive match against "false"/"no"/"off"/"0"/"disable"/"disabled" -> False.
+          - int/float: 0 -> False, any other number -> True. (Note: bool is checked
+                 first; Python's True/False would otherwise match the int
+                 branch since bool is a subclass of int.)
+
+        :param value: A boolean, string or integer/float value.
+        :param default: The value to return when the value is not a recognized boolean-like form.
+        :return: The boolean interpretation of the value, or default.
+        """
         if isinstance(value, bool):
             value_boolean: bool = value
             return value_boolean
@@ -65,13 +77,13 @@ class ConfigUtil:
         if isinstance(value, str):
             string_value: str = value
             lowered: str = string_value.strip().lower()
-            if lowered in ("true", "yes"):
+            if lowered in ("true", "yes", "on", "1", "enable", "enabled"):
                 return True
-            if lowered in ("false", "no"):
+            if lowered in ("false", "no", "off", "0", "disable", "disabled"):
                 return False
             return default
 
-        if isinstance(value, int):
+        if isinstance(value, (int, float)):
             return value != 0
 
         return default
