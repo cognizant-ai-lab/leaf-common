@@ -36,13 +36,6 @@ Rules for coding agents in leaf-common. Follow them and make sure the checks in 
 - **Docstrings on every class, function and method.** A class docstring explains its purpose and
   responsibilities. A function/method docstring covers what it does, its parameters, its return value, and any
   exception it raises, in this exact format:
-- Keep all code comments brief.
-- **Write all English in Simplified Technical English (ASD-STE100).** This applies to code comments,
-  docstrings, Markdown, commit messages and pull request descriptions. Use the approved words. Give each
-  word one meaning. Use the active voice. Keep each sentence short, and put one idea in each sentence.
-- Add code comments for every for loop.
-- Add type hints for every looping variable
-
   ```text
   """
   <summary of what the method does>
@@ -52,6 +45,12 @@ Rules for coding agents in leaf-common. Follow them and make sure the checks in 
   :return: <description>
   """
   ```
+- Keep all code comments brief.
+- **Write all English in Simplified Technical English (ASD-STE100).** This applies to code comments,
+  docstrings, Markdown, commit messages and pull request descriptions. Use the approved words. Give each
+  word one meaning. Use the active voice. Keep each sentence short, and put one idea in each sentence.
+- Add code comments for every for loop.
+- Add type hints for every looping variable
 
   One `:param` line per parameter, in order, using its exact name. Omit `:return:` only when the method returns
   `None`. Add `:raises <ExceptionType>: <description>` after `:return:` if the method can raise something worth
