@@ -45,7 +45,10 @@ class ConfigUtil:
                         value is not a recognized boolean-like form.
         :return: The boolean interpretation of config[key], or default.
         """
-        value: Any = config.get(key, default)
+        if key not in config:
+            return default
+
+        value: Any = config[key]
         value_boolean: bool = ConfigUtil.is_true(value, default)
         return value_boolean
 
