@@ -85,7 +85,7 @@ class DeprecationRedirect:
         for old_class in self.old_class_to_new_class.keys():
             use_class: str = old_class
             while "." in use_class:
-                old_module: str = self.get_module_from_fully_qualified(use_class)
+                old_module: str = DeprecationRedirect.get_module_from_fully_qualified(use_class)
                 resolve_to: str = f"{self.module_name}.{old_module}"
                 module_found: Any = resolver.resolve_class_in_module(
                     module_name=resolve_to, raise_if_not_found=False)
@@ -115,7 +115,7 @@ class DeprecationRedirect:
             self.warned.add(old_class)
 
             # Emit the deprecation warning
-            old_module: str = self.get_module_from_fully_qualified(fully_qualified_old_class)
+            old_module: str = DeprecationRedirect.get_module_from_fully_qualified(fully_qualified_old_class)
             full_ref: str = f"{self.module_name}.{old_module}.{old_class}"
             version: str = ""
             if self.next_version is not None:

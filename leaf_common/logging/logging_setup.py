@@ -332,4 +332,4 @@ class LoggingSetup():
 
         # Enable thread-local information to go into log messages
         ServiceLogRecord.set_up_record_factory(extras)
-        logging_setup.setup_extra_logging_fields(extra_logging_fields=extras)
+        LoggingSetup.setup_extra_logging_fields(extra_logging_fields=extras)

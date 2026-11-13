@@ -16,6 +16,7 @@
 # END COPYRIGHT
 from typing import Any
 from typing import IO
+from typing import List
 
 import io
 import os
@@ -83,7 +84,16 @@ class SimpleFilePersistence(Persistence):
 
         return obj
 
-    def get_file_extension(self) -> str | list[str]:
+    def get_file_reference(self, file_reference: str = None) -> str:
+        """
+        Gets the full file reference of the entity to persist or restore.
+
+        :param file_reference: The file reference to use
+        :return: The file reference with the file extension added if necessary
+        """
+        return self.affix_file_extension(file_reference)
+
+    def get_file_extension(self) -> str | List[str]:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".",

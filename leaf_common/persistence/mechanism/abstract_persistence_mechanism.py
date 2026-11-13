@@ -17,6 +17,7 @@
 
 from typing import Any
 from typing import IO
+from typing import List
 
 from os.path import join
 
@@ -91,7 +92,13 @@ class AbstractPersistenceMechanism(PersistenceMechanism):
 
         file_extension: str = ""
         if file_extension_provider is not None:
-            file_extension = file_extension_provider.get_file_extension()
+            provided_extension: str | List[str] = file_extension_provider.get_file_extension()
+            if isinstance(provided_extension, list):
+                # A list holds all valid extensions. Use the first one to make the path.
+                if len(provided_extension) > 0:
+                    file_extension = provided_extension[0]
+            else:
+                file_extension = provided_extension
 
         path: str = fixed_settings_path + file_extension
 
