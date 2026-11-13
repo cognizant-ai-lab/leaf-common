@@ -43,7 +43,7 @@ class AbstractConditionalLogger(ABC):
         self.logger: Logger = logger
 
     @abstractmethod
-    def should_log(self, message: str, log_level: int) -> bool:
+    def should_log(self, message: str = None, log_level: int = None) -> bool:
         """
         :param message: The message to log
         :param log_level: The log level of the message
