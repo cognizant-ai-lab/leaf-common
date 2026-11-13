@@ -39,6 +39,15 @@ class NullPersistence(Persistence):
         """
         return None
 
+    def get_file_reference(self, file_reference: str = None) -> str:
+        """
+        Gets the full file reference of the entity to persist or restore.
+
+        :param file_reference: The file reference to use
+        :return: The file reference passed in, without change
+        """
+        return file_reference
+
     def get_file_extension(self) -> str:
         """
         :return: A string representing a file extension for the

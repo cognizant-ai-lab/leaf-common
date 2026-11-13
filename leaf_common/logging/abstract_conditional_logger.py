@@ -17,6 +17,7 @@
 
 from typing import Any
 
+from abc import ABC
 from abc import abstractmethod
 
 from logging import CRITICAL
@@ -27,7 +28,7 @@ from logging import Logger
 from logging import WARNING
 
 
-class AbstractConditionalLogger:
+class AbstractConditionalLogger(ABC):
     """
     Wraps a logger to mask logged information conditionally based on
     the result of an abstract should_log() method.

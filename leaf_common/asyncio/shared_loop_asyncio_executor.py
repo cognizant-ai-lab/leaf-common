@@ -540,7 +540,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         """
         # Optional: None until the loop binds it, and stays None when empty.
         task: Optional[Future[Any]] = None
-        for task in self._tasks:
+        for task in self._tasks.keys():
             if not task.done():
                 return True
         return False
@@ -571,7 +571,7 @@ class SharedLoopAsyncioExecutor(TaskExecutor):
         tasks: List[Future[Any]] = []
         # Optional: None until the loop binds it, and stays None when empty.
         task: Optional[Future[Any]] = None
-        for task in self._tasks:
+        for task in self._tasks.keys():
             if not task.done():
                 tasks.append(task)
         if self._owns_current_execution(tasks) or current_task() in tasks:

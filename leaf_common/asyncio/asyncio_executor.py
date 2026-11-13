@@ -100,7 +100,7 @@ class AsyncioExecutor(TaskExecutor):
         if self._thread is not None:
             return
 
-        self._thread = Thread(target=self.loop_manager,
+        self._thread = Thread(target=AsyncioExecutor.loop_manager,
                               args=(self._loop, self._loop_ready),
                               daemon=True)
         self._thread.start()
@@ -121,7 +121,7 @@ class AsyncioExecutor(TaskExecutor):
             raise RuntimeError("Loop must be started before any function can "
                                "be submitted")
         self._init_done.clear()
-        self._loop.call_soon_threadsafe(self.run_initialization, init_function, self._init_done)
+        self._loop.call_soon_threadsafe(AsyncioExecutor.run_initialization, init_function, self._init_done)
         timeout: int = EXECUTOR_START_TIMEOUT_SECONDS
         was_set: bool = self._init_done.wait(timeout=timeout)
         if not was_set:

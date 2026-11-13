@@ -15,6 +15,8 @@
 #
 # END COPYRIGHT
 
+from typing import List
+
 from leaf_common.utils.interface import interface
 
 
@@ -24,7 +26,7 @@ class FileExtensionProvider():
     Interface whose implementations give a file extension.
     """
 
-    def get_file_extension(self) -> str | list[str]:
+    def get_file_extension(self) -> str | List[str]:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".",
