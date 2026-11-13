@@ -15,7 +15,7 @@
 #
 # END COPYRIGHT
 
-from os import getenv
+from os import environ
 
 
 class EnvironmentUtil():
@@ -33,5 +33,5 @@ class EnvironmentUtil():
         value: str = None
         if env_key is None:
             return value
-        value = getenv(env_key, default_value) or default_value
+        value = environ.get(env_key, default_value) or default_value
         return value
