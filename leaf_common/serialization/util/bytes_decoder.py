@@ -55,7 +55,7 @@ class BytesDecoder:
         for encoding in BytesDecoder.COMMON_ENCODINGS:
             use_encoding: str = encoding
             try:
-                return (bytes_data.decode(use_encoding), use_encoding)
+                return bytes_data.decode(use_encoding), use_encoding
             except UnicodeDecodeError:
                 continue
 
