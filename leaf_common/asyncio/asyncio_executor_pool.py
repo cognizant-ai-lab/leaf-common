@@ -19,6 +19,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import Tuple
 
 from copy import copy
 from asyncio import AbstractEventLoop
@@ -317,18 +318,17 @@ class AsyncioExecutorPool:
         used_running: int = 0
         available_threads: int = 0
         available_running: int = 0
-        threads: int = 0
-        running: int = 0
+        metrics: Tuple[int, int] = (0, 0)
         for executor in used_copy:
             use_executor: AsyncioExecutor = executor
-            threads, running = use_executor.get_threads_metrics()
-            used_threads += threads
-            used_running += running
+            metrics = use_executor.get_threads_metrics()
+            used_threads += metrics[0]
+            used_running += metrics[1]
         for executor in available_copy:
             use_executor: AsyncioExecutor = executor
-            threads, running = use_executor.get_threads_metrics()
-            available_threads += threads
-            available_running += running
+            metrics = use_executor.get_threads_metrics()
+            available_threads += metrics[0]
+            available_running += metrics[1]
         result_dict: Dict[str, Any] = {
             "used": {
                 "executors": len(used_copy),
