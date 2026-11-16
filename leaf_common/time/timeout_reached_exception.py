@@ -34,5 +34,5 @@ class TimeoutReachedException(Exception):
                 Note we do not type this to prevent circular dependencies
         """
 
-        Exception.__init__(self)
+        super().__init__()
         self.timeout: Any = timeout

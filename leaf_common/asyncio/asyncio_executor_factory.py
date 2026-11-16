@@ -16,7 +16,6 @@
 # END COPYRIGHT
 
 from typing import Any
-from typing import Type
 
 from leaf_common.asyncio.asyncio_executor_pool import AsyncioExecutorPool
 from leaf_common.asyncio.asyncio_executor_types import AsyncioExecutorTypes
@@ -94,16 +93,16 @@ class AsyncioExecutorFactory():
         :param max_workers: Maximum number of threads per executor.
         :return: A new executor pool of the requested type
         """
-        pool_class: Type[Any] = None
         if executor_type == AsyncioExecutorTypes.THREADED:
-            pool_class = AsyncioExecutorPool
-        elif executor_type == AsyncioExecutorTypes.SHARED_LOOP:
-            pool_class = SharedLoopAsyncioExecutorPool
-        if pool_class is None:
-            raise ValueError(
-                f"Unknown executor pool type '{executor_type}'. Expected one of: "
-                f"{', '.join(AsyncioExecutorTypes.ASYNCIO_EXECUTOR_TYPES)}")
-        return pool_class(reuse_mode,
-                          idle_timeout_seconds=idle_timeout_seconds,
-                          gc_sweep_interval_seconds=gc_sweep_interval_seconds,
-                          max_workers=max_workers)
+            return AsyncioExecutorPool(reuse_mode,
+                                       idle_timeout_seconds=idle_timeout_seconds,
+                                       gc_sweep_interval_seconds=gc_sweep_interval_seconds,
+                                       max_workers=max_workers)
+        if executor_type == AsyncioExecutorTypes.SHARED_LOOP:
+            return SharedLoopAsyncioExecutorPool(reuse_mode,
+                                                 idle_timeout_seconds=idle_timeout_seconds,
+                                                 gc_sweep_interval_seconds=gc_sweep_interval_seconds,
+                                                 max_workers=max_workers)
+        raise ValueError(
+            f"Unknown executor pool type '{executor_type}'. Expected one of: "
+            f"{', '.join(AsyncioExecutorTypes.ASYNCIO_EXECUTOR_TYPES)}")

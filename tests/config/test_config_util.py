@@ -15,6 +15,7 @@
 #
 # END COPYRIGHT
 
+from typing import List
 from unittest import TestCase
 
 from leaf_common.config.config_util import ConfigUtil
@@ -141,7 +142,7 @@ class TestConfigUtil(TestCase):
         """
         "on" / "1" / "enable" / "enabled" (case-insensitive, whitespace) -> True.
         """
-        true_strings: list[str] = ["on", "ON", "1", " 1 ", "enable", "Enabled", " ENABLED "]
+        true_strings: List[str] = ["on", "ON", "1", " 1 ", "enable", "Enabled", " ENABLED "]
         # Each true-like string must resolve to True, even when the default is False.
         for true_string in true_strings:
             true_string: str
@@ -151,7 +152,7 @@ class TestConfigUtil(TestCase):
         """
         "off" / "0" / "disable" / "disabled" (case-insensitive, whitespace) -> False.
         """
-        false_strings: list[str] = ["off", "OFF", "0", " 0 ", "disable", "Disabled", " DISABLED "]
+        false_strings: List[str] = ["off", "OFF", "0", " 0 ", "disable", "Disabled", " DISABLED "]
         # Each false-like string must resolve to False, even when the default is True.
         for false_string in false_strings:
             false_string: str

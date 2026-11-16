@@ -16,6 +16,7 @@
 # END COPYRIGHT
 
 from typing import Any
+from typing import List
 
 from leaf_common.persistence.factory.persistence_factory import PersistenceFactory
 from leaf_common.persistence.interface.persistence import Persistence
@@ -122,7 +123,7 @@ class AbstractEasyPersistence(Persistence):
         filename: str = self.persistence.get_file_reference(file_reference)
         return filename
 
-    def get_file_extension(self) -> str | list[str]:
+    def get_file_extension(self) -> str | List[str]:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".",

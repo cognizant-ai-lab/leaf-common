@@ -15,6 +15,7 @@
 #
 # END COPYRIGHT
 from typing import Any
+from typing import List
 
 from leaf_common.persistence.interface.persistor import Persistor
 from leaf_common.persistence.interface.restorer import Restorer
@@ -50,7 +51,19 @@ class Persistence(Persistor, Restorer, FileExtensionProvider):
         """
         raise NotImplementedError
 
-    def get_file_extension(self) -> str | list[str]:
+    def get_file_reference(self, file_reference: str = None) -> str:
+        """
+        Gets the full file reference of the entity to persist or restore.
+
+        :param file_reference: An optional file reference string to override
+                any file settings fixed at construct time. Default of None
+                indicates to resort to implementation's fixed file reference
+                settings.
+        :return: The full file reference of what is to be persisted
+        """
+        raise NotImplementedError
+
+    def get_file_extension(self) -> str | List[str]:
         """
         :return: A string representing a file extension for the
                 serialization method, including the ".",

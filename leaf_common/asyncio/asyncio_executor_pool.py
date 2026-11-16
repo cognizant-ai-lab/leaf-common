@@ -388,7 +388,7 @@ class AsyncioExecutorPool:
                 continue
 
             future: Future = run_coroutine_threadsafe(
-                self._collect_tasks_on_current_loop(), loop)
+                AsyncioExecutorPool._collect_tasks_on_current_loop(), loop)
             try:
                 tasks: List[Dict[str, Any]] = future.result(timeout=per_loop_timeout_s)
                 result[executor_key] = {"loop_state": "responded", "tasks": tasks}

@@ -122,7 +122,8 @@ class AsyncToSyncGenerator:
         while not done:
             try:
                 # Asynchronously call the anext() method on the asynchronous iterator
-                future: Future = self.asyncio_executor.submit(self.submitter_id, self.my_anext, async_iter)
+                future: Future = self.asyncio_executor.submit(self.submitter_id, AsyncToSyncGenerator.my_anext,
+                                                              async_iter)
 
                 # Wait for the result of the awaitable. It should be the iteration type.
                 iteration_result: Any = self.keep_alive_result
