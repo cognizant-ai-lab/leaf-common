@@ -244,8 +244,10 @@ class SharedLoopAsyncioExecutorPool:
         self._prune_retired()
         result: Dict[str, Any] = {}
         # One entry per owned executor; None until the loop binds one.
+        all_executors: List[SharedLoopAsyncioExecutor] = list(self.pool_used)
+        all_executors.extend(self.pool_retiring)
         executor: Optional[SharedLoopAsyncioExecutor] = None
-        for executor in self.pool_used + self.pool_retiring:
+        for executor in all_executors:
             tasks: List[Dict[str, Any]] = []
             # These executors share one loop: all_tasks() would incorrectly
             # attribute other requests' tasks to every executor.
